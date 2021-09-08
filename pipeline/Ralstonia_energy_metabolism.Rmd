@@ -1,0 +1,362 @@
+---
+title: "Investigating energy metabolism in *C. necator* using a barcoded transposon library"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+author: "Michael Jahn"
+output:
+  html_notebook: 
+    theme: cosmo
+    toc: yes
+    number_sections: true
+---
+
+# Description
+
+This R notebook is a bioinformatics pipeline to analyze fitness data obtained from a barcoded transposon library in *Ralstonia eutropha* a.k.a. *Cupriavidus necator*. For background and details regarding the method, see [Wetmore at al., mBio, 2015](https://mbio.asm.org/content/6/3/e00306-15) and [Price et al., Nature, 2018](http://www.nature.com/articles/s41586-018-0124-0)).
+
+One part of the data used here (growth on **fructose**, **succinate**, **formate**) was already published in a previous research article with focus on *C. necator*'s central carbon metabolism. The [preprint is available on BioRxiv](https://www.biorxiv.org/content/10.1101/2021.03.21.436304v2). The second part (autotrophic growth on **hydrogen**, anoxic growth with **nitrate respiration**) is new data that complements previous results. The focus of this pipeline is 
+
+
+# Libraries
+
+Optionally install required libraries, particularly custom packages from github.
+
+```{r, eval = FALSE}
+devtools::install_github("m-jahn/lattice-tools")
+```
+
+
+```{r}
+suppressPackageStartupMessages({
+  library(lattice)
+  library(latticeExtra)
+  library(latticetools)
+  library(tidyverse)
+  library(dendextend)
+  library(colorspace)
+  library(stringi)
+})
+```
+
+
+# Data import and processing
+
+Import the main data tables with gene fitness data for all conditions. Tables were obtained by processing sequencing data with a custom [BarSeq pipeline](https://github.com/m-jahn/rebar). The 32 generation sequencing samples are removed due to low diversity, leading to overall lower average read count per gene.
+
+```{r, message = FALSE}
+load("../data/barseq/20201222_fru_fitness.Rdata")
+df_fitness_frc <- fitness_gene %>% ungroup %>%
+  filter(condition != "long pulse", time != 32) %>%
+  mutate(ID = as.numeric(ID), substrate = "fructose",
+    condition = str_remove(condition, "short "))
+
+load("../data/barseq/20210407_suc_for_fitness.Rdata")
+df_fitness_suc <- fitness_gene %>% ungroup %>%
+  separate(condition, sep = "_", into = c("substrate", "condition"))
+
+load("../data/barseq/20210624_H2_NO3_fitness.Rdata")
+df_fitness_h2 <- fitness_gene %>% ungroup %>%
+  filter(condition %in% c("NO3", "H2")) %>%
+  mutate(substrate = recode(condition, NO3 = "nitrate", H2 = "hydrogen"),
+    condition = if_else(substrate == "nitrate", "continuous", "pulse"))
+
+# merge fitness tables
+df_fitness <- bind_rows(df_fitness_frc, df_fitness_suc, df_fitness_h2) %>%
+  rename(locus_tag = locusId)
+rm("df_fitness_frc", "df_fitness_suc", "df_fitness_h2", "fitness_gene")
+
+# import genome annotation
+df_ref <- read_csv("../data/ref/Ralstonia_H16_genome_annotation.csv",
+  col_types = cols()) %>%
+  filter(!duplicated(locus_tag)) %>%
+  mutate(eggNOG_name = if_else(is.na(eggNOG_name), gene_name, eggNOG_name))
+
+# define standard colors
+stdcol <- custom.colorblind()$superpose.line$col
+```
+
+# Gene fitness analysis
+
+## Depletion over time (generations)
+
+We can plot log2 FC or normalized gene fitness over generations. For this type of overview it is best to summarize individual replicates (4x) to the mean or median, per time point and condition. We also add genome annotation to the summary table. The plots shows that depletion of some strains is so strong already at 8 generations that fitness/log2 FC could not be quantified for 16 generations due to missing read counts. It is best to focus on 8 generations as because it provides a more complete picture.
+
+```{r, messages = FALSE}
+df_fitness_summary <- df_fitness %>%
+  group_by(locus_tag, scaffold, time, condition, substrate, strains_per_gene) %>%
+  summarize(
+    norm_gene_fitness_median = median(norm_gene_fitness, na.rm = TRUE),
+    log2FC_median = median(log2FC, na.rm = TRUE),
+    tstat_median = median(t, na.rm = TRUE)
+  ) %>%
+  left_join(df_ref) %>%
+  mutate(cond_short = if_else(condition == "pulse", "P", "C")) %>%
+  mutate(cond_short = paste0(substrate, " - ", cond_short) %>% factor(., unique(.)))
+
+levels(df_fitness_summary$cond_short)
+```
+
+
+```{r, fig.width = 6.5, fig.height = 8}
+plot_hist_log2FC <- df_fitness_summary %>%
+  filter(all(!is.infinite(log2FC_median))) %>%
+  group_by(condition, substrate) %>%
+  slice(1:1000) %>%
+  
+  xyplot(log2FC_median ~ time | substrate * condition, .,
+    groups = locus_tag, as.table = TRUE,
+    col = stdcol[1], alpha = 0.2, layout = c(5, 2),
+    xlab = "", ylab = expression("log"[2]*" FC"),
+    par.settings = custom.colorblind(), type = c("l"),
+    between = list(x = 0.5, y = 0.5),
+    scales = list(alternating = FALSE), lwd = 2,
+    panel = function(x, y, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.xyplot(x, y, ...)
+    }
+  )
+
+plot_hist_normfg <- df_fitness_summary %>%
+  filter(all(!is.infinite(log2FC_median))) %>%
+  group_by(condition, substrate) %>%
+  slice(1:1000) %>%
+  
+  xyplot(norm_gene_fitness_median ~ time | substrate * condition, .,
+    groups = locus_tag, as.table = TRUE,
+    col = stdcol[2], alpha = 0.2, layout = c(5, 2),
+    xlab = "generations", ylab = "fitness",
+    par.settings = custom.colorblind(), type = c("l"),
+    between = list(x = 0.5, y = 0.5),
+    scales = list(alternating = FALSE), lwd = 2,
+    panel = function(x, y, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.xyplot(x, y, ...)
+    }
+  )
+
+print(plot_hist_log2FC, position = c(0,0.47,1,1), more = TRUE)
+print(plot_hist_normfg, position = c(0,0,1,0.53))
+```
+
+
+## Comparing gene fitness between conditions
+
+Similarly to Figure 2 in [Wetmore et al, mBIO, 2015](https://mbio.asm.org/content/6/3/e00306-15), we can investigate condition-dependent gene fitness by comparing conditions and substrates one-on-one. The correlation between substrates and growth regimes (continuous, pulsed) is quite different. The strongest correlation does exist for the pulsed vs continuous regime for each substrate (R = 0.64 to 0.87). And for the pulsed conditions, comparison between substrates (R = 0.62 to 0.72).
+
+```{r, fig.width = 8, fig.height = 8, message = FALSE}
+df_fitness_comp <- df_fitness_summary %>% filter(time == 8) %>%
+  group_by(locus_tag) %>% mutate(tstat_median = min(tstat_median)) %>%
+  select(locus_tag, condition, substrate, norm_gene_fitness_median, gene_name, COG_Process, tstat_median) %>%
+  unite(condition, condition, substrate) %>%
+  pivot_wider(names_from = condition, values_from = norm_gene_fitness_median) %>%
+  filter(!is.na(locus_tag)) %>% ungroup
+
+custom_splom(df_fitness_comp %>%
+  select(matches("conti|pulse")), pch = 19, cex = 0.3, col = grey(0.4, 0.4))
+```
+
+```{r, include = FALSE}
+df_test_no3 <- read_tsv("/home/michael/Documents/SciLifeLab/Resources/rebar/data/20210624_barseq_mixed/results/result.poolcount") %>%
+  select(barcode, matches("NO3_")) %>%
+  pivot_longer(cols = matches("NO3_"), names_to = "condition", values_to = "count") %>%
+  separate(condition, sep = "_", into = c("condition", "time", "sample", "replicate")) %>%
+  group_by(barcode, time) %>%
+  summarize(count = mean(count)) %>%
+  pivot_wider(names_from = "time", values_from = "count")
+
+df_fitness_summary %>% ungroup %>%
+  filter(substrate == "hydrogen", condition == "pulse") %>%
+  select(locus_tag, norm_gene_fitness_median, time) %>%
+  pivot_wider(names_from = "time", values_from = "norm_gene_fitness_median")
+  
+  xyplot(log10(`8gen`) ~ log10(`0gen`), df_test_no3,
+    par.settings = custom.colorblind(),
+    pch = 19, alpha = 0.1, cex = 0.7, aspect = 1,
+    #xlim = c(-7, 4), ylim = c(-7, 4),
+    panel = function(x, y, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.xyplot(x, y, ...)
+    }
+  )
+```
+
+
+# Differential fitness of selected gene sets
+
+## Unsupervised clustering of genes/mutants by fitness
+
+Most genes correlate in fitness value between conditions. That means, only some genes have a **condition-specific fitness effect**, i.e. increase or decrease fitness of the respective strain in one substrate or growth regime specifically. This section investigates specific genes and their functions that show such differential fitness between conditions. A simple comparison of one condition versus another will not be helpful as there two many possible combinations. To identify interesting sets of genes, cluster analysis can be performed.
+
+```{r, fig.width = 10, fig.height = 1.5}
+# generate colorpalette for heatmap
+heat_cols <- diverging_hcl(n = 7, h = c(255, 12), c = c(50, 80), l = c(20, 97), power = c(1, 1.3))
+#heat_cols <- diverging_hcl(n = 7, h = c(340, 128), c = c(60, 80), l = c(30, 97), power = c(0.8, 1.5))
+#heat_cols <- diverging_hcl(n = 7, h = c(300, 128), c = c(30, 65), l = c(20, 95), power = c(1, 1.4))
+
+# create a matrix from wide fitness data for plotting heatmap
+mat_heatmap <- df_fitness_comp %>% ungroup %>%
+  select(-pulse_hydrogen) %>%
+  filter(if_any(.cols = matches("conti|pulse"), ~ !between(., -2, 2))) %>%
+  select(matches("locus_tag|conti|pulse")) %>%
+  # filter out NA rows, and replace extreme values
+  drop_na %>% mutate(across(matches("conti|pulse"), 
+    function(x) {y = replace(x, x > 6, 6); replace(y, y < -6, -6)})) %>%
+  column_to_rownames(var = "locus_tag") %>%
+  as.matrix
+
+# create cluster for reordering
+mat_cluster <- mat_heatmap %>% dist %>% hclust(method = "ward.D")
+mat_heatmap <- mat_heatmap[order.dendrogram(as.dendrogram(mat_cluster)), c(1,5,2,6,4,3,7)]
+
+# plot heatmap
+plot_heatmap <- levelplot(mat_heatmap,
+  par.settings = custom.colorblind(),
+  col.regions = colorRampPalette(heat_cols)(16),
+  at = seq(-6, 6, 1), aspect = "fill",
+  xlab = "", ylab = "", scales = list(x = list(draw = FALSE)),
+  panel = function(x, y, z, ...) {
+    panel.levelplot(x, y, z, ...)
+    panel.abline(h = 1:5+0.5, col = "white", lwd = 1.5)
+  }
+)
+
+print(plot_heatmap)
+```
+## Supervised analysis of energy metabaolism
+
+```{r}
+# generalized function to plot (small) heatmaps
+heatmap_fitness <- function(data, key = TRUE) {
+  
+  # make some small adjustments to optical appearance
+  data %>%
+  group_by(gene_name) %>% arrange(cond) %>%
+  mutate(norm_gene_fitness_median = replace(norm_gene_fitness_median, norm_gene_fitness_median < -6, -6)) %>%
+
+  # plot heatmap
+  levelplot(norm_gene_fitness_median ~ gene_name * factor(cond), .,
+    par.settings = custom.colorblind(), colorkey = key,
+    col.regions = colorRampPalette(heat_cols)(16),
+    at = seq(-6, 6, 1), aspect = "fill",
+    xlab = "", ylab = "", scales = list(cex = 0.7, x = list(rot = 90)),
+    panel = function(x, y, z, ...) {
+      panel.levelplot(x, y, z, ...)
+      panel.abline(v = seq_along(unique(x))+0.5, 
+        h = seq_along(unique(y))+0.5, col = "white", lwd = 2)
+    }
+  )
+}
+```
+
+### Substrate assimilation: hydrogenases & Co
+
+- **molybdenum cofactor biosynthesis**
+  - modAB = molybdenum transporter
+  - moaACDE = molybdopterin backbone biosynthesis
+  - moeA = molybdopterin molybdenum transferase
+  - mobAB = molybdenum cofactor guanylyltransferase, 
+  - mog = molybdopterin biosynthesis protein (role unclear?)
+
+- **formate dehydrogenase**
+  - fdsABCDG = primary soluble FDH
+  - fdwAB = secondary soluble FDH
+  - fdhABCD = primary membrane-bound FDH, 2 copies A1B1... and A2B2...
+  - fdoGHI = secondary membrane-bound FDH
+
+- **hydrogenase**
+  - hoxA = master regulator, 2-component system. HoxA is probably phosphorylated by a 
+    sensory component (hypX) and then acts in conjunction with sigma-54 as a transcriptional activator.
+  - hoxKGZ = membrane-bound hydrogenase
+  - hoxMLOQRTV = MBH accessory genes (cofactor incorporation, subunit assembly, 
+    and twin-arginine-dependent membrane translocation - TAT),
+    [Schubert et al., Mol Microbio, 2007](https://pubmed.ncbi.nlm.nih.gov/17850259/),
+    [Fritsch et al., J Bac, 2011](https://pubmed.ncbi.nlm.nih.gov/21441514/)
+    [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
+  - hoxN1, hoxN2 = Nickel/Cobalt transporters. HoxN2 51% identical on AA level but not functional,
+    [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
+  - hoxBC = regulatory hydrogenase RH, oxygen-resistant non-energy generating hydrogen sensor. 
+    HoxC is large active-site-containing subunit, hoxB small subunit HoxB carrying Fe-S clusters
+  - HoxJ =  RH binding signal transducer (?), histidine protein kinase
+    [Löscher et al., Chem Phys Chem, 2010](https://pubmed.ncbi.nlm.nih.gov/20340124/)
+    CO, thereby providing the carbonyl ligand for hydrogenases,
+    [Buerstel et al., PNAS, 2016](https://pubmed.ncbi.nlm.nih.gov/27930319/)
+  - hoxFUYH = soluble hydrogenase
+  - hoxW = soluble hydrogenase (HoxH-specific) C-terminal protease (maturation)
+  - hoxI = optional subunit of SH (hoxFUYH); specific reaction site for NADPH,
+    [Burgdorf et al., J Bac, 2005](https://pubmed.ncbi.nlm.nih.gov/15838039/)
+  - hypA1,B1,F1,C1,D1,E1 = metallocenter formation proteins for both MBH and SH
+  - hypX = CO cofactor formation for NiFe-hydrogenase. HypX converts formyl-THF into water and CO
+  
+  
+
+- **succinate dehydrogenase**
+
+
+
+
+```{r, fig.width = 10, fig.height = 6.0}
+plot_moco_fit <- df_fitness_summary %>% filter(time == 8, grepl("mo[aedbg]", gene_name)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "mo[aedbg]([A-Z0-9]+)?")) %>%
+  ungroup %>% arrange(gene_name) %>%
+  heatmap_fitness(key = FALSE)
+
+plot_fdh_fit <- df_fitness_summary %>% filter(time == 8, grepl("fd[swho]", gene_name)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "fd[swho][A-Z0-9]+")) %>%
+  mutate(gene_name = stri_replace_first_regex(gene_name, "fdhD$", "fdsC")) %>%
+  ungroup %>% arrange(gene_name) %>%
+  heatmap_fitness(key = FALSE)
+
+plot_hyd_fit <- df_fitness_summary %>% filter(time == 8, grepl("hox", gene_name)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "hox[A-Z0-9]+")) %>%
+  ungroup %>% mutate(gene_name = factor(gene_name, paste0("hox", c("A","K","G","Z","M",
+    "L","O","Q","R","T","V","N","N2","B","C","J",
+    "F","U","Y","H","W","I")))) %>%
+  heatmap_fitness(key = FALSE)
+
+print(plot_moco_fit, position = c(0, 0.475, 0.5, 1), more = TRUE)
+print(plot_fdh_fit, position = c(0.475, 0.49, 0.95, 1), more = TRUE)
+print(plot_hyd_fit, position = c(0, 0, 0.5, 0.5))
+```
+
+### Electron transport chain
+
+NDH, cytochrome reductases and oxygenases
+
+```
+S-FDH --> NADH --|
+                 |
+M-FDH --> Cytochrome C reductase (bc1 complex III) --> Cytochrome c553 () --> Cytochrome C oxidase (cbb3 complex IV) --> O2
+```
+
+What is known in literature about electron transport from formate to membrane?
+
+- main FDH is S-FDH both in terms of protein abundance, inducibility, and essentiality
+- cytochrome reductase bc1 complex (qcrABC) is **particularly important** during growth on formate (this study)
+- it is also **beneficial** during heterotrophic growth (slightly reduced fitness)
+- inhibition of this complex reduces growth in heterotrophy and lithotrophy (see Cramm 2006)
+- qcrC seems to be a cytochrome C that is mobile (?) and transports e- in membrane
+- bc1 complex functions in oxygen-limited respiration, therefore maybe no growth on formate and nitrate respiration?
+- bc1 complex deletion mutant was completely deficient in oxygen-limited growth on nitrate (Garg et al., 2018).
+- bc1 complex accepts reduced quinols as e- donor, pumps 4 H+ /2 e− via proton-motive Q cycle (quinol:cyt c oxidoreduction), and releases reduced cytochrome C e- carriers
+- Cytochrome c553 proteins are e- shuttles in membrane, between bc1 and respiration complexes (?)
+- cbb3-type cytochrome oxidase special member of the heme-copper oxidase family
+- "in Bradyrhizobium japonicum, this enzyme operates at extremely low partial pressures of oxygen" [Preisig et al., 1996]
+- **electron transport chain**
+  - petABC (aka qcrABC, `H16_A3398`, `H16_A3397`, `H16_A3396`) = cycochrome bc1 (reductase)
+  - cyc (`H16_A3451`), cytochrome c553. Other cytochrome c553 genes to include according to uniprot:
+    `H16_A0830`, `H16_A0846`, `H16_B1452`, `H16_A3576`, `H16_A1121`, `H16_A1120`
+  - ccoGNOP (`H16_A2316`, `H16_A2317`, `H16_A2318`, `H16_A2319`), cytochrome C oxidase (cbb3 type)
+  - VP2641 (`H16_A1031`) = Membrane spanning protein, RDD family. PFAM: unknown function, potential transporter? Interacts with cytochrome c553 and qcrC, cytochrome reductase. It's depletion implicates this protein in formate-specific e- transport in the membrane.
+
+```{r, fig.width = 10, fig.height = 6.0}
+plot_formate_fit_3 <- df_fitness_summary %>% filter(time == 8, locus_tag %in% c("H16_A3451", "H16_A0830",
+    "H16_A0846", "16_B1452", "H16_A3576", "H16_A1121", "H16_A1120", "H16_A1031") | 
+    grepl("qcr|cco|cta|cox[MNOPQ] |cyo|cyd", gene_name)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "H16_[AB][0-9]+|(qcr|cco|cta|cox|cyo|cyd)([A-Z0-9]+)?")) %>%
+  ungroup %>% arrange(
+    factor(str_sub(gene_name, 1, 3), c("cyo", "cyd", "qcr", "H16", "cox", "cta", "cco")), 
+    str_sub(gene_name, 4, 5)) %>%
+  heatmap_fitness()
+
+
+print(plot_formate_fit_3, position = c(0, 0, 1, 0.57))
+```

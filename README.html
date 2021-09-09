@@ -169,15 +169,15 @@ pre code {
 
 <div id="r-notebook-ralstonia-energy" class="section level1">
 <h1>R-notebook-ralstonia-energy</h1>
-<p>Pipelines for data analysis and visualization of the Ralstonia energy metabolism</p>
-<div id="overview" class="section level3">
-<h3>Overview</h3>
+<p>Pipelines for data analysis and visualization of the <em>Ralstonia</em> energy metabolism</p>
+<div id="overview" class="section level2">
+<h2>Overview</h2>
 <p>This repository contains pipelines for the analysis of the energy metabolism of <em>Ralstonia eutropha</em>, also known as <em>Cupriavidus necator</em>, a versatile litho-autotrophic bacterium. The repository contains next generation sequencing data obtained from a barcoded transposon library. Data processing visualization is documented in R notebooks (<code>*.Rmd</code>).</p>
-<p>All care was taken to guarantee scientific accuracy and adhere to good scientific practice in terms of statistics, reproducibility and code documentation. Please report any errors by filing a <a href="https://github.com/m-jahn/R-notebook-ralstonia-proteome/issues">github issue</a> for this repository, or contact <a href="mailto:michael.jahn@scilifelab.se" class="email">michael.jahn@scilifelab.se</a>.</p>
+<p>All care was taken to guarantee scientific accuracy and adhere to good scientific practice in terms of statistics, reproducibility and code documentation. Please report any errors by filing a <a href="https://github.com/m-jahn/R-notebook-ralstonia-energy/issues">github issue</a> for this repository, or contact <a href="mailto:michael.jahn@scilifelab.se" class="email">michael.jahn@scilifelab.se</a>.</p>
 </div>
-<div id="how-to-run-the-pipelines" class="section level3">
-<h3>How to run the pipelines</h3>
-<p>Data and pipelines collected in this repository are (to the most extent) self-contained and executable. The code <em>and</em> the documentation are part of one and the same R markdown document for each pipeline. The pipelines themselves can be downloaded and executed from the <code>pipeline</code> sub-folder. To simply view the rendered pipelines follow the links to the <code>*.html</code> reports under <a href="#Contents">Contents</a>.</p>
+<div id="how-to-run-the-pipelines" class="section level2">
+<h2>How to run the pipelines</h2>
+<p>Data and pipelines collected in this repository are self-contained and executable. The code <em>and</em> the documentation are part of one and the same R markdown document for each pipeline. The pipelines themselves can be downloaded and executed from the <code>pipeline</code> sub-folder. To simply view the rendered pipelines follow the links to the <code>*.html</code> reports under <a href="#Pipelines">Pipelines</a>.</p>
 <p>To download the repository on your local drive use <code>git clone</code> in a (linux) terminal:</p>
 <pre class="bash"><code>cd /your-target-folder
 git clone https://github.com/m-jahn/R-notebook-ralstonia-energy</code></pre>
@@ -185,9 +185,32 @@ git clone https://github.com/m-jahn/R-notebook-ralstonia-energy</code></pre>
 <pre class="bash"><code>require(rmarkdown)
 rmarkdown::render(&quot;pipeline.Rmd&quot;)</code></pre>
 </div>
-<div id="contents" class="section level3">
-<h3>Contents</h3>
-<p>Links will follow soon.</p>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<ul>
+<li><code>data/barseq/20201222_fru_fitness.Rdata</code>, competition experiments on fructose</li>
+<li><code>data/barseq/20210407_suc_for_fitness.Rdata</code>, competition experiments on formate and succinate</li>
+<li><code>data/barseq/20210624_H2_NO3_fitness.Rdata</code>, competition experiments on hydrogen and nitrate (anoxic growth)</li>
+<li><code>data/ref/Ralstonia_H16_genome_annotation.csv</code>, table with extensive genome annotation, from <a href="https://www.uniprot.org/uniprot/?query=proteome:UP000008210">uniprot.org</a></li>
+</ul>
+</div>
+<div id="libraries" class="section level2">
+<h2>Libraries</h2>
+<ul>
+<li><code>lattice</code></li>
+<li><code>latticeExtra</code></li>
+<li><a href="https://github.com/m-jahn/lattice-tools"><code>latticetools</code> from github</a></li>
+<li><code>tidyverse</code> (metapackage)</li>
+<li><code>dendextend</code></li>
+<li><code>colorspace</code></li>
+<li><code>stringi</code></li>
+</ul>
+</div>
+<div id="pipelines" class="section level2">
+<h2>Pipelines</h2>
+<ul>
+<li><a href="https://m-jahn.github.io/R-notebook-ralstonia-energy/Ralstonia_energy_metabolism.nb.html">Exploring energy metabolism in R. eutropha</a> using a barcoded transposon library. The library was cultivated in bioreactors with different substrate limitations. The depletion/enrichment of transposon mutants over time was tracked using next generation sequencing. This data was used to estimate the fitness contribution of each gene in each condition.</li>
+</ul>
 </div>
 </div>
 

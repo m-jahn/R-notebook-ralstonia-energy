@@ -88,9 +88,9 @@ df_fitness_summary <- df_fitness %>%
     log2FC_median = median(log2FC, na.rm = TRUE),
     tstat_median = median(t, na.rm = TRUE)
   ) %>%
-  left_join(df_ref) %>%
+  left_join(df_ref) %>% ungroup %>%
   mutate(cond_short = if_else(condition == "pulse", "P", "C")) %>%
-  mutate(cond_short = paste0(substrate, " - ", cond_short) %>% factor(., unique(.)))
+  mutate(cond_short = paste0(substrate, " - ", cond_short) %>% factor(., unique(.)[c(2,6,4,8,1,5,7,3)]))
 
 levels(df_fitness_summary$cond_short)
 ```
@@ -98,7 +98,6 @@ levels(df_fitness_summary$cond_short)
 
 ```{r, fig.width = 6.5, fig.height = 8}
 plot_hist_log2FC <- df_fitness_summary %>%
-  filter(all(!is.infinite(log2FC_median))) %>%
   group_by(condition, substrate) %>%
   slice(1:1000) %>%
   
@@ -116,7 +115,6 @@ plot_hist_log2FC <- df_fitness_summary %>%
   )
 
 plot_hist_normfg <- df_fitness_summary %>%
-  filter(all(!is.infinite(log2FC_median))) %>%
   group_by(condition, substrate) %>%
   slice(1:1000) %>%
   
@@ -229,14 +227,14 @@ heatmap_fitness <- function(data, key = TRUE) {
   
   # make some small adjustments to optical appearance
   data %>%
-  group_by(gene_name) %>% arrange(cond) %>%
+  #group_by(gene_name) %>% arrange(cond_short) %>%
   mutate(norm_gene_fitness_median = replace(norm_gene_fitness_median, norm_gene_fitness_median < -6, -6)) %>%
 
   # plot heatmap
-  levelplot(norm_gene_fitness_median ~ gene_name * factor(cond), .,
+  levelplot(norm_gene_fitness_median ~ factor(gene_name) * cond_short, .,
     par.settings = custom.colorblind(), colorkey = key,
     col.regions = colorRampPalette(heat_cols)(16),
-    at = seq(-6, 6, 1), aspect = "fill",
+    at = seq(-6, 6, 1), aspect = "iso",
     xlab = "", ylab = "", scales = list(cex = 0.7, x = list(rot = 90)),
     panel = function(x, y, z, ...) {
       panel.levelplot(x, y, z, ...)
@@ -256,11 +254,31 @@ heatmap_fitness <- function(data, key = TRUE) {
   - mobAB = molybdenum cofactor guanylyltransferase, 
   - mog = molybdopterin biosynthesis protein (role unclear?)
 
+
+```{r, fig.width = 7, fig.height = 3}
+plot_moco_fit <- df_fitness_summary %>% filter(time == 8, grepl("mo[aedbg]", gene_name)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "mo[aedbg]([A-Z0-9]+)?")) %>%
+  ungroup %>% arrange(gene_name) %>%
+  heatmap_fitness
+
+print(plot_moco_fit)
+```
+
 - **formate dehydrogenase**
   - fdsABCDG = primary soluble FDH
   - fdwAB = secondary soluble FDH
   - fdhABCD = primary membrane-bound FDH, 2 copies A1B1... and A2B2...
   - fdoGHI = secondary membrane-bound FDH
+
+```{r, fig.width = 7, fig.height = 3}
+plot_fdh_fit <- df_fitness_summary %>% filter(time == 8, grepl("fd[swho]", gene_name)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "fd[swho][A-Z0-9]+")) %>%
+  mutate(gene_name = stri_replace_first_regex(gene_name, "fdhD$", "fdsC")) %>%
+  ungroup %>% arrange(gene_name) %>%
+  heatmap_fitness
+
+print(plot_fdh_fit)
+```
 
 - **hydrogenase**
   - hoxA = master regulator, 2-component system. HoxA is probably phosphorylated by a 
@@ -283,71 +301,62 @@ heatmap_fitness <- function(data, key = TRUE) {
   - hoxW = soluble hydrogenase (HoxH-specific) C-terminal protease (maturation)
   - hoxI = optional subunit of SH (hoxFUYH); specific reaction site for NADPH,
     [Burgdorf et al., J Bac, 2005](https://pubmed.ncbi.nlm.nih.gov/15838039/)
-  - hypA1,B1,F1,C1,D1,E1 = metallocenter formation proteins for both MBH and SH
-  - hypX = CO cofactor formation for NiFe-hydrogenase. HypX converts formyl-THF into water and CO
-  
-  
-
-- **succinate dehydrogenase**
 
 
-
-
-```{r, fig.width = 10, fig.height = 6.0}
-plot_moco_fit <- df_fitness_summary %>% filter(time == 8, grepl("mo[aedbg]", gene_name)) %>%
-  mutate(gene_name = stri_extract_first_regex(gene_name, "mo[aedbg]([A-Z0-9]+)?")) %>%
-  ungroup %>% arrange(gene_name) %>%
-  heatmap_fitness(key = FALSE)
-
-plot_fdh_fit <- df_fitness_summary %>% filter(time == 8, grepl("fd[swho]", gene_name)) %>%
-  mutate(gene_name = stri_extract_first_regex(gene_name, "fd[swho][A-Z0-9]+")) %>%
-  mutate(gene_name = stri_replace_first_regex(gene_name, "fdhD$", "fdsC")) %>%
-  ungroup %>% arrange(gene_name) %>%
-  heatmap_fitness(key = FALSE)
-
+```{r, fig.width = 7, fig.height = 3}
 plot_hyd_fit <- df_fitness_summary %>% filter(time == 8, grepl("hox", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "hox[A-Z0-9]+")) %>%
   ungroup %>% mutate(gene_name = factor(gene_name, paste0("hox", c("A","K","G","Z","M",
     "L","O","Q","R","T","V","N","N2","B","C","J",
     "F","U","Y","H","W","I")))) %>%
-  heatmap_fitness(key = FALSE)
+  heatmap_fitness
 
-print(plot_moco_fit, position = c(0, 0.475, 0.5, 1), more = TRUE)
-print(plot_fdh_fit, position = c(0.475, 0.49, 0.95, 1), more = TRUE)
-print(plot_hyd_fit, position = c(0, 0, 0.5, 0.5))
+print(plot_hyd_fit)
 ```
+- **hydrogenase pleiotropy genes (maturation)**
+  - hypA1,B1,F1,C1,D1,E1 = metallocenter formation proteins for both MBH and SH. "HypC1, hypD1, 
+    and hypE1 are essential for SH and MBH maturation, while only one intact copy each of hypA,
+    hypB, and hypF is needed", [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
+  - hypX = CO cofactor formation for NiFe-hydrogenase. HypX converts formyl-THF into water and CO
+  - hypA2,B2,F2 = alternative genes for hypA1,B1,F1, not sufficient alone for Hyd formation
+  - hypF3,hypC2,hypD2,hypE2,hypA3,hypB3.   The   physiologicalfunction of these extrahypgenes is unclear. 
+
+```{r, fig.width = 7, fig.height = 3}
+plot_hyp_fit <- df_fitness_summary %>% filter(time == 8, grepl("hyp", gene_name)) %>%
+  # correct names of several hyp genes to make it more systematic
+  mutate(gene_name = gsub("hypA PHG094", "hypA2 PHG094", gene_name)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "hyp[A-Z0-9]+") %>%
+    recode(hypA = "hypA1", hypB = "hypB1", hypC = "hypC1", hypD = "hypD1", hypE = "hypE1")) %>%
+  ungroup %>% mutate(gene_name = factor(gene_name, paste0("hyp", c("A1","B1","C1","D1","E1",
+    "F1","X","A2","B2","C2","D2","E2","F2","A3","B3","F3")))) %>%
+  heatmap_fitness
+
+print(plot_hyp_fit)
+```
+
+- **succinate dehydrogenase**
+  - sdhABCD = membrane integral succinate dehydrogenase, reducing UQ to UQH2:
+    **all of its genes are strictly essential**, no KO mutants available
+
+- **NADH dehydrogenase**
+  - nuoABCDEFGHIJKLMN = membrane integral NADH dehydrogenase, oxidizes NADH, pumps 4 H+,
+    reduces UQ to UQH2: **all of its genes are strictly essential**, no KO mutants available
 
 ### Electron transport chain
 
-NDH, cytochrome reductases and oxygenases
+Cytochrome e- transport proteins, cytochrome reductases, and terminal oxidases.
 
-```
-S-FDH --> NADH --|
-                 |
-M-FDH --> Cytochrome C reductase (bc1 complex III) --> Cytochrome c553 () --> Cytochrome C oxidase (cbb3 complex IV) --> O2
-```
 
-What is known in literature about electron transport from formate to membrane?
+<!-- - **electron transport chain** -->
+<!--   - cyoA1B1C1D1, ... (3 copies) = bo3 complex, quinole oxidase, low O2 affinity -->
+<!--   - cydA1B1, ... (2 copies) = bd complex, quinole oxidase, high O2 affinity? -->
+<!--   - petABC (aka qcrABC, `H16_A3398`, `H16_A3397`, `H16_A3396`) = cycochrome bc1 (reductase) -->
+<!--   - cyc (`H16_A3451`), cytochrome c553. Other cytochrome c553 genes to include according to uniprot: -->
+<!--     `H16_A0830`, `H16_A0846`, `H16_B1452`, `H16_A3576`, `H16_A1121`, `H16_A1120` -->
+<!--   - ccoGNOP (`H16_A2316`, `H16_A2317`, `H16_A2318`, `H16_A2319`), cytochrome C oxidase (cbb3 type) -->
+<!--   - VP2641 (`H16_A1031`) = Membrane spanning protein, RDD family. PFAM: unknown function, potential transporter? Interacts with cytochrome c553 and qcrC, cytochrome reductase. It's depletion implicates this protein in formate-specific e- transport in the membrane. -->
 
-- main FDH is S-FDH both in terms of protein abundance, inducibility, and essentiality
-- cytochrome reductase bc1 complex (qcrABC) is **particularly important** during growth on formate (this study)
-- it is also **beneficial** during heterotrophic growth (slightly reduced fitness)
-- inhibition of this complex reduces growth in heterotrophy and lithotrophy (see Cramm 2006)
-- qcrC seems to be a cytochrome C that is mobile (?) and transports e- in membrane
-- bc1 complex functions in oxygen-limited respiration, therefore maybe no growth on formate and nitrate respiration?
-- bc1 complex deletion mutant was completely deficient in oxygen-limited growth on nitrate (Garg et al., 2018).
-- bc1 complex accepts reduced quinols as e- donor, pumps 4 H+ /2 e− via proton-motive Q cycle (quinol:cyt c oxidoreduction), and releases reduced cytochrome C e- carriers
-- Cytochrome c553 proteins are e- shuttles in membrane, between bc1 and respiration complexes (?)
-- cbb3-type cytochrome oxidase special member of the heme-copper oxidase family
-- "in Bradyrhizobium japonicum, this enzyme operates at extremely low partial pressures of oxygen" [Preisig et al., 1996]
-- **electron transport chain**
-  - petABC (aka qcrABC, `H16_A3398`, `H16_A3397`, `H16_A3396`) = cycochrome bc1 (reductase)
-  - cyc (`H16_A3451`), cytochrome c553. Other cytochrome c553 genes to include according to uniprot:
-    `H16_A0830`, `H16_A0846`, `H16_B1452`, `H16_A3576`, `H16_A1121`, `H16_A1120`
-  - ccoGNOP (`H16_A2316`, `H16_A2317`, `H16_A2318`, `H16_A2319`), cytochrome C oxidase (cbb3 type)
-  - VP2641 (`H16_A1031`) = Membrane spanning protein, RDD family. PFAM: unknown function, potential transporter? Interacts with cytochrome c553 and qcrC, cytochrome reductase. It's depletion implicates this protein in formate-specific e- transport in the membrane.
-
-```{r, fig.width = 10, fig.height = 6.0}
+```{r, fig.width = 7, fig.height = 3, include = FALSE}
 plot_formate_fit_3 <- df_fitness_summary %>% filter(time == 8, locus_tag %in% c("H16_A3451", "H16_A0830",
     "H16_A0846", "16_B1452", "H16_A3576", "H16_A1121", "H16_A1120", "H16_A1031") | 
     grepl("qcr|cco|cta|cox[MNOPQ] |cyo|cyd", gene_name)) %>%
@@ -360,3 +369,21 @@ plot_formate_fit_3 <- df_fitness_summary %>% filter(time == 8, locus_tag %in% c(
 
 print(plot_formate_fit_3, position = c(0, 0, 1, 0.57))
 ```
+
+
+<!-- **Conclusions**
+
+- **main FDH is S-FDH** both in terms of protein abundance, inducibility, and essentiality
+- **cytochrome reductase bc1 complex** (qcrABC) is particularly important for growth on formate
+- it is also **beneficial** during heterotrophic growth (slightly reduced fitness);
+  inhibition of this complex reduces growth in heterotrophy and lithotrophy, 
+  [Cramm R, J Mol Microbio Biotech, 2008](https://pubmed.ncbi.nlm.nih.gov/18957861/)
+- qcrC seems to be a cytochrome C that is mobile (?) and transports e- in membrane (reference?)
+- bc1 complex functions in oxygen-limited respiration, therefore maybe no simultaneous growth on formate and nitrate respiration?
+- bc1 complex deletion mutant was completely deficient in oxygen-limited growth on nitrate (Garg et al., 2018).
+- bc1 complex accepts reduced quinols as e- donor, pumps 4 H+ /2 e− via proton-motive Q cycle (quinol:cyt c oxidoreduction), and releases reduced cytochrome C e- carriers
+- Cytochrome c553 proteins are e- shuttles in membrane, between bc1 and respiration complexes (?)
+- cbb3-type cytochrome oxidase special member of the heme-copper oxidase family;
+  "in Bradyrhizobium japonicum, this enzyme operates at extremely low partial pressures of
+  oxygen" [Preisig et al., 1996]
+ -->

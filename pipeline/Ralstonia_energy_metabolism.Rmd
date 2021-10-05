@@ -13,7 +13,13 @@ output:
 
 This R notebook is a bioinformatics pipeline to analyze fitness data obtained from a barcoded transposon library in *Ralstonia eutropha* a.k.a. *Cupriavidus necator*. For background and details regarding the method, see [Wetmore at al., mBio, 2015](https://mbio.asm.org/content/6/3/e00306-15) and [Price et al., Nature, 2018](http://www.nature.com/articles/s41586-018-0124-0)).
 
-One part of the data used here (growth on **fructose**, **succinate**, **formate**) was already published in a previous research article with focus on *C. necator*'s central carbon metabolism. The [preprint is available on BioRxiv](https://www.biorxiv.org/content/10.1101/2021.03.21.436304v2). The second part (autotrophic growth on **hydrogen**, anoxic growth with **nitrate respiration**) is new data that complements previous results. The focus of this pipeline is 
+One part of the data used here (growth on **fructose**, **succinate**, **formate**) was already published in a previous research article with focus on *C. necator*'s central carbon metabolism. The [preprint is available on BioRxiv](https://www.biorxiv.org/content/10.1101/2021.03.21.436304v2). The second part (autotrophic growth on **hydrogen**, anoxic growth with **nitrate respiration**) is new data that complements previous results. The focus of this pipeline is to study the energy metabolism of *C. necator* in diverse conditions, each of it challenging a different aspect/machinery of metabolism. This investigation tries to answer the following key questions:
+
+1. Which genes are constituting the essential parts of the **hydrogenases and formate dehydrogenases**, enabling autotrophic lifestyle? Many things about the structure and function of these enzymes is already known, where do these results show differences?
+2. Which genes are **mandatory as accessory proteins**, for example cofactor synthesis, insertion, and enzyme maturation?
+3. Why does **KO of hydrogenases provides a growth benefit** in non-autotrophic conditions?
+4. What are the essential parts of the **electron transport chain**? What complexes are used specifically for some growth conditions?
+5. Is essentiality/fitness correlated with protein abundance? Is there a dosage effect, such that KO of a high abundant iso-enzyme has stronger fitness effect compared to a low-abundant?
 
 
 # Libraries
@@ -54,15 +60,18 @@ df_fitness_suc <- fitness_gene %>% ungroup %>%
   separate(condition, sep = "_", into = c("substrate", "condition"))
 
 load("../data/barseq/20210624_H2_NO3_fitness.Rdata")
+df_fitness_no3 <- fitness_gene %>% ungroup %>%
+  filter(condition %in% c("NO3")) %>%
+  mutate(substrate = "nitrate", condition = "continuous")
+
+load("../data/barseq/20210928_H2_fitness.Rdata")
 df_fitness_h2 <- fitness_gene %>% ungroup %>%
-  filter(condition %in% c("NO3", "H2")) %>%
-  mutate(substrate = recode(condition, NO3 = "nitrate", H2 = "hydrogen"),
-    condition = if_else(substrate == "nitrate", "continuous", "pulse"))
+  mutate(substrate = "hydrogen", condition = "pulse")
 
 # merge fitness tables
-df_fitness <- bind_rows(df_fitness_frc, df_fitness_suc, df_fitness_h2) %>%
+df_fitness <- bind_rows(df_fitness_frc, df_fitness_suc, df_fitness_no3, df_fitness_h2) %>%
   rename(locus_tag = locusId)
-rm("df_fitness_frc", "df_fitness_suc", "df_fitness_h2", "fitness_gene")
+rm("df_fitness_frc", "df_fitness_suc", "df_fitness_h2", "df_fitness_no3", "fitness_gene")
 
 # import genome annotation
 df_ref <- read_csv("../data/ref/Ralstonia_H16_genome_annotation.csv",
@@ -143,38 +152,12 @@ Similarly to Figure 2 in [Wetmore et al, mBIO, 2015](https://mbio.asm.org/conten
 ```{r, fig.width = 8, fig.height = 8, message = FALSE}
 df_fitness_comp <- df_fitness_summary %>% filter(time == 8) %>%
   group_by(locus_tag) %>% mutate(tstat_median = min(tstat_median)) %>%
-  select(locus_tag, condition, substrate, norm_gene_fitness_median, gene_name, COG_Process, tstat_median) %>%
-  unite(condition, condition, substrate) %>%
-  pivot_wider(names_from = condition, values_from = norm_gene_fitness_median) %>%
+  select(locus_tag, cond_short, norm_gene_fitness_median, gene_name, COG_Process, tstat_median) %>%
+  pivot_wider(names_from = cond_short, values_from = norm_gene_fitness_median) %>%
   filter(!is.na(locus_tag)) %>% ungroup
 
 custom_splom(df_fitness_comp %>%
-  select(matches("conti|pulse")), pch = 19, cex = 0.3, col = grey(0.4, 0.4))
-```
-
-```{r, include = FALSE}
-df_test_no3 <- read_tsv("/home/michael/Documents/SciLifeLab/Resources/rebar/data/20210624_barseq_mixed/results/result.poolcount") %>%
-  select(barcode, matches("NO3_")) %>%
-  pivot_longer(cols = matches("NO3_"), names_to = "condition", values_to = "count") %>%
-  separate(condition, sep = "_", into = c("condition", "time", "sample", "replicate")) %>%
-  group_by(barcode, time) %>%
-  summarize(count = mean(count)) %>%
-  pivot_wider(names_from = "time", values_from = "count")
-
-df_fitness_summary %>% ungroup %>%
-  filter(substrate == "hydrogen", condition == "pulse") %>%
-  select(locus_tag, norm_gene_fitness_median, time) %>%
-  pivot_wider(names_from = "time", values_from = "norm_gene_fitness_median")
-  
-  xyplot(log10(`8gen`) ~ log10(`0gen`), df_test_no3,
-    par.settings = custom.colorblind(),
-    pch = 19, alpha = 0.1, cex = 0.7, aspect = 1,
-    #xlim = c(-7, 4), ylim = c(-7, 4),
-    panel = function(x, y, ...) {
-      panel.grid(h = -1, v = -1, col = grey(0.9))
-      panel.xyplot(x, y, ...)
-    }
-  )
+  select(matches(" - [CP]")), pch = 19, cex = 0.3, col = grey(0.4, 0.4))
 ```
 
 
@@ -192,18 +175,17 @@ heat_cols <- diverging_hcl(n = 7, h = c(255, 12), c = c(50, 80), l = c(20, 97), 
 
 # create a matrix from wide fitness data for plotting heatmap
 mat_heatmap <- df_fitness_comp %>% ungroup %>%
-  select(-pulse_hydrogen) %>%
-  filter(if_any(.cols = matches("conti|pulse"), ~ !between(., -2, 2))) %>%
-  select(matches("locus_tag|conti|pulse")) %>%
+  filter(if_any(.cols = matches(" - [CP]"), ~ !between(., -2, 2))) %>%
+  select(matches("locus_tag| - [CP]")) %>%
   # filter out NA rows, and replace extreme values
-  drop_na %>% mutate(across(matches("conti|pulse"), 
+  drop_na %>% mutate(across(matches(" - [CP]"), 
     function(x) {y = replace(x, x > 6, 6); replace(y, y < -6, -6)})) %>%
   column_to_rownames(var = "locus_tag") %>%
   as.matrix
 
 # create cluster for reordering
 mat_cluster <- mat_heatmap %>% dist %>% hclust(method = "ward.D")
-mat_heatmap <- mat_heatmap[order.dendrogram(as.dendrogram(mat_cluster)), c(1,5,2,6,4,3,7)]
+mat_heatmap <- mat_heatmap[order.dendrogram(as.dendrogram(mat_cluster)), c(1,5,2,6,4,8,3,7)]
 
 # plot heatmap
 plot_heatmap <- levelplot(mat_heatmap,
@@ -245,14 +227,13 @@ heatmap_fitness <- function(data, key = TRUE) {
 }
 ```
 
-### Substrate assimilation: hydrogenases & Co
+### Molybdenum cofactor biosynthesis
 
-- **molybdenum cofactor biosynthesis**
-  - modAB = molybdenum transporter
-  - moaACDE = molybdopterin backbone biosynthesis
-  - moeA = molybdopterin molybdenum transferase
-  - mobAB = molybdenum cofactor guanylyltransferase, 
-  - mog = molybdopterin biosynthesis protein (role unclear?)
+- modAB = molybdenum transporter
+- moaACDE = molybdopterin backbone biosynthesis
+- moeA = molybdopterin molybdenum transferase
+- mobAB = molybdenum cofactor guanylyltransferase, 
+- mog = molybdopterin biosynthesis protein (role unclear?)
 
 
 ```{r, fig.width = 7, fig.height = 3}
@@ -264,11 +245,13 @@ plot_moco_fit <- df_fitness_summary %>% filter(time == 8, grepl("mo[aedbg]", gen
 print(plot_moco_fit)
 ```
 
-- **formate dehydrogenase**
-  - fdsABCDG = primary soluble FDH
-  - fdwAB = secondary soluble FDH
-  - fdhABCD = primary membrane-bound FDH, 2 copies A1B1... and A2B2...
-  - fdoGHI = secondary membrane-bound FDH
+### Formate dehydrogenase
+
+- fdsABCDG = primary soluble FDH
+- fdwAB = secondary soluble FDH
+- fdhABCD = primary membrane-bound FDH, 2 copies A1B1... and A2B2...
+- fdoGHI = secondary membrane-bound FDH
+
 
 ```{r, fig.width = 7, fig.height = 3}
 plot_fdh_fit <- df_fitness_summary %>% filter(time == 8, grepl("fd[swho]", gene_name)) %>%
@@ -279,28 +262,28 @@ plot_fdh_fit <- df_fitness_summary %>% filter(time == 8, grepl("fd[swho]", gene_
 
 print(plot_fdh_fit)
 ```
+### Hydrogenases
 
-- **hydrogenase**
-  - hoxA = master regulator, 2-component system. HoxA is probably phosphorylated by a 
-    sensory component (hypX) and then acts in conjunction with sigma-54 as a transcriptional activator.
-  - hoxKGZ = membrane-bound hydrogenase
-  - hoxMLOQRTV = MBH accessory genes (cofactor incorporation, subunit assembly, 
-    and twin-arginine-dependent membrane translocation - TAT),
-    [Schubert et al., Mol Microbio, 2007](https://pubmed.ncbi.nlm.nih.gov/17850259/),
-    [Fritsch et al., J Bac, 2011](https://pubmed.ncbi.nlm.nih.gov/21441514/)
-    [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
-  - hoxN1, hoxN2 = Nickel/Cobalt transporters. HoxN2 51% identical on AA level but not functional,
-    [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
-  - hoxBC = regulatory hydrogenase RH, oxygen-resistant non-energy generating hydrogen sensor. 
-    HoxC is large active-site-containing subunit, hoxB small subunit HoxB carrying Fe-S clusters
-  - HoxJ =  RH binding signal transducer (?), histidine protein kinase
-    [Löscher et al., Chem Phys Chem, 2010](https://pubmed.ncbi.nlm.nih.gov/20340124/)
-    CO, thereby providing the carbonyl ligand for hydrogenases,
-    [Buerstel et al., PNAS, 2016](https://pubmed.ncbi.nlm.nih.gov/27930319/)
-  - hoxFUYH = soluble hydrogenase
-  - hoxW = soluble hydrogenase (HoxH-specific) C-terminal protease (maturation)
-  - hoxI = optional subunit of SH (hoxFUYH); specific reaction site for NADPH,
-    [Burgdorf et al., J Bac, 2005](https://pubmed.ncbi.nlm.nih.gov/15838039/)
+- hoxA = master regulator, 2-component system. HoxA is probably phosphorylated by a 
+  sensory component (hypX) and then acts in conjunction with sigma-54 as a transcriptional activator.
+- hoxKGZ = membrane-bound hydrogenase
+- hoxMLOQRTV = MBH accessory genes (cofactor incorporation, subunit assembly, 
+  and twin-arginine-dependent membrane translocation - TAT),
+  [Schubert et al., Mol Microbio, 2007](https://pubmed.ncbi.nlm.nih.gov/17850259/),
+  [Fritsch et al., J Bac, 2011](https://pubmed.ncbi.nlm.nih.gov/21441514/)
+  [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
+- hoxN1, hoxN2 = Nickel/Cobalt transporters. HoxN2 51% identical on AA level but not functional,
+  [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
+- hoxBC = regulatory hydrogenase RH, oxygen-resistant non-energy generating hydrogen sensor. 
+  HoxC is large active-site-containing subunit, hoxB small subunit HoxB carrying Fe-S clusters
+- HoxJ =  RH binding signal transducer (?), histidine protein kinase
+  [Löscher et al., Chem Phys Chem, 2010](https://pubmed.ncbi.nlm.nih.gov/20340124/)
+  CO, thereby providing the carbonyl ligand for hydrogenases,
+  [Buerstel et al., PNAS, 2016](https://pubmed.ncbi.nlm.nih.gov/27930319/)
+- hoxFUYH = soluble hydrogenase
+- hoxW = soluble hydrogenase (HoxH-specific) C-terminal protease (maturation)
+- hoxI = optional subunit of SH (hoxFUYH); specific reaction site for NADPH,
+  [Burgdorf et al., J Bac, 2005](https://pubmed.ncbi.nlm.nih.gov/15838039/)
 
 
 ```{r, fig.width = 7, fig.height = 3}
@@ -313,13 +296,14 @@ plot_hyd_fit <- df_fitness_summary %>% filter(time == 8, grepl("hox", gene_name)
 
 print(plot_hyd_fit)
 ```
-- **hydrogenase pleiotropy genes (maturation)**
-  - hypA1,B1,F1,C1,D1,E1 = metallocenter formation proteins for both MBH and SH. "HypC1, hypD1, 
-    and hypE1 are essential for SH and MBH maturation, while only one intact copy each of hypA,
-    hypB, and hypF is needed", [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
-  - hypX = CO cofactor formation for NiFe-hydrogenase. HypX converts formyl-THF into water and CO
-  - hypA2,B2,F2 = alternative genes for hypA1,B1,F1, not sufficient alone for Hyd formation
-  - hypF3,hypC2,hypD2,hypE2,hypA3,hypB3.   The   physiologicalfunction of these extrahypgenes is unclear. 
+### Hydrogenase pleiotropy genes (maturation)
+
+- hypA1,B1,F1,C1,D1,E1 = metallocenter formation proteins for both MBH and SH. "HypC1, hypD1, 
+  and hypE1 are essential for SH and MBH maturation, while only one intact copy each of hypA,
+  hypB, and hypF is needed", [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
+- hypX = CO cofactor formation for NiFe-hydrogenase. HypX converts formyl-THF into water and CO
+- hypA2,B2,F2 = alternative genes for hypA1,B1,F1, not sufficient alone for Hyd formation
+- hypF3,hypC2,hypD2,hypE2,hypA3,hypB3. The physiological function of these extra hypgenes is unclear. 
 
 ```{r, fig.width = 7, fig.height = 3}
 plot_hyp_fit <- df_fitness_summary %>% filter(time == 8, grepl("hyp", gene_name)) %>%
@@ -334,6 +318,8 @@ plot_hyp_fit <- df_fitness_summary %>% filter(time == 8, grepl("hyp", gene_name)
 print(plot_hyp_fit)
 ```
 
+### Other complexes important in energy metabolism
+
 - **succinate dehydrogenase**
   - sdhABCD = membrane integral succinate dehydrogenase, reducing UQ to UQH2:
     **all of its genes are strictly essential**, no KO mutants available
@@ -346,30 +332,50 @@ print(plot_hyp_fit)
 
 Cytochrome e- transport proteins, cytochrome reductases, and terminal oxidases.
 
+- **quinol oxidases**
+  - cyoA1B1C1D1, ... (3 copies) = cytochrome bo3 complex, quinole oxidase, low O2 affinity
+  - cydA1B1, ... (2 copies) = cytochrome bd complex, quinole oxidase, high O2 affinity
+- **cytochrome reductases**
+  - qcrABC (aka petABC, `H16_A3398`, `H16_A3397`, `H16_A3396`) = cytochrome bc1 reductase
+- **cytochrome C e- carriers**
+  - cytochrome c553 according to uniprot: `H16_A3451`, `H16_A0830`, `H16_A0846`,
+    `H16_B1452`, `H16_A3576`, `H16_A1121`, `H16_A1120`. 
+    According to String DB, `H16_A3576` is in same operon as thiosulphate oxidation
+    pathway (SoxXYZABCD), where thiosulfate is used as electron source [Zhang et al., 2020](https://www.nature.com/articles/s41396-020-0684-5)
+- **terminal cytochrome C oxidases**
+  - coxMNOPQ = bb3 complex, affinity unknown?
+  - ctaABCDEG = aa3 complex, low O2 affinity
+  - ccoGNOP = cbb3 complex, high affinity, high similarity to NO3 reductase
+  - VP2641 (`H16_A1031`) = Membrane spanning protein, RDD family. PFAM: unknown function, 
+    potential transporter? Interacts with cytochrome c553 and qcrC, cytochrome reductase. 
+    It's depletion implicates this protein in formate-specific e- transport in the membrane.
 
-<!-- - **electron transport chain** -->
-<!--   - cyoA1B1C1D1, ... (3 copies) = bo3 complex, quinole oxidase, low O2 affinity -->
-<!--   - cydA1B1, ... (2 copies) = bd complex, quinole oxidase, high O2 affinity? -->
-<!--   - petABC (aka qcrABC, `H16_A3398`, `H16_A3397`, `H16_A3396`) = cycochrome bc1 (reductase) -->
-<!--   - cyc (`H16_A3451`), cytochrome c553. Other cytochrome c553 genes to include according to uniprot: -->
-<!--     `H16_A0830`, `H16_A0846`, `H16_B1452`, `H16_A3576`, `H16_A1121`, `H16_A1120` -->
-<!--   - ccoGNOP (`H16_A2316`, `H16_A2317`, `H16_A2318`, `H16_A2319`), cytochrome C oxidase (cbb3 type) -->
-<!--   - VP2641 (`H16_A1031`) = Membrane spanning protein, RDD family. PFAM: unknown function, potential transporter? Interacts with cytochrome c553 and qcrC, cytochrome reductase. It's depletion implicates this protein in formate-specific e- transport in the membrane. -->
-
-```{r, fig.width = 7, fig.height = 3, include = FALSE}
-plot_formate_fit_3 <- df_fitness_summary %>% filter(time == 8, locus_tag %in% c("H16_A3451", "H16_A0830",
+```{r, fig.width = 9, fig.height = 3}
+plot_etc_fit <- df_fitness_summary %>% filter(time == 8, locus_tag %in% c("H16_A3451", "H16_A0830",
     "H16_A0846", "16_B1452", "H16_A3576", "H16_A1121", "H16_A1120", "H16_A1031") | 
     grepl("qcr|cco|cta|cox[MNOPQ] |cyo|cyd", gene_name)) %>%
-  mutate(gene_name = stri_extract_first_regex(gene_name, "H16_[AB][0-9]+|(qcr|cco|cta|cox|cyo|cyd)([A-Z0-9]+)?")) %>%
-  ungroup %>% arrange(
-    factor(str_sub(gene_name, 1, 3), c("cyo", "cyd", "qcr", "H16", "cox", "cta", "cco")), 
-    str_sub(gene_name, 4, 5)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "H16_[AB][0-9]+|(qcr|cco|cta|cox|cyo|cyd)([A-Z0-9]+)?") %>%
+    factor(c(
+      paste0("cyo", c("A1","A2","A3","B1","B2","B3","C1","C2","D1","D2")),
+      paste0("cyd", c("A1","B1","B2")), paste0("qcr", c("A","B","C")),
+      paste0("H16_", c("A3576","A0846","A1120","A1121","A1031","A3451")),
+      paste0("cox", c("M","N","O","P","Q")), paste0("cta", c("A","B","C","D","E","G")),
+      paste0("cco", c("G","N","O","P"))
+    ))
+  ) %>% heatmap_fitness()
+
+print(plot_etc_fit)
+```
+### Nitrate respiration
+
+```{r, fig.width = 9, fig.height = 3}
+plot_nit_fit <- df_fitness_summary %>%
+  filter(time == 8, grepl("nar|nas|nap", gene_name)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "(nar|nas|nap)([A-Z0-9]+)?")) %>%
   heatmap_fitness()
 
-
-print(plot_formate_fit_3, position = c(0, 0, 1, 0.57))
+print(plot_nit_fit)
 ```
-
 
 <!-- **Conclusions**
 
@@ -387,3 +393,9 @@ print(plot_formate_fit_3, position = c(0, 0, 1, 0.57))
   "in Bradyrhizobium japonicum, this enzyme operates at extremely low partial pressures of
   oxygen" [Preisig et al., 1996]
  -->
+ 
+# Session Info
+
+```{r}
+sessionInfo()
+```

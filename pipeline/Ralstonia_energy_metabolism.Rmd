@@ -40,7 +40,15 @@ suppressPackageStartupMessages({
   library(dendextend)
   library(colorspace)
   library(stringi)
+  library(vegan)
+  library(tsne)
 })
+```
+
+Define a custom set of colors.
+
+```{r}
+custom_colors <- colorRampPalette(custom.colorblind()$superpose.line$col[1:3])(7)
 ```
 
 
@@ -147,7 +155,7 @@ print(plot_hist_normfg, position = c(0,0,1,0.53))
 
 ## Comparing gene fitness between conditions
 
-Similarly to Figure 2 in [Wetmore et al, mBIO, 2015](https://mbio.asm.org/content/6/3/e00306-15), we can investigate condition-dependent gene fitness by comparing conditions and substrates one-on-one. The correlation between substrates and growth regimes (continuous, pulsed) is quite different. The strongest correlation does exist for the pulsed vs continuous regime for each substrate (R = 0.64 to 0.87). And for the pulsed conditions, comparison between substrates (R = 0.62 to 0.72).
+Similarly to Figure 2 in [Wetmore et al, mBIO, 2015](https://mbio.asm.org/content/6/3/e00306-15), we can investigate condition-dependent gene fitness by comparing conditions and substrates one-on-one. The correlation between substrates and growth regimes (continuous, pulsed) is quite different. The strongest correlation is present in the pulsed vs continuous regime for each substrate (R = 0.64 to 0.87), and within the pulsed conditions the comparison between substrates (R = 0.62 to 0.72).
 
 ```{r, fig.width = 8, fig.height = 8, message = FALSE}
 df_fitness_comp <- df_fitness_summary %>% filter(time == 8) %>%
@@ -161,17 +169,13 @@ custom_splom(df_fitness_comp %>%
 ```
 
 
-# Differential fitness of selected gene sets
+# Unsupervised clustering of genes by fitness
 
-## Unsupervised clustering of genes/mutants by fitness
+Most genes correlate in fitness value between conditions. That means, only some genes have a **condition-specific fitness effect**, i.e. increase or decrease fitness of the respective strain in one substrate or growth regime specifically. This section investigates specific genes and their functions that show such differential fitness between conditions. A simple comparison of one condition versus another will not be helpful as there two many possible combinations. To identify interesting sets of genes, cluster analysis can be performed. The first step is to generate a matrix from reformatted fitness data, and  cluster genes by similarity using a generic clustering algorithm such as `hclust(method = "ward.D")`.
 
-Most genes correlate in fitness value between conditions. That means, only some genes have a **condition-specific fitness effect**, i.e. increase or decrease fitness of the respective strain in one substrate or growth regime specifically. This section investigates specific genes and their functions that show such differential fitness between conditions. A simple comparison of one condition versus another will not be helpful as there two many possible combinations. To identify interesting sets of genes, cluster analysis can be performed.
-
-```{r, fig.width = 10, fig.height = 1.5}
+```{r}
 # generate colorpalette for heatmap
 heat_cols <- diverging_hcl(n = 7, h = c(255, 12), c = c(50, 80), l = c(20, 97), power = c(1, 1.3))
-#heat_cols <- diverging_hcl(n = 7, h = c(340, 128), c = c(60, 80), l = c(30, 97), power = c(0.8, 1.5))
-#heat_cols <- diverging_hcl(n = 7, h = c(300, 128), c = c(30, 65), l = c(20, 95), power = c(1, 1.4))
 
 # create a matrix from wide fitness data for plotting heatmap
 mat_heatmap <- df_fitness_comp %>% ungroup %>%
@@ -184,9 +188,22 @@ mat_heatmap <- df_fitness_comp %>% ungroup %>%
   as.matrix
 
 # create cluster for reordering
-mat_cluster <- mat_heatmap %>% dist %>% hclust(method = "ward.D")
+mat_cluster <- mat_heatmap %>% dist %>% hclust(method = "ward.D2")
 mat_heatmap <- mat_heatmap[order.dendrogram(as.dendrogram(mat_cluster)), c(1,5,2,6,4,8,3,7)]
+```
 
+The second step is to find the optimal number of clusters for subdividing the data set. Silhouette analysis can be used for this purpose. However, the result is not entirely clear, but suggests a number of 4 to 10 clusters would give good separation.
+
+```{r, fig.width = 4, fig.height = 4}
+#devtools::install_github("m-jahn/Rtools")
+set.seed(123)
+silhouette_result <- Rtools::silhouette_analysis(mat = mat_heatmap, n = 2:20)
+print(silhouette_result$plot.summary)
+n_clusters = 7
+```
+
+
+```{r, fig.width = 10, fig.height = 4.0, warning = FALSE}
 # plot heatmap
 plot_heatmap <- levelplot(mat_heatmap,
   par.settings = custom.colorblind(),
@@ -199,9 +216,72 @@ plot_heatmap <- levelplot(mat_heatmap,
   }
 )
 
-print(plot_heatmap)
+plot_cluster_dend <- mat_cluster %>% as.dendrogram %>%
+  set("branches_k_col", custom_colors[1:7], k = 7) %>%
+  set("branches_lwd", 0.5) %>%
+  as.ggdend %>%
+  ggplot(labels = FALSE)
+
+gridExtra::grid.arrange(
+  # coords for unit: top, right, bottom, left
+  plot_cluster_dend + 
+    theme(plot.margin = unit(c(0.1, 0.05, -0.26, 0.085),"npc")),
+  plot_heatmap,
+  nrow = 2
+)
 ```
-## Supervised analysis of energy metabaolism
+
+
+The heat map clusters genes together that show similar expression over different conditions. Alternatively, we can use dimensionality reduction to identify clusters of genes that are similar, e.g. through **PCA**, **NMDS**, or **t-SNE**. 
+
+
+```{r, fig.width = 8, fig.height = 4}
+# set a seed to obtain same pattern for stochastic methods
+set.seed(123)
+
+# run nMDS analysis
+NMDS <- mat_heatmap %>% dist %>% metaMDS
+df_nmds <- NMDS$points %>% as_tibble(rownames = "locus") %>%
+  left_join(enframe(cutreeord(mat_cluster, k = 7), "locus", "cluster"))
+
+# run t-SNE analysis
+SNE <- tsne(mat_heatmap %>% dist)
+df_tsne <- SNE %>% setNames(c("x", "y")) %>% as_tibble %>%
+  mutate(locus = rownames(mat_heatmap)) %>%
+  left_join(enframe(cutreeord(mat_cluster, k = 7), "locus", "cluster"))
+
+plot_nmds <- df_nmds %>% 
+  xyplot(MDS2 ~ MDS1, .,
+    groups = cluster, col = custom_colors,
+    par.settings = custom.colorblind(),
+    aspect = 1, main = "nMDS",
+    panel = function(x, y, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.xyplot(x, y, ...)
+      panel.key(..., cex = 0.7, corner = c(0.02, 0.98))
+    }
+  )
+
+plot_tsne <- df_tsne %>% 
+  xyplot(V2 ~ V1, .,
+    groups = cluster, col = custom_colors,
+    par.settings = custom.colorblind(),
+    aspect = 1,  main = "t-SNE",
+    panel = function(x, y, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.xyplot(x, y, ...)
+      panel.key(..., cex = 0.7, corner = c(0.02, 0.98))
+    }
+  )
+
+print(plot_nmds, split = c(1,1,2,1), more = TRUE)
+print(plot_tsne, split = c(2,1,2,1))
+```
+
+
+# Supervised analysis of energy metabaolism
+
+Generalized function plot (small) heatmaps.
 
 ```{r}
 # generalized function to plot (small) heatmaps
@@ -209,8 +289,8 @@ heatmap_fitness <- function(data, key = TRUE) {
   
   # make some small adjustments to optical appearance
   data %>%
-  #group_by(gene_name) %>% arrange(cond_short) %>%
-  mutate(norm_gene_fitness_median = replace(norm_gene_fitness_median, norm_gene_fitness_median < -6, -6)) %>%
+  mutate(norm_gene_fitness_median = norm_gene_fitness_median %>%
+    replace(., . < -6, -6) %>% replace(., . > 6, 6)) %>%
 
   # plot heatmap
   levelplot(norm_gene_fitness_median ~ factor(gene_name) * cond_short, .,
@@ -227,7 +307,36 @@ heatmap_fitness <- function(data, key = TRUE) {
 }
 ```
 
-### Molybdenum cofactor biosynthesis
+Generalized function to plot genes for different regions of the genome.
+
+```{r}
+genome_plot <- function(df, xlim = NULL, title = "") {
+  theme = custom.colorblind(col = c(grey(0.7), grey(0.85)))
+  theme$axis.line$col = "transparent"
+  theme$axis.text$col = grey(0.3)
+  theme$axis.text$cex = 0.7
+  
+  if (!is.null(xlim))
+    xscale = list(limits = xlim)
+  else 
+    xscale = list()
+  xyplot(end/1000 ~ start/1000, df,
+    groups = strand, cex = 0.7, lwd = 1,
+    par.settings = theme,
+    scales = list(y = list(draw = FALSE), x = xscale),
+    ylim = c(-3,2), xlab = "", ylab = "",
+    gene_strand = df[["strand"]],
+    gene_name = df[["gene_name"]],
+    panel = function(x, y, ...) {
+      panel.geneplot(x, y, arrows = TRUE, 
+        tip = 0.1,  rot_labels = 0, ...)
+      panel.text(mean(xlim), 1.5, labels = title, col = 1)
+    }
+  )
+}
+```
+
+## Molybdenum cofactor biosynthesis
 
 - modAB = molybdenum transporter
 - moaACDE = molybdopterin backbone biosynthesis
@@ -236,16 +345,25 @@ heatmap_fitness <- function(data, key = TRUE) {
 - mog = molybdopterin biosynthesis protein (role unclear?)
 
 
-```{r, fig.width = 7, fig.height = 3}
-plot_moco_fit <- df_fitness_summary %>% filter(time == 8, grepl("mo[aedbg]", gene_name)) %>%
+```{r, fig.width = 7, fig.height = 4}
+# plot heatmap
+df_moco <- df_fitness_summary %>% filter(time == 8, grepl("mo[aedbg]", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "mo[aedbg]([A-Z0-9]+)?")) %>%
-  ungroup %>% arrange(gene_name) %>%
-  heatmap_fitness
+  ungroup %>% arrange(gene_name)
+plot_moco_fit <- heatmap_fitness(df_moco)
 
-print(plot_moco_fit)
+# plot genomic locations
+df_moco <- df_moco %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+  summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
+plot_moco_g1 <- genome_plot(df_moco, xlim = c(2455.5, 2459), title = "chr 1")
+plot_moco_g2 <- genome_plot(df_moco, xlim = c(725.8, 728.2), title = "chr 1")
+
+print(plot_moco_g1, position = c(0.1,0.6,0.55,1.1), more = TRUE)
+print(plot_moco_g2, position = c(0.55,0.6,0.9,1.1), more = TRUE)
+print(plot_moco_fit, position = c(0,0,1,0.75))
 ```
 
-### Formate dehydrogenase
+## Formate dehydrogenase
 
 - fdsABCDG = primary soluble FDH
 - fdwAB = secondary soluble FDH
@@ -253,19 +371,32 @@ print(plot_moco_fit)
 - fdoGHI = secondary membrane-bound FDH
 
 
-```{r, fig.width = 7, fig.height = 3}
-plot_fdh_fit <- df_fitness_summary %>% filter(time == 8, grepl("fd[swho]", gene_name)) %>%
+```{r, fig.width = 7, fig.height = 4}
+# plot heatmap
+df_fdh <- df_fitness_summary %>% filter(time == 8, grepl("fd[swho]", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "fd[swho][A-Z0-9]+")) %>%
   mutate(gene_name = stri_replace_first_regex(gene_name, "fdhD$", "fdsC")) %>%
-  ungroup %>% arrange(gene_name) %>%
-  heatmap_fitness
+  ungroup %>% arrange(gene_name)
+plot_fdh_fit <- heatmap_fitness(df_fdh)
 
-print(plot_fdh_fit)
+# plot genomic locations
+df_fdh <- df_fdh %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+  summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
+plot_fdh_g1 <- genome_plot(df_fdh, xlim = c(3167.6, 3175.0), title = "chr 1")
+plot_fdh_g2 <- genome_plot(df_fdh, xlim = c(677.5, 685.8), title = "chr 1")
+
+print(plot_fdh_g1, position = c(0.1,0.6,0.5,1.1), more = TRUE)
+print(plot_fdh_g2, position = c(0.5,0.6,0.9,1.1), more = TRUE)
+print(plot_fdh_fit, position = c(0,0,1,0.75))
 ```
-### Hydrogenases
+## Hydrogenases
 
-- hoxA = master regulator, 2-component system. HoxA is probably phosphorylated by a 
-  sensory component (hypX) and then acts in conjunction with sigma-54 as a transcriptional activator.
+- hoxA = master regulator, 2-component system. HoxA is constantly active in its non-
+  phosphorylated state below a temperature of 33*C. Originally, hoxA activity is regulated by
+  the kinase HoxJ (together with HoxBC, the 'regulatory' hydrogenase). This function is inactivated
+  due to a mutation in hoxJ,
+  [Friedrich & Friedrich, J Bac, 1983](https://journals.asm.org/doi/10.1128/jb.153.1.176-181.1983),
+  [Lenz et al., JMMB, 2004](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.334.5330&rep=rep1&type=pdf).
 - hoxKGZ = membrane-bound hydrogenase
 - hoxMLOQRTV = MBH accessory genes (cofactor incorporation, subunit assembly, 
   and twin-arginine-dependent membrane translocation - TAT),
@@ -276,9 +407,8 @@ print(plot_fdh_fit)
   [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
 - hoxBC = regulatory hydrogenase RH, oxygen-resistant non-energy generating hydrogen sensor. 
   HoxC is large active-site-containing subunit, hoxB small subunit HoxB carrying Fe-S clusters
-- HoxJ =  RH binding signal transducer (?), histidine protein kinase
+- HoxJ =  RH binding signal transducer, histidine protein kinase
   [Löscher et al., Chem Phys Chem, 2010](https://pubmed.ncbi.nlm.nih.gov/20340124/)
-  CO, thereby providing the carbonyl ligand for hydrogenases,
   [Buerstel et al., PNAS, 2016](https://pubmed.ncbi.nlm.nih.gov/27930319/)
 - hoxFUYH = soluble hydrogenase
 - hoxW = soluble hydrogenase (HoxH-specific) C-terminal protease (maturation)
@@ -286,39 +416,60 @@ print(plot_fdh_fit)
   [Burgdorf et al., J Bac, 2005](https://pubmed.ncbi.nlm.nih.gov/15838039/)
 
 
-```{r, fig.width = 7, fig.height = 3}
-plot_hyd_fit <- df_fitness_summary %>% filter(time == 8, grepl("hox", gene_name)) %>%
+```{r, fig.width = 8, fig.height = 4}
+# plot heatmap
+df_hyd <- df_fitness_summary %>% filter(time == 8, grepl("hox", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "hox[A-Z0-9]+")) %>%
-  ungroup %>% mutate(gene_name = factor(gene_name, paste0("hox", c("A","K","G","Z","M",
-    "L","O","Q","R","T","V","N","N2","B","C","J",
-    "F","U","Y","H","W","I")))) %>%
-  heatmap_fitness
+  ungroup %>% mutate(gene_name = factor(gene_name, paste0("hox", c("K","G","Z","M",
+    "L","O","Q","R","T","V","A","B","C","J","N","N2","F","U","Y","H","W","I"))))
+plot_hyd_fit <- heatmap_fitness(df_hyd)
 
-print(plot_hyd_fit)
+# plot genomic locations
+df_hyd <- df_hyd %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+  summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
+plot_hyd_g1 <- genome_plot(df_hyd, xlim = c(0, 9.0), title = "pHG1")
+plot_hyd_g2 <- genome_plot(df_hyd, xlim = c(15.0, 22.9), title = "pHG1")
+plot_hyd_g3 <- genome_plot(df_hyd, xlim = c(79.2, 85.8), title = "pHG1")
+
+print(plot_hyd_g1, position = c(0.0,0.6,0.39,1.1), more = TRUE)
+print(plot_hyd_g2, position = c(0.36,0.6,0.71,1.1), more = TRUE)
+print(plot_hyd_g3, position = c(0.68,0.6,1.0,1.1), more = TRUE)
+print(plot_hyd_fit, position = c(0,0,1,0.75))
 ```
-### Hydrogenase pleiotropy genes (maturation)
+## Hydrogenase pleiotropy genes (maturation)
 
-- hypA1,B1,F1,C1,D1,E1 = metallocenter formation proteins for both MBH and SH. "HypC1, hypD1, 
+- hypA1,B1,F1,C1,D1,E1 = Ni-Fe metallocenter formation proteins for both MBH and SH. "HypC1, hypD1, 
   and hypE1 are essential for SH and MBH maturation, while only one intact copy each of hypA,
   hypB, and hypF is needed", [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
-- hypX = CO cofactor formation for NiFe-hydrogenase. HypX converts formyl-THF into water and CO
-- hypA2,B2,F2 = alternative genes for hypA1,B1,F1, not sufficient alone for Hyd formation
-- hypF3,hypC2,hypD2,hypE2,hypA3,hypB3. The physiological function of these extra hypgenes is unclear. 
+- hypX = CO cofactor formation for NiFe-hydrogenase. HypX converts formyl-THF into water and CO in 
+  aerobic conditions, [Schulz et al., JACS, 2020](https://doi.org/10.1021/jacs.9b11506)
+- hypA2,B2,F2 = alternative genes for hypA1,B1,F1, not sufficient alone for hydrogenase formation
+- hypF3,hypC2,hypD2,hypE2,hypA3,hypB3. The physiological function of these extra hyp genes is unclear
 
-```{r, fig.width = 7, fig.height = 3}
-plot_hyp_fit <- df_fitness_summary %>% filter(time == 8, grepl("hyp", gene_name)) %>%
+```{r, fig.width = 7, fig.height = 4}
+df_hyp <- df_fitness_summary %>% filter(time == 8, grepl("hyp", gene_name)) %>%
   # correct names of several hyp genes to make it more systematic
   mutate(gene_name = gsub("hypA PHG094", "hypA2 PHG094", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "hyp[A-Z0-9]+") %>%
     recode(hypA = "hypA1", hypB = "hypB1", hypC = "hypC1", hypD = "hypD1", hypE = "hypE1")) %>%
   ungroup %>% mutate(gene_name = factor(gene_name, paste0("hyp", c("A1","B1","C1","D1","E1",
-    "F1","X","A2","B2","C2","D2","E2","F2","A3","B3","F3")))) %>%
-  heatmap_fitness
+    "F1","X","A2","B2","C2","D2","E2","F2","A3","B3","F3"))))
+plot_hyp_fit <- heatmap_fitness(df_hyp)
 
-print(plot_hyp_fit)
+# plot genomic locations
+df_hyp <- df_hyp %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+  summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
+plot_hyp_g1 <- genome_plot(df_hyp, xlim = c(8.0, 16.0), title = "pHG1")
+plot_hyp_g2 <- genome_plot(df_hyp, xlim = c(66.3, 73.5), title = "pHG1")
+plot_hyp_g3 <- genome_plot(df_hyp, xlim = c(85.0, 89.7), title = "pHG1")
+
+print(plot_hyp_g1, position = c(0.0,0.6,0.39,1.1), more = TRUE)
+print(plot_hyp_g2, position = c(0.36,0.6,0.71,1.1), more = TRUE)
+print(plot_hyp_g3, position = c(0.68,0.6,1.0,1.1), more = TRUE)
+print(plot_hyp_fit, position = c(0,0,1,0.75))
 ```
 
-### Other complexes important in energy metabolism
+## Other complexes important in energy metabolism
 
 - **succinate dehydrogenase**
   - sdhABCD = membrane integral succinate dehydrogenase, reducing UQ to UQH2:
@@ -328,7 +479,7 @@ print(plot_hyp_fit)
   - nuoABCDEFGHIJKLMN = membrane integral NADH dehydrogenase, oxidizes NADH, pumps 4 H+,
     reduces UQ to UQH2: **all of its genes are strictly essential**, no KO mutants available
 
-### Electron transport chain
+## Electron transport chain
 
 Cytochrome e- transport proteins, cytochrome reductases, and terminal oxidases.
 
@@ -366,7 +517,7 @@ plot_etc_fit <- df_fitness_summary %>% filter(time == 8, locus_tag %in% c("H16_A
 
 print(plot_etc_fit)
 ```
-### Nitrate respiration
+## Nitrate respiration (incomplete)
 
 ```{r, fig.width = 9, fig.height = 3}
 plot_nit_fit <- df_fitness_summary %>%

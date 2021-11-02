@@ -45,12 +45,6 @@ suppressPackageStartupMessages({
 })
 ```
 
-Define a custom set of colors.
-
-```{r}
-custom_colors <- colorRampPalette(custom.colorblind()$superpose.line$col[1:3])(7)
-```
-
 
 # Data import and processing
 
@@ -152,6 +146,13 @@ print(plot_hist_log2FC, position = c(0,0.47,1,1), more = TRUE)
 print(plot_hist_normfg, position = c(0,0,1,0.53))
 ```
 
+```{r, echo = FALSE}
+png("../figures/figure_depletion_over_time.png", width = 900, height = 1200, res = 150)
+print(plot_hist_log2FC, position = c(0,0.47,1,1), more = TRUE)
+print(plot_hist_normfg, position = c(0,0,1,0.53))
+dev.off()
+```
+
 
 ## Comparing gene fitness between conditions
 
@@ -168,6 +169,12 @@ custom_splom(df_fitness_comp %>%
   select(matches(" - [CP]")), pch = 19, cex = 0.3, col = grey(0.4, 0.4))
 ```
 
+```{r, echo = FALSE}
+png("../figures/figure_splom_all_conditions.png", width = 1200, height = 1200, res = 150)
+custom_splom(df_fitness_comp %>%
+  select(matches(" - [CP]")), pch = 19, cex = 0.3, col = grey(0.4, 0.4)) %>% print
+dev.off()
+```
 
 # Unsupervised clustering of genes by fitness
 
@@ -204,6 +211,9 @@ n_clusters = 7
 
 
 ```{r, fig.width = 10, fig.height = 4.0, warning = FALSE}
+# define a custom set of colors for clusters
+custom_colors <- colorRampPalette(custom.colorblind()$superpose.line$col[c(2,3,1,5)])(n_clusters)
+
 # plot heatmap
 plot_heatmap <- levelplot(mat_heatmap,
   par.settings = custom.colorblind(),
@@ -217,7 +227,7 @@ plot_heatmap <- levelplot(mat_heatmap,
 )
 
 plot_cluster_dend <- mat_cluster %>% as.dendrogram %>%
-  set("branches_k_col", custom_colors[1:7], k = 7) %>%
+  set("branches_k_col", custom_colors, k = n_clusters) %>%
   set("branches_lwd", 0.5) %>%
   as.ggdend %>%
   ggplot(labels = FALSE)
@@ -242,13 +252,13 @@ set.seed(123)
 # run nMDS analysis
 NMDS <- mat_heatmap %>% dist %>% metaMDS
 df_nmds <- NMDS$points %>% as_tibble(rownames = "locus") %>%
-  left_join(enframe(cutreeord(mat_cluster, k = 7), "locus", "cluster"))
+  left_join(enframe(cutreeord(mat_cluster, k = n_clusters), "locus", "cluster"))
 
 # run t-SNE analysis
 SNE <- tsne(mat_heatmap %>% dist)
 df_tsne <- SNE %>% setNames(c("x", "y")) %>% as_tibble %>%
   mutate(locus = rownames(mat_heatmap)) %>%
-  left_join(enframe(cutreeord(mat_cluster, k = 7), "locus", "cluster"))
+  left_join(enframe(cutreeord(mat_cluster, k = n_clusters), "locus", "cluster"))
 
 plot_nmds <- df_nmds %>% 
   xyplot(MDS2 ~ MDS1, .,
@@ -278,6 +288,13 @@ print(plot_nmds, split = c(1,1,2,1), more = TRUE)
 print(plot_tsne, split = c(2,1,2,1))
 ```
 
+
+```{r, echo = FALSE}
+svg(filename = "../figures/figure_nmds_tsne.svg", width = 8, height = 4)
+print(plot_nmds, split = c(1,1,2,1), more = TRUE)
+print(plot_tsne, split = c(2,1,2,1))
+dev.off()
+```
 
 # Supervised analysis of energy metabaolism
 
@@ -363,6 +380,14 @@ print(plot_moco_g2, position = c(0.55,0.6,0.9,1.1), more = TRUE)
 print(plot_moco_fit, position = c(0,0,1,0.75))
 ```
 
+```{r, echo = FALSE}
+svg(filename = "../figures/figure_fit_moco.svg", width = 7, height = 4)
+print(plot_moco_g1, position = c(0.1,0.6,0.55,1.1), more = TRUE)
+print(plot_moco_g2, position = c(0.55,0.6,0.9,1.1), more = TRUE)
+print(plot_moco_fit, position = c(0,0,1,0.75))
+dev.off()
+```
+
 ## Formate dehydrogenase
 
 - fdsABCDG = primary soluble FDH
@@ -389,6 +414,14 @@ print(plot_fdh_g1, position = c(0.1,0.6,0.5,1.1), more = TRUE)
 print(plot_fdh_g2, position = c(0.5,0.6,0.9,1.1), more = TRUE)
 print(plot_fdh_fit, position = c(0,0,1,0.75))
 ```
+```{r, echo = FALSE}
+svg(filename = "../figures/figure_fit_fdh.svg", width = 7, height = 4)
+print(plot_fdh_g1, position = c(0.1,0.6,0.5,1.1), more = TRUE)
+print(plot_fdh_g2, position = c(0.5,0.6,0.9,1.1), more = TRUE)
+print(plot_fdh_fit, position = c(0,0,1,0.75))
+dev.off()
+```
+
 ## Hydrogenases
 
 - hoxA = master regulator, 2-component system. HoxA is constantly active in its non-
@@ -436,6 +469,15 @@ print(plot_hyd_g2, position = c(0.36,0.6,0.71,1.1), more = TRUE)
 print(plot_hyd_g3, position = c(0.68,0.6,1.0,1.1), more = TRUE)
 print(plot_hyd_fit, position = c(0,0,1,0.75))
 ```
+```{r, echo = FALSE}
+svg(filename = "../figures/figure_fit_hyd.svg", width = 8, height = 4)
+print(plot_hyd_g1, position = c(0.0,0.6,0.39,1.1), more = TRUE)
+print(plot_hyd_g2, position = c(0.36,0.6,0.71,1.1), more = TRUE)
+print(plot_hyd_g3, position = c(0.68,0.6,1.0,1.1), more = TRUE)
+print(plot_hyd_fit, position = c(0,0,1,0.75))
+dev.off()
+```
+
 ## Hydrogenase pleiotropy genes (maturation)
 
 - hypA1,B1,F1,C1,D1,E1 = Ni-Fe metallocenter formation proteins for both MBH and SH. "HypC1, hypD1, 
@@ -467,6 +509,15 @@ print(plot_hyp_g1, position = c(0.0,0.6,0.39,1.1), more = TRUE)
 print(plot_hyp_g2, position = c(0.36,0.6,0.71,1.1), more = TRUE)
 print(plot_hyp_g3, position = c(0.68,0.6,1.0,1.1), more = TRUE)
 print(plot_hyp_fit, position = c(0,0,1,0.75))
+```
+
+```{r, echo = FALSE}
+svg(filename = "../figures/figure_fit_hyp.svg", width = 7, height = 4)
+print(plot_hyp_g1, position = c(0.0,0.6,0.39,1.1), more = TRUE)
+print(plot_hyp_g2, position = c(0.36,0.6,0.71,1.1), more = TRUE)
+print(plot_hyp_g3, position = c(0.68,0.6,1.0,1.1), more = TRUE)
+print(plot_hyp_fit, position = c(0,0,1,0.75))
+dev.off()
 ```
 
 ## Other complexes important in energy metabolism
@@ -501,8 +552,8 @@ Cytochrome e- transport proteins, cytochrome reductases, and terminal oxidases.
     potential transporter? Interacts with cytochrome c553 and qcrC, cytochrome reductase. 
     It's depletion implicates this protein in formate-specific e- transport in the membrane.
 
-```{r, fig.width = 9, fig.height = 3}
-plot_etc_fit <- df_fitness_summary %>% filter(time == 8, locus_tag %in% c("H16_A3451", "H16_A0830",
+```{r, fig.width = 9, fig.height = 4}
+df_etc <- df_fitness_summary %>% filter(time == 8, locus_tag %in% c("H16_A3451", "H16_A0830",
     "H16_A0846", "16_B1452", "H16_A3576", "H16_A1121", "H16_A1120", "H16_A1031") | 
     grepl("qcr|cco|cta|cox[MNOPQ] |cyo|cyd", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "H16_[AB][0-9]+|(qcr|cco|cta|cox|cyo|cyd)([A-Z0-9]+)?") %>%
@@ -513,19 +564,120 @@ plot_etc_fit <- df_fitness_summary %>% filter(time == 8, locus_tag %in% c("H16_A
       paste0("cox", c("M","N","O","P","Q")), paste0("cta", c("A","B","C","D","E","G")),
       paste0("cco", c("G","N","O","P"))
     ))
-  ) %>% heatmap_fitness()
+  )
+plot_etc_fit <- heatmap_fitness(df_etc)
 
-print(plot_etc_fit)
+# plot genomic locations
+df_etc <- df_etc %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+  summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
+#plot_etc_g1 <- genome_plot(df_etc, xlim = c(1167.6, 1172.7), title = "chr 1")
+plot_etc_g1 <- genome_plot(df_etc, xlim = c(3675.2, 3679.0), title = "chr 1")
+plot_etc_g2 <- genome_plot(df_etc, xlim = c(361.2, 371.2), title = "chr 1")
+plot_etc_g3 <- genome_plot(df_etc, xlim = c(2509.5, 2515.2), title = "chr 1")
+
+print(plot_etc_g1, position = c(0.1,0.6,0.31,1.1), more = TRUE)
+print(plot_etc_g2, position = c(0.28,0.6,0.65,1.1), more = TRUE)
+print(plot_etc_g3, position = c(0.62,0.6,0.9,1.1), more = TRUE)
+print(plot_etc_fit, position = c(0,0,1,0.75))
 ```
-## Nitrate respiration (incomplete)
 
-```{r, fig.width = 9, fig.height = 3}
-plot_nit_fit <- df_fitness_summary %>%
-  filter(time == 8, grepl("nar|nas|nap", gene_name)) %>%
-  mutate(gene_name = stri_extract_first_regex(gene_name, "(nar|nas|nap)([A-Z0-9]+)?")) %>%
-  heatmap_fitness()
+```{r, echo = FALSE}
+svg(filename = "../figures/figure_fit_etc.svg", width = 9, height = 4)
+print(plot_etc_g1, position = c(0.1,0.6,0.31,1.1), more = TRUE)
+print(plot_etc_g2, position = c(0.28,0.6,0.65,1.1), more = TRUE)
+print(plot_etc_g3, position = c(0.62,0.6,0.9,1.1), more = TRUE)
+print(plot_etc_fit, position = c(0,0,1,0.75))
+dev.off()
+```
 
-print(plot_nit_fit)
+
+## Nitrate respiration
+
+**Nitrate reductase (NAR)**
+
+Reaction: HNO3- + QH2 --> NO2- + H2O + Q.
+
+Two copies of the *nar* operon, one on the megaplasmid and one on chromosome 2. Several other enzymes catalyze similar reactions as NAR. NAS is cytoplasmic and NADH dependent nitrate reductase [Cramm R, 2008](https://pubmed.ncbi.nlm.nih.gov/18957861/). NAP is membrane protein complex accepting QH2, involved in nitrate respiration but probably also dissipation of excess redox power. Here we just focus on the main NAR enzyme.
+
+```{r, fig.width = 6, fig.height = 4}
+df_nar <- df_fitness_summary %>%
+  filter(time == 8, grepl("nar", gene_name)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "nar([A-Z0-9]+)?") %>%
+    recode(narG = "narG1", narH = "narH1", narI = "narI1", narL = "narL1", narX = "narX1") %>%
+    factor(., paste0("nar", c("G1","H1","I1","K1","L1","X1","G2","H2","I2","K2","L2","X2","K3","K5"))))
+plot_nar_fit <- heatmap_fitness(df_nar)
+
+# plot genomic locations
+df_nar <- df_nar %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+  summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
+plot_nar_g1 <- genome_plot(df_nar, xlim = c(279.5, 294.5), title = "pHG1")
+
+print(plot_nar_g1, position = c(0.2,0.6,0.85,1.1), more = TRUE)
+print(plot_nar_fit, position = c(0,0,1,0.75))
+```
+
+**Nitrite reductase (NIR)**
+
+Reaction: NO2- + QH2 --> NO + H2O + Q
+
+NIR is a cd1 type copper containing terminal oxidase, homodimer of 2 nirS subunits.
+The genes for nitrite reductase are assembled in a cluster  (nirS, -C, -F, -D, -G, -H, -J, -N, -E)   spanning 8.6  kb  on  chromosome  2. The  first  gene  of  this  cluster,  nirS,  is the structural gene encoding  cd1  -NIR.  The  re-maining genes are presumed to be accessory genes essential  for  maturation  of  active  nitrite  reductase (?).
+
+```{r, fig.width = 6, fig.height = 4}
+df_nir <- df_fitness_summary %>%
+  filter(time == 8, grepl("nir", gene_name)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "nir([A-Z0-9]+)?"))
+plot_nir_fit <- heatmap_fitness(df_nir)
+
+# plot genomic locations
+df_nir <- df_nir %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+  summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
+plot_nir_g1 <- genome_plot(df_nir, xlim = c(2576.3, 2585.9), title = "chr 2")
+
+print(plot_nir_g1, position = c(0.3,0.6,0.75,1.1), more = TRUE)
+print(plot_nir_fit, position = c(0,0,1,0.75))
+```
+
+**NO reductase (NOR)**
+
+Reaction: NO + QH2 --> N2O + H2O + Q
+
+From [Cramm R, 2008](https://pubmed.ncbi.nlm.nih.gov/18957861/): "The catalytic sub-unit (NorB) of all NORs that have been characterized to date contains one high-spin heme b and a binuclear catalytic center of a low-spin heme b and a non-heme iron. The best investigated NORs are heterodimers that contain, in addition to NorB, a heme c-containing subunit NorC which channels lectrons from the physiological electron donor cytochrome c to NorB."
+
+```{r, fig.width = 6, fig.height = 4}
+df_nor <- df_fitness_summary %>%
+  filter(time == 8, grepl("nor", gene_name)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "nor([A-Z0-9]+)?"))
+plot_nor_fit <- heatmap_fitness(df_nor)
+
+# plot genomic locations
+df_nor <- df_nor %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+  summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
+plot_nor_g1 <- genome_plot(df_nor, xlim = c(256.4, 262.1), title = "pHG1")
+
+print(plot_nor_g1, position = c(0.3,0.6,0.75,1.1), more = TRUE)
+print(plot_nor_fit, position = c(0,0,1,0.75))
+```
+
+**NOS (nitrous oxide) reductase**
+
+Reaction: N2O + QH2 --> N2 + H2O + Q
+
+The NOS of R. eutropha H16 has not been investigated on the biochemical level. Genes for NOS are located adjacent to the nor genes on pHG1. NosC (PHG253) might be the cyt c that is the e- donor for NOS. The nosC KO is enriched on formate, i.e. grows better than WT. Is nosC taking e- away from formate-fed ETC?
+
+```{r, fig.width = 6, fig.height = 4}
+df_nos <- df_fitness_summary %>%
+  filter(time == 8, grepl("nos", gene_name)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "nos([A-Z0-9]+)?"))
+plot_nos_fit <- heatmap_fitness(df_nos)
+
+# plot genomic locations
+df_nos <- df_nos %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+  summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
+plot_nos_g1 <- genome_plot(df_nos, xlim = c(261.1, 271.9), title = "pHG1")
+
+print(plot_nos_g1, position = c(0.22,0.6,0.85,1.1), more = TRUE)
+print(plot_nos_fit, position = c(0,0,1,0.75))
 ```
 
 <!-- **Conclusions**

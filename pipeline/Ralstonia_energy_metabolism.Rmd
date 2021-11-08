@@ -329,7 +329,7 @@ Generalized function to plot genes for different regions of the genome.
 ```{r}
 genome_plot <- function(df, xlim = NULL, title = "") {
   theme = custom.colorblind(col = c(grey(0.7), grey(0.85)))
-  theme$axis.line$col = "transparent"
+  theme$axis.line$col = grey(0.3)
   theme$axis.text$col = grey(0.3)
   theme$axis.text$cex = 0.7
   
@@ -339,14 +339,15 @@ genome_plot <- function(df, xlim = NULL, title = "") {
     xscale = list()
   xyplot(end/1000 ~ start/1000, df,
     groups = strand, cex = 0.7, lwd = 1,
-    par.settings = theme,
+    par.settings = theme, strains = df$strains_per_gene,
     scales = list(y = list(draw = FALSE), x = xscale),
     ylim = c(-3,2), xlab = "", ylab = "",
     gene_strand = df[["strand"]],
     gene_name = df[["gene_name"]],
-    panel = function(x, y, ...) {
+    panel = function(x, y, strains, ...) {
       panel.geneplot(x, y, arrows = TRUE, 
         tip = 0.1,  rot_labels = 0, ...)
+      panel.text((x+y)/2, rep(0, length(x)), labels = strains, cex = 0.7)
       panel.text(mean(xlim), 1.5, labels = title, col = 1)
     }
   )
@@ -372,19 +373,19 @@ plot_moco_fit <- heatmap_fitness(df_moco)
 # plot genomic locations
 df_moco <- df_moco %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
-plot_moco_g1 <- genome_plot(df_moco, xlim = c(2455.5, 2459), title = "chr 1")
-plot_moco_g2 <- genome_plot(df_moco, xlim = c(725.8, 728.2), title = "chr 1")
+plot_moco_g1 <- genome_plot(df_moco, xlim = c(2455.9, 2458.6), title = "chr 1")
+plot_moco_g2 <- genome_plot(df_moco, xlim = c(725.7, 728.3), title = "chr 1")
 
-print(plot_moco_g1, position = c(0.1,0.6,0.55,1.1), more = TRUE)
-print(plot_moco_g2, position = c(0.55,0.6,0.9,1.1), more = TRUE)
-print(plot_moco_fit, position = c(0,0,1,0.75))
+print(plot_moco_fit, position = c(0,0.23,1,1.05), more = TRUE)
+print(plot_moco_g1, position = c(0.17,-0.1,0.57,0.4), more = TRUE)
+print(plot_moco_g2, position = c(0.53,-0.1,0.83,0.4))
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_moco.svg", width = 7, height = 4)
-print(plot_moco_g1, position = c(0.1,0.6,0.55,1.1), more = TRUE)
-print(plot_moco_g2, position = c(0.55,0.6,0.9,1.1), more = TRUE)
-print(plot_moco_fit, position = c(0,0,1,0.75))
+print(plot_moco_fit, position = c(0,0.23,1,1.05), more = TRUE)
+print(plot_moco_g1, position = c(0.17,-0.1,0.57,0.4), more = TRUE)
+print(plot_moco_g2, position = c(0.53,-0.1,0.83,0.4))
 dev.off()
 ```
 
@@ -400,25 +401,25 @@ dev.off()
 # plot heatmap
 df_fdh <- df_fitness_summary %>% filter(time == 8, grepl("fd[swho]", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "fd[swho][A-Z0-9]+")) %>%
-  mutate(gene_name = stri_replace_first_regex(gene_name, "fdhD$", "fdsC")) %>%
+  mutate(gene_name = recode(gene_name, `fdhD` = "fdsC", `fdhC` = "fdhC1", `fdhE` = "fdhE1")) %>%
   ungroup %>% arrange(gene_name)
 plot_fdh_fit <- heatmap_fitness(df_fdh)
 
 # plot genomic locations
 df_fdh <- df_fdh %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
-plot_fdh_g1 <- genome_plot(df_fdh, xlim = c(3167.6, 3175.0), title = "chr 1")
-plot_fdh_g2 <- genome_plot(df_fdh, xlim = c(677.5, 685.8), title = "chr 1")
+plot_fdh_g1 <- genome_plot(df_fdh, xlim = c(3167.9, 3174.9), title = "chr 1")
+plot_fdh_g2 <- genome_plot(df_fdh, xlim = c(677.7, 685.6), title = "chr 1")
 
-print(plot_fdh_g1, position = c(0.1,0.6,0.5,1.1), more = TRUE)
-print(plot_fdh_g2, position = c(0.5,0.6,0.9,1.1), more = TRUE)
-print(plot_fdh_fit, position = c(0,0,1,0.75))
+print(plot_fdh_fit, position = c(0,0.23,1,1.05), more = TRUE)
+print(plot_fdh_g1, position = c(0.17,-0.1,0.56,0.4), more = TRUE)
+print(plot_fdh_g2, position = c(0.52,-0.1,0.83,0.4))
 ```
-```{r, echo = FALSE}
+```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_fdh.svg", width = 7, height = 4)
-print(plot_fdh_g1, position = c(0.1,0.6,0.5,1.1), more = TRUE)
-print(plot_fdh_g2, position = c(0.5,0.6,0.9,1.1), more = TRUE)
-print(plot_fdh_fit, position = c(0,0,1,0.75))
+print(plot_fdh_fit, position = c(0,0.23,1,1.05), more = TRUE)
+print(plot_fdh_g1, position = c(0.17,-0.1,0.56,0.4), more = TRUE)
+print(plot_fdh_g2, position = c(0.52,-0.1,0.83,0.4))
 dev.off()
 ```
 
@@ -464,17 +465,17 @@ plot_hyd_g1 <- genome_plot(df_hyd, xlim = c(0, 9.0), title = "pHG1")
 plot_hyd_g2 <- genome_plot(df_hyd, xlim = c(15.0, 22.9), title = "pHG1")
 plot_hyd_g3 <- genome_plot(df_hyd, xlim = c(79.2, 85.8), title = "pHG1")
 
-print(plot_hyd_g1, position = c(0.0,0.6,0.39,1.1), more = TRUE)
-print(plot_hyd_g2, position = c(0.36,0.6,0.71,1.1), more = TRUE)
-print(plot_hyd_g3, position = c(0.68,0.6,1.0,1.1), more = TRUE)
-print(plot_hyd_fit, position = c(0,0,1,0.75))
+print(plot_hyd_fit, position = c(0,0.25,1,1), more = TRUE)
+print(plot_hyd_g1, position = c(0.0,-0.1,0.39,0.4), more = TRUE)
+print(plot_hyd_g2, position = c(0.36,-0.1,0.71,0.4), more = TRUE)
+print(plot_hyd_g3, position = c(0.68,-0.1,1.0,0.4))
 ```
-```{r, echo = FALSE}
+```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_hyd.svg", width = 8, height = 4)
-print(plot_hyd_g1, position = c(0.0,0.6,0.39,1.1), more = TRUE)
-print(plot_hyd_g2, position = c(0.36,0.6,0.71,1.1), more = TRUE)
-print(plot_hyd_g3, position = c(0.68,0.6,1.0,1.1), more = TRUE)
-print(plot_hyd_fit, position = c(0,0,1,0.75))
+print(plot_hyd_fit, position = c(0,0.25,1,1), more = TRUE)
+print(plot_hyd_g1, position = c(0.0,-0.1,0.39,0.4), more = TRUE)
+print(plot_hyd_g2, position = c(0.36,-0.1,0.71,0.4), more = TRUE)
+print(plot_hyd_g3, position = c(0.68,-0.1,1.0,0.4))
 dev.off()
 ```
 
@@ -505,18 +506,18 @@ plot_hyp_g1 <- genome_plot(df_hyp, xlim = c(8.0, 16.0), title = "pHG1")
 plot_hyp_g2 <- genome_plot(df_hyp, xlim = c(66.3, 73.5), title = "pHG1")
 plot_hyp_g3 <- genome_plot(df_hyp, xlim = c(85.0, 89.7), title = "pHG1")
 
-print(plot_hyp_g1, position = c(0.0,0.6,0.39,1.1), more = TRUE)
-print(plot_hyp_g2, position = c(0.36,0.6,0.71,1.1), more = TRUE)
-print(plot_hyp_g3, position = c(0.68,0.6,1.0,1.1), more = TRUE)
-print(plot_hyp_fit, position = c(0,0,1,0.75))
+print(plot_hyp_fit, position = c(0,0.25,1,1.0), more = TRUE)
+print(plot_hyp_g1, position = c(0.0,-0.1,0.39,0.4), more = TRUE)
+print(plot_hyp_g2, position = c(0.36,-0.1,0.71,0.4), more = TRUE)
+print(plot_hyp_g3, position = c(0.68,-0.1,1.0,0.4))
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_hyp.svg", width = 7, height = 4)
-print(plot_hyp_g1, position = c(0.0,0.6,0.39,1.1), more = TRUE)
-print(plot_hyp_g2, position = c(0.36,0.6,0.71,1.1), more = TRUE)
-print(plot_hyp_g3, position = c(0.68,0.6,1.0,1.1), more = TRUE)
-print(plot_hyp_fit, position = c(0,0,1,0.75))
+print(plot_hyp_fit, position = c(0,0.25,1,1.0), more = TRUE)
+print(plot_hyp_g1, position = c(0.0,-0.1,0.39,0.4), more = TRUE)
+print(plot_hyp_g2, position = c(0.36,-0.1,0.71,0.4), more = TRUE)
+print(plot_hyp_g3, position = c(0.68,-0.1,1.0,0.4))
 dev.off()
 ```
 
@@ -575,18 +576,18 @@ plot_etc_g1 <- genome_plot(df_etc, xlim = c(3675.2, 3679.0), title = "chr 1")
 plot_etc_g2 <- genome_plot(df_etc, xlim = c(361.2, 371.2), title = "chr 1")
 plot_etc_g3 <- genome_plot(df_etc, xlim = c(2509.5, 2515.2), title = "chr 1")
 
-print(plot_etc_g1, position = c(0.1,0.6,0.31,1.1), more = TRUE)
-print(plot_etc_g2, position = c(0.28,0.6,0.65,1.1), more = TRUE)
-print(plot_etc_g3, position = c(0.62,0.6,0.9,1.1), more = TRUE)
-print(plot_etc_fit, position = c(0,0,1,0.75))
+print(plot_etc_fit, position = c(0,0.25,1,1), more = TRUE)
+print(plot_etc_g1, position = c(0.1,-0.1,0.31,0.4), more = TRUE)
+print(plot_etc_g2, position = c(0.28,-0.1,0.65,0.4), more = TRUE)
+print(plot_etc_g3, position = c(0.62,-0.1,0.9,0.4))
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_etc.svg", width = 9, height = 4)
-print(plot_etc_g1, position = c(0.1,0.6,0.31,1.1), more = TRUE)
-print(plot_etc_g2, position = c(0.28,0.6,0.65,1.1), more = TRUE)
-print(plot_etc_g3, position = c(0.62,0.6,0.9,1.1), more = TRUE)
-print(plot_etc_fit, position = c(0,0,1,0.75))
+print(plot_etc_fit, position = c(0,0.25,1,1), more = TRUE)
+print(plot_etc_g1, position = c(0.1,-0.1,0.31,0.4), more = TRUE)
+print(plot_etc_g2, position = c(0.28,-0.1,0.65,0.4), more = TRUE)
+print(plot_etc_g3, position = c(0.62,-0.1,0.9,0.4))
 dev.off()
 ```
 
@@ -612,8 +613,15 @@ df_nar <- df_nar %>% group_by(locus_tag, gene_name, scaffold, strand, start, end
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
 plot_nar_g1 <- genome_plot(df_nar, xlim = c(279.5, 294.5), title = "pHG1")
 
-print(plot_nar_g1, position = c(0.2,0.6,0.85,1.1), more = TRUE)
-print(plot_nar_fit, position = c(0,0,1,0.75))
+print(plot_nar_fit, position = c(0,0.25,1,1), more = TRUE)
+print(plot_nar_g1, position = c(0.2,-0.1,0.85,0.4))
+```
+
+```{r, echo = FALSE, results = 'hide'}
+svg(filename = "../figures/figure_fit_nar.svg", width = 6, height = 4)
+print(plot_nar_fit, position = c(0,0.25,1,1), more = TRUE)
+print(plot_nar_g1, position = c(0.2,-0.1,0.85,0.4))
+dev.off()
 ```
 
 **Nitrite reductase (NIR)**
@@ -634,8 +642,15 @@ df_nir <- df_nir %>% group_by(locus_tag, gene_name, scaffold, strand, start, end
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
 plot_nir_g1 <- genome_plot(df_nir, xlim = c(2576.3, 2585.9), title = "chr 2")
 
-print(plot_nir_g1, position = c(0.3,0.6,0.75,1.1), more = TRUE)
-print(plot_nir_fit, position = c(0,0,1,0.75))
+print(plot_nir_fit, position = c(0,0.25,1,1.0), more = TRUE)
+print(plot_nir_g1, position = c(0.3,-0.1,0.75,0.4))
+```
+
+```{r, echo = FALSE, results = 'hide'}
+svg(filename = "../figures/figure_fit_nir.svg", width = 6, height = 4)
+print(plot_nir_fit, position = c(0,0.25,1,1.0), more = TRUE)
+print(plot_nir_g1, position = c(0.3,-0.1,0.75,0.4))
+dev.off()
 ```
 
 **NO reductase (NOR)**
@@ -655,8 +670,15 @@ df_nor <- df_nor %>% group_by(locus_tag, gene_name, scaffold, strand, start, end
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
 plot_nor_g1 <- genome_plot(df_nor, xlim = c(256.4, 262.1), title = "pHG1")
 
-print(plot_nor_g1, position = c(0.3,0.6,0.75,1.1), more = TRUE)
-print(plot_nor_fit, position = c(0,0,1,0.75))
+print(plot_nor_fit, position = c(0,0.25,1,1.0), more = TRUE)
+print(plot_nor_g1, position = c(0.3,-0.1,0.75,0.4))
+```
+
+```{r, echo = FALSE, results = 'hide'}
+svg(filename = "../figures/figure_fit_nor.svg", width = 6, height = 4)
+print(plot_nor_fit, position = c(0,0.25,1,1.0), more = TRUE)
+print(plot_nor_g1, position = c(0.3,-0.1,0.75,0.4))
+dev.off()
 ```
 
 **NOS (nitrous oxide) reductase**
@@ -676,26 +698,28 @@ df_nos <- df_nos %>% group_by(locus_tag, gene_name, scaffold, strand, start, end
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
 plot_nos_g1 <- genome_plot(df_nos, xlim = c(261.1, 271.9), title = "pHG1")
 
-print(plot_nos_g1, position = c(0.22,0.6,0.85,1.1), more = TRUE)
-print(plot_nos_fit, position = c(0,0,1,0.75))
+print(plot_nos_fit, position = c(0,0.25,1,1.0), more = TRUE)
+print(plot_nos_g1, position = c(0.22,-0.1,0.85,0.4))
 ```
 
-<!-- **Conclusions**
+```{r, echo = FALSE, results = 'hide'}
+svg(filename = "../figures/figure_fit_nos.svg", width = 6, height = 4)
+print(plot_nos_fit, position = c(0,0.25,1,1.0), more = TRUE)
+print(plot_nos_g1, position = c(0.22,-0.1,0.85,0.4))
+dev.off()
+```
 
-- **main FDH is S-FDH** both in terms of protein abundance, inducibility, and essentiality
-- **cytochrome reductase bc1 complex** (qcrABC) is particularly important for growth on formate
-- it is also **beneficial** during heterotrophic growth (slightly reduced fitness);
-  inhibition of this complex reduces growth in heterotrophy and lithotrophy, 
-  [Cramm R, J Mol Microbio Biotech, 2008](https://pubmed.ncbi.nlm.nih.gov/18957861/)
-- qcrC seems to be a cytochrome C that is mobile (?) and transports e- in membrane (reference?)
-- bc1 complex functions in oxygen-limited respiration, therefore maybe no simultaneous growth on formate and nitrate respiration?
-- bc1 complex deletion mutant was completely deficient in oxygen-limited growth on nitrate (Garg et al., 2018).
-- bc1 complex accepts reduced quinols as e- donor, pumps 4 H+ /2 e− via proton-motive Q cycle (quinol:cyt c oxidoreduction), and releases reduced cytochrome C e- carriers
-- Cytochrome c553 proteins are e- shuttles in membrane, between bc1 and respiration complexes (?)
-- cbb3-type cytochrome oxidase special member of the heme-copper oxidase family;
-  "in Bradyrhizobium japonicum, this enzyme operates at extremely low partial pressures of
-  oxygen" [Preisig et al., 1996]
- -->
+## Main conclusions
+
+- MoCo cofactor is important for growth on formate *and* nitrate respiration, but not for growth on hydrogen
+- Main FDH is S-FDH both in terms of protein abundance, inducibility, and essentiality
+- Alternative S-FDH operon *fdw* does not play a roll
+- Both hydrogenases, S-H and m_H have similar fitness penalty on hydrogen when KOed
+- Hydrogenase genes, but even more so master regulator hoxA and Hydrogenase pleiotropy (hyp) genes confer fitness advantage when KOed on all non-loithoautotrophic substrates
+- Cytochrome reductase bc1 complex (qcrABC) is particularly important for growth on formate
+- Bc1 complex plays no role on nitrate, therefore no cross talk (while a bc1 KO mutant was growth-deficient in oxygen-limited growth on nitrate (Garg et al., 2018).
+- Bc1 complex accepts reduced quinols as e- donor, pumps 4 H+ /2 e− via proton-motive Q cycle (quinol:cyt c oxidoreduction), and releases reduced cytochrome C e- carriers. Main cytochrome complex for most substrates including hydrogen
+- Cbb3-type cytochrome oxidase (*cco* operon) also important for growth on formate, while *cta* operon (aa3 complex) more important on fructose and succinate
  
 # Session Info
 

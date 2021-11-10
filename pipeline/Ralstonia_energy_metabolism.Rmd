@@ -366,7 +366,9 @@ genome_plot <- function(df, xlim = NULL, title = "") {
 ```{r, fig.width = 7, fig.height = 4}
 # plot heatmap
 df_moco <- df_fitness_summary %>% filter(time == 8, grepl("mo[aedbg]", gene_name)) %>%
-  mutate(gene_name = stri_extract_first_regex(gene_name, "mo[aedbg]([A-Z0-9]+)?")) %>%
+  mutate(gene_name = str_remove(gene_name, "^moaA ")) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "mo[aedbg]([A-Z0-9]+)?") %>%
+    str_replace("mog", "mogA")) %>%
   ungroup %>% arrange(gene_name)
 plot_moco_fit <- heatmap_fitness(df_moco)
 
@@ -376,14 +378,22 @@ df_moco <- df_moco %>% group_by(locus_tag, gene_name, scaffold, strand, start, e
 plot_moco_g1 <- genome_plot(df_moco, xlim = c(2455.9, 2458.6), title = "chr 1")
 plot_moco_g2 <- genome_plot(df_moco, xlim = c(725.7, 728.3), title = "chr 1")
 
-print(plot_moco_fit, position = c(0,0.23,1,1.05), more = TRUE)
+print(plot_moco_fit, position = c(0,0.21,1,1.05), more = TRUE)
 print(plot_moco_g1, position = c(0.17,-0.1,0.57,0.4), more = TRUE)
 print(plot_moco_g2, position = c(0.53,-0.1,0.83,0.4))
 ```
 
+Interesting results to double-check:
+
+- Why is moaA essential for nitrate respiration but not formate? Is there another iso-enzyme for first step of MoCo synthesis?
+- mogA, moaA, moaB, moaE, modB, or modC deletion mutants are not viable in E.coli. Except for moaA, also modA,B,C are not essential for growth on formate.
+- modABC is the 3-subunit membrane transport system; it should be essential, however one explanation for it not being essential is that another low-affinity transporter might exist that compensates for the loss in medium with high Mo-concentration ([Xia et al., 2018](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6295455/)). The authors write in the discussion: "Molybdate can be taken up by the sulfate-transport system in the absence of a functional high-affinity molybdate-transport system in E. coli and B. japonicum (Rosentel et al., 1995; Delgado et al., 2006)."
+- moeA (molybdenum transferase) is present with 3 isoenzymes. MoeA1 and A2 both seem to be important for fitness as a KO of each one of them reduces fitness partially but not fully on formate/nitrate.
+
+
 ```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_moco.svg", width = 7, height = 4)
-print(plot_moco_fit, position = c(0,0.23,1,1.05), more = TRUE)
+print(plot_moco_fit, position = c(0,0.21,1,1.05), more = TRUE)
 print(plot_moco_g1, position = c(0.17,-0.1,0.57,0.4), more = TRUE)
 print(plot_moco_g2, position = c(0.53,-0.1,0.83,0.4))
 dev.off()
@@ -461,21 +471,21 @@ plot_hyd_fit <- heatmap_fitness(df_hyd)
 # plot genomic locations
 df_hyd <- df_hyd %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
-plot_hyd_g1 <- genome_plot(df_hyd, xlim = c(0, 9.0), title = "pHG1")
-plot_hyd_g2 <- genome_plot(df_hyd, xlim = c(15.0, 22.9), title = "pHG1")
-plot_hyd_g3 <- genome_plot(df_hyd, xlim = c(79.2, 85.8), title = "pHG1")
+plot_hyd_g1 <- genome_plot(df_hyd, xlim = c(0, 4.1), title = "pHG1")
+plot_hyd_g2 <- genome_plot(df_hyd, xlim = c(15.1, 22.8), title = "pHG1")
+plot_hyd_g3 <- genome_plot(df_hyd, xlim = c(79.2, 85.5), title = "pHG1")
 
-print(plot_hyd_fit, position = c(0,0.25,1,1), more = TRUE)
-print(plot_hyd_g1, position = c(0.0,-0.1,0.39,0.4), more = TRUE)
-print(plot_hyd_g2, position = c(0.36,-0.1,0.71,0.4), more = TRUE)
-print(plot_hyd_g3, position = c(0.68,-0.1,1.0,0.4))
+print(plot_hyd_fit, position = c(0,0.23,1,1.05), more = TRUE)
+print(plot_hyd_g1, position = c(0.15,-0.1,0.39,0.4), more = TRUE)
+print(plot_hyd_g2, position = c(0.35,-0.1,0.65,0.4), more = TRUE)
+print(plot_hyd_g3, position = c(0.61,-0.1,0.90,0.4))
 ```
 ```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_hyd.svg", width = 8, height = 4)
-print(plot_hyd_fit, position = c(0,0.25,1,1), more = TRUE)
-print(plot_hyd_g1, position = c(0.0,-0.1,0.39,0.4), more = TRUE)
-print(plot_hyd_g2, position = c(0.36,-0.1,0.71,0.4), more = TRUE)
-print(plot_hyd_g3, position = c(0.68,-0.1,1.0,0.4))
+print(plot_hyd_fit, position = c(0,0.23,1,1.05), more = TRUE)
+print(plot_hyd_g1, position = c(0.15,-0.1,0.39,0.4), more = TRUE)
+print(plot_hyd_g2, position = c(0.35,-0.1,0.65,0.4), more = TRUE)
+print(plot_hyd_g3, position = c(0.61,-0.1,0.90,0.4))
 dev.off()
 ```
 
@@ -484,6 +494,8 @@ dev.off()
 - hypA1,B1,F1,C1,D1,E1 = Ni-Fe metallocenter formation proteins for both MBH and SH. "HypC1, hypD1, 
   and hypE1 are essential for SH and MBH maturation, while only one intact copy each of hypA,
   hypB, and hypF is needed", [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
+- hypA and B
+- hypCDEF all form a complex to assemble the Ni-Fe-CO-CN cofactor
 - hypX = CO cofactor formation for NiFe-hydrogenase. HypX converts formyl-THF into water and CO in 
   aerobic conditions, [Schulz et al., JACS, 2020](https://doi.org/10.1021/jacs.9b11506)
 - hypA2,B2,F2 = alternative genes for hypA1,B1,F1, not sufficient alone for hydrogenase formation
@@ -502,22 +514,22 @@ plot_hyp_fit <- heatmap_fitness(df_hyp)
 # plot genomic locations
 df_hyp <- df_hyp %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
-plot_hyp_g1 <- genome_plot(df_hyp, xlim = c(8.0, 16.0), title = "pHG1")
+plot_hyp_g1 <- genome_plot(df_hyp, xlim = c(8.3, 15.6), title = "pHG1")
 plot_hyp_g2 <- genome_plot(df_hyp, xlim = c(66.3, 73.5), title = "pHG1")
 plot_hyp_g3 <- genome_plot(df_hyp, xlim = c(85.0, 89.7), title = "pHG1")
 
-print(plot_hyp_fit, position = c(0,0.25,1,1.0), more = TRUE)
-print(plot_hyp_g1, position = c(0.0,-0.1,0.39,0.4), more = TRUE)
-print(plot_hyp_g2, position = c(0.36,-0.1,0.71,0.4), more = TRUE)
-print(plot_hyp_g3, position = c(0.68,-0.1,1.0,0.4))
+print(plot_hyp_fit, position = c(0,0.23,1,1.05), more = TRUE)
+print(plot_hyp_g1, position = c(0.26,-0.1,0.78,0.4), more = TRUE)
+#print(plot_hyp_g2, position = c(0.36,-0.1,0.71,0.4), more = TRUE)
+#print(plot_hyp_g3, position = c(0.68,-0.1,1.0,0.4))
 ```
 
 ```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_hyp.svg", width = 7, height = 4)
-print(plot_hyp_fit, position = c(0,0.25,1,1.0), more = TRUE)
-print(plot_hyp_g1, position = c(0.0,-0.1,0.39,0.4), more = TRUE)
-print(plot_hyp_g2, position = c(0.36,-0.1,0.71,0.4), more = TRUE)
-print(plot_hyp_g3, position = c(0.68,-0.1,1.0,0.4))
+print(plot_hyp_fit, position = c(0,0.23,1,1.05), more = TRUE)
+print(plot_hyp_g1, position = c(0.26,-0.1,0.78,0.4), more = TRUE)
+#print(plot_hyp_g2, position = c(0.36,-0.1,0.71,0.4), more = TRUE)
+#print(plot_hyp_g3, position = c(0.68,-0.1,1.0,0.4))
 dev.off()
 ```
 
@@ -553,7 +565,7 @@ Cytochrome e- transport proteins, cytochrome reductases, and terminal oxidases.
     potential transporter? Interacts with cytochrome c553 and qcrC, cytochrome reductase. 
     It's depletion implicates this protein in formate-specific e- transport in the membrane.
 
-```{r, fig.width = 9, fig.height = 4}
+```{r, fig.width = 10, fig.height = 4}
 df_etc <- df_fitness_summary %>% filter(time == 8, locus_tag %in% c("H16_A3451", "H16_A0830",
     "H16_A0846", "16_B1452", "H16_A3576", "H16_A1121", "H16_A1120", "H16_A1031") | 
     grepl("qcr|cco|cta|cox[MNOPQ] |cyo|cyd", gene_name)) %>%
@@ -576,15 +588,15 @@ plot_etc_g1 <- genome_plot(df_etc, xlim = c(3675.2, 3679.0), title = "chr 1")
 plot_etc_g2 <- genome_plot(df_etc, xlim = c(361.2, 371.2), title = "chr 1")
 plot_etc_g3 <- genome_plot(df_etc, xlim = c(2509.5, 2515.2), title = "chr 1")
 
-print(plot_etc_fit, position = c(0,0.25,1,1), more = TRUE)
+print(plot_etc_fit, position = c(0,0.20,1,1.05), more = TRUE)
 print(plot_etc_g1, position = c(0.1,-0.1,0.31,0.4), more = TRUE)
 print(plot_etc_g2, position = c(0.28,-0.1,0.65,0.4), more = TRUE)
 print(plot_etc_g3, position = c(0.62,-0.1,0.9,0.4))
 ```
 
 ```{r, echo = FALSE, results = 'hide'}
-svg(filename = "../figures/figure_fit_etc.svg", width = 9, height = 4)
-print(plot_etc_fit, position = c(0,0.25,1,1), more = TRUE)
+svg(filename = "../figures/figure_fit_etc.svg", width = 10, height = 4)
+print(plot_etc_fit, position = c(0,0.20,1,1.05), more = TRUE)
 print(plot_etc_g1, position = c(0.1,-0.1,0.31,0.4), more = TRUE)
 print(plot_etc_g2, position = c(0.28,-0.1,0.65,0.4), more = TRUE)
 print(plot_etc_g3, position = c(0.62,-0.1,0.9,0.4))
@@ -720,7 +732,84 @@ dev.off()
 - Bc1 complex plays no role on nitrate, therefore no cross talk (while a bc1 KO mutant was growth-deficient in oxygen-limited growth on nitrate (Garg et al., 2018).
 - Bc1 complex accepts reduced quinols as e- donor, pumps 4 H+ /2 e− via proton-motive Q cycle (quinol:cyt c oxidoreduction), and releases reduced cytochrome C e- carriers. Main cytochrome complex for most substrates including hydrogen
 - Cbb3-type cytochrome oxidase (*cco* operon) also important for growth on formate, while *cta* operon (aa3 complex) more important on fructose and succinate
- 
+
+# Growth advantage of Hydrogenase mutants
+
+The main measurement that was obtained from transposon library competition experiments is the fold change, and the fitness score as a summary statistic thereof. The fold change of a mutant sub-population over time can also be used to calculate the relative growth advantage over other strains. For such a growth model, the only required input parameters are the FC, the average population growth rate, and the time in hours.
+
+$$ FC = (1 - (\mu_{pop} - \mu_{mut}))^{t} $$
+Re-arranged to obtain the mutant growth rate.
+
+$$ \mu_{mut} = -(1 - FC^{1/t}) + \mu_{pop}$$
+
+All input variables are available:
+
+- µ_pop = 0.1 h^-1, known from chemostats
+- FC for each mutant/gene from library competition experiments ('fitness' is the normalized log2 FC)
+- t = n_gen x (ln 2)/0.1 - number of generations (0, 8, 16) multiplied with generation time of 6.93 h
+
+We make a generalized function that calculates growth rate (dis-) advantage.
+
+```{r}
+mutant_mu <- function(fold_change, pop_mu, time, log2_fc = FALSE) {
+  if (log2_fc) {fold_change = 2^fold_change}
+  result = -(1 - (fold_change^(1/time))) + pop_mu
+  return(result)
+}
+```
+
+Then select the hydrogenase mutants where an enrichment was observed in heterotrophic conditions.
+
+```{r, fig.width = 6.5, fig.height = 6.5}
+df_increased_mu <- df_fitness_summary %>%
+  filter(
+    grepl("hox[KGZFUYHA]|hyp[BCDEFX]1? |hypA PHG012", gene_name), condition == "continuous",
+    substrate %in% c("formate", "fructose", "succinate")) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "hox[KGZFUYHA]|hyp[ABCDEFX]")) %>%
+  mutate(gene_name = factor(gene_name, c(paste0("hox", c("A", "K", "G", "Z", "F", "U", "Y", "H")),
+    paste0("hyp", c("A", "B", "C", "D", "E", "F", "X")))))
+
+plot_increased_mu <- xyplot(norm_gene_fitness_median ~ time | gene_name, df_increased_mu,
+    groups = substrate, as.table = TRUE, layout = c(5,3),
+    col = stdcol[2:4], xlab = "generations", ylab = "fitness",
+    par.settings = custom.colorblind(), type = c("l"),
+    auto.key = list(columns = 3),
+    between = list(x = 0.5, y = 0.5),
+    scales = list(alternating = FALSE), lwd = 2,
+    panel = function(x, y, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.abline(h = 0, col = grey(0.5), lty = 3, lwd = 2)
+      panel.xyplot(x, y, ...)
+    }
+  )
+
+df_mutant_mu <- df_increased_mu %>%
+  filter(time != 0) %>%
+  group_by(gene_name, substrate) %>%
+  mutate(mutant_mu = mutant_mu(
+    fold_change = norm_gene_fitness_median, 
+    pop_mu = 0.1, time = time*(log(2)/0.1),
+    log2_fc = TRUE)) %>%
+  select(locus_tag, time, condition, substrate,
+    norm_gene_fitness_median, gene_name, cond_short, mutant_mu)
+
+plot_mutant_mu <- xyplot(mutant_mu ~ gene_name, df_mutant_mu,
+    groups = substrate, as.table = TRUE,
+    col = stdcol[2:4], xlab = "", ylab = expression("µ [h"^-1*"]"),
+    par.settings = custom.colorblind(),
+    scales = list(alternating = FALSE), lwd = 2,
+    panel = function(x, y, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.abline(h = 0.1, col = grey(0.5), lty = 3, lwd = 2)
+      panel.barplot(x, y, beside = TRUE, ...)
+    }
+  )
+
+print(plot_increased_mu, position = c(0.035,0.35,1,1), more = TRUE)
+print(plot_mutant_mu, position = c(0,0,1,0.43))
+```
+
+
 # Session Info
 
 ```{r}

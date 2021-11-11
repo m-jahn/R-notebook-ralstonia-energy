@@ -735,6 +735,8 @@ dev.off()
 
 # Growth advantage of Hydrogenase mutants
 
+## Determine mutant growth rate from competition experiments
+
 The main measurement that was obtained from transposon library competition experiments is the fold change, and the fitness score as a summary statistic thereof. The fold change of a mutant sub-population over time can also be used to calculate the relative growth advantage over other strains. For such a growth model, the only required input parameters are the FC, the average population growth rate, and the time in hours.
 
 $$ FC = (1 - (\mu_{pop} - \mu_{mut}))^{t} $$
@@ -761,13 +763,15 @@ mutant_mu <- function(fold_change, pop_mu, time, log2_fc = FALSE) {
 Then select the hydrogenase mutants where an enrichment was observed in heterotrophic conditions.
 
 ```{r, fig.width = 6.5, fig.height = 6.5}
+list_hyd_selection <- c(paste0("hox", c("A", "K", "G", "Z", "F", "U", "Y", "H")),
+    paste0("hyp", c("A", "B", "C", "D", "E", "F", "X")))
+  
 df_increased_mu <- df_fitness_summary %>%
   filter(
     grepl("hox[KGZFUYHA]|hyp[BCDEFX]1? |hypA PHG012", gene_name), condition == "continuous",
     substrate %in% c("formate", "fructose", "succinate")) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "hox[KGZFUYHA]|hyp[ABCDEFX]")) %>%
-  mutate(gene_name = factor(gene_name, c(paste0("hox", c("A", "K", "G", "Z", "F", "U", "Y", "H")),
-    paste0("hyp", c("A", "B", "C", "D", "E", "F", "X")))))
+  mutate(gene_name = factor(gene_name, list_hyd_selection))
 
 plot_increased_mu <- xyplot(norm_gene_fitness_median ~ time | gene_name, df_increased_mu,
     groups = substrate, as.table = TRUE, layout = c(5,3),
@@ -796,8 +800,7 @@ df_mutant_mu <- df_increased_mu %>%
 plot_mutant_mu <- xyplot(mutant_mu ~ gene_name, df_mutant_mu,
     groups = substrate, as.table = TRUE,
     col = stdcol[2:4], xlab = "", ylab = expression("µ [h"^-1*"]"),
-    par.settings = custom.colorblind(),
-    scales = list(alternating = FALSE), lwd = 2,
+    par.settings = custom.colorblind(), lwd = 2,
     panel = function(x, y, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
       panel.abline(h = 0.1, col = grey(0.5), lty = 3, lwd = 2)
@@ -808,6 +811,125 @@ plot_mutant_mu <- xyplot(mutant_mu ~ gene_name, df_mutant_mu,
 print(plot_increased_mu, position = c(0.035,0.35,1,1), more = TRUE)
 print(plot_mutant_mu, position = c(0,0,1,0.43))
 ```
+
+```{r, echo = FALSE, results = 'hide'}
+svg("../figures/figure_mutant_mu.svg", width = 6.5, height = 6.5)
+print(plot_increased_mu, position = c(0.035,0.35,1,1), more = TRUE)
+print(plot_mutant_mu, position = c(0,0,1,0.43))
+dev.off()
+```
+
+## Growth advantage *versus* protein cost
+
+The main question is if the observed growth advantage can be purely explained by the saving of gene expression cost. Hydrogenase and some accessory proteins are highly abundant and therefore cause a significant cost to the cell. It was shown in many other studies that reducing excess/unused proteins can increase growth rate. This is based on the observation that the protein pool is limited and cells can optimize the utilization of this limited resource by tuning gene expression towards highly utilized genes/proteins.
+
+In the next section, global protein abundance data is imported that was obtained from quantitative MS experiments. MS data is available for the three conditions used in the previous section, continuous growth on fructose, succinate, and formate in chemostats at defined growth rates. 
+
+**Note: The data is imported directly from the respective github repository, requiring internet connection**.
+
+```{r}
+load(url("https://github.com/m-jahn/R-notebook-ralstonia-proteome/blob/main/data/input/Ralstonia_eutropha.Rdata?raw=true"))
+head(Ralstonia_eutropha[1:10])
+```
+
+The first plot is the protein abundance as relative mass fraction (protein cost), the second is the correlation of protein cost and growth rate advantage of KO mutants. Here it is important to consider that a KO by transposon integration will have an effect on the downstream gene expression, effectively disrupting transcription/translation of the entire operon downstream of the integration site. This is shown in the third plot with estimated total protein cost saved by KO.
+
+```{r}
+df_mutant_cost <- df_mutant_mu %>%
+  group_by(locus_tag, gene_name, substrate) %>%
+  summarize(.groups = "drop",
+    mean_mutant_mu = mean(mutant_mu), 
+    sd_mutant_mu = sd(mutant_mu)) %>%
+  inner_join(by = c("locus_tag", "substrate"),
+    Ralstonia_eutropha %>% ungroup %>% filter(growthrate == 0.1) %>%
+      select(locus_tag, substrate, mean_mass_fraction_norm, sd_massfraction)) %>%
+  arrange(gene_name)
+```
+
+If we assume that each KO knocks out the gene expression of all consecutive genes of the operon, we need to sum up protein cost these effected gene sets; make a binary matrix of associations for each KO with a number of affected genes (0 = FALSE, 1 = TRUE), and multiply with protein mass.
+
+```{r}
+mat_mutant_genomic <- matrix(ncol = length(list_hyd_selection),
+  data = c(rep(1, 15), rep(c(0,1,0), c(1,3,11)),
+    rep(c(0,1,0), c(2,2,11)), rep(c(0,1,0), c(3,1,11)),
+    rep(c(0,1,0), c(4,4,7)), rep(c(0,1,0), c(5,3,7)),
+    rep(c(0,1,0), c(6,2,7)), rep(c(0,1,0), c(7,1,7)),
+    rep(c(0,1), c(8,7)), rep(c(0,1), c(9,6)),
+    rep(c(0,1), c(10,5)), rep(c(0,1), c(11,4)),
+    rep(c(0,1), c(12,3)), rep(c(0,1), c(13,2)),
+    rep(c(0,1), c(14,1))
+  )
+)
+
+df_mutant_cost <- df_mutant_cost %>% group_by(substrate) %>%
+  mutate(corrected_cost = mean_mass_fraction_norm %>% {colSums(.*100*mat_mutant_genomic)})
+```
+
+All plots together on one canvas.
+
+```{r,fig.width = 6.5, fig.height = 5.7}
+plot_mutant_cost <- xyplot(mean_mass_fraction_norm*100 ~ gene_name, df_mutant_cost,
+    groups = substrate, par.settings = custom.colorblind(),
+    error_margin = df_mutant_cost[["sd_massfraction"]]*100,
+    lwd = 2, col = stdcol[2:4], ylim = c(-0.05, 1.55),
+    xlab = "", ylab = "protein mass fraction [%]",
+    panel = function(x, y, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.barplot(x, y, beside = TRUE, ...)
+      panel.key(pch = 15, corner = c(0.98, 0.95), ...)
+    }
+  )
+
+plot_cost_vs_mu <- xyplot(mean_mass_fraction_norm*100 ~ mean_mutant_mu,
+    df_mutant_cost, groups = substrate,
+    pointlabels = as.character(df_mutant_cost$gene_name),
+    par.settings = custom.colorblind(), col = stdcol[2:4],
+    xlab = expression("µ [h"^-1*"]"),
+    ylab = "protein mass fraction [%]",
+    panel = function(x, y, pointlabels, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.superpose(x, y, ...)
+      panel.repellabels(x, y, labels = pointlabels, y_boundary = c(0.5,1.5),
+        draw_box = TRUE, cex = 0.6, ...)},
+    panel.groups = function(x, y, ...) {
+      panel.xyplot(x, y, ...)
+      panel.lmlineq(x, y, r.squared = TRUE, label = "", ...)
+    }
+  )
+
+plot_cost_vs_mu2 <- xyplot(corrected_cost ~ mean_mutant_mu,
+    df_mutant_cost, groups = substrate,
+    pointlabels = as.character(df_mutant_cost$gene_name),
+    par.settings = custom.colorblind(), col = stdcol[2:4],
+    xlab = expression("µ [h"^-1*"]"),
+    ylab = "protein mass fraction [%]",
+    panel = function(x, y, pointlabels, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.superpose(x, y, ...)
+      panel.repellabels(x, y, labels = pointlabels, y_boundary = c(1,4.5),
+        draw_box = TRUE, cex = 0.6, ...)},
+    panel.groups = function(x, y, ...) {
+      panel.xyplot(x, y, ...)
+      panel.lmlineq(x, y, r.squared = TRUE, label = "", ...)
+    }
+  )
+
+print(plot_mutant_cost, position = c(0,0.5,1,1), more = TRUE)
+print(plot_cost_vs_mu, position = c(0,0,0.51,0.59), more = TRUE)
+print(plot_cost_vs_mu2, position = c(0.5,0,1,0.59), more = TRUE)
+```
+
+
+```{r, echo = FALSE, results = 'hide'}
+svg("../figures/figure_mutant_cost.svg", width = 6.5, height = 5.7)
+print(plot_mutant_cost, position = c(0,0.5,1,1), more = TRUE)
+print(plot_cost_vs_mu, position = c(0,0,0.51,0.59), more = TRUE)
+print(plot_cost_vs_mu2, position = c(0.5,0,1,0.59), more = TRUE)
+dev.off()
+```
+
+## Prediction of growth advantage using a resource balance analysis (RBA) model
+
 
 
 # Session Info

@@ -255,7 +255,7 @@ df_nmds <- NMDS$points %>% as_tibble(rownames = "locus") %>%
   left_join(enframe(cutreeord(mat_cluster, k = n_clusters), "locus", "cluster"))
 
 # run t-SNE analysis
-SNE <- tsne(mat_heatmap %>% dist)
+SNE <- tsne(mat_heatmap %>% dist, max_iter = 500)
 df_tsne <- SNE %>% setNames(c("x", "y")) %>% as_tibble %>%
   mutate(locus = rownames(mat_heatmap)) %>%
   left_join(enframe(cutreeord(mat_cluster, k = n_clusters), "locus", "cluster"))
@@ -867,7 +867,7 @@ df_mutant_cost <- df_mutant_cost %>% group_by(substrate) %>%
 
 All plots together on one canvas.
 
-```{r,fig.width = 6.5, fig.height = 5.7}
+```{r, fig.width = 6.5, fig.height = 5.7}
 plot_mutant_cost <- xyplot(mean_mass_fraction_norm*100 ~ gene_name, df_mutant_cost,
     groups = substrate, par.settings = custom.colorblind(),
     error_margin = df_mutant_cost[["sd_massfraction"]]*100,
@@ -880,57 +880,124 @@ plot_mutant_cost <- xyplot(mean_mass_fraction_norm*100 ~ gene_name, df_mutant_co
     }
   )
 
-plot_cost_vs_mu <- xyplot(mean_mass_fraction_norm*100 ~ mean_mutant_mu,
+plot_cost_vs_mu <- xyplot(mean_mutant_mu ~ mean_mass_fraction_norm*100,
     df_mutant_cost, groups = substrate,
     pointlabels = as.character(df_mutant_cost$gene_name),
     par.settings = custom.colorblind(), col = stdcol[2:4],
-    xlab = expression("µ [h"^-1*"]"),
-    ylab = "protein mass fraction [%]",
+    xlab = "protein mass fraction [%]",
+    ylab = expression("µ [h"^-1*"]"),
     panel = function(x, y, pointlabels, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
       panel.superpose(x, y, ...)
-      panel.repellabels(x, y, labels = pointlabels, y_boundary = c(0.5,1.5),
+      panel.repellabels(x, y, labels = pointlabels, x_boundary = c(0.5,1.5),
         draw_box = TRUE, cex = 0.6, ...)},
     panel.groups = function(x, y, ...) {
       panel.xyplot(x, y, ...)
+      panel.abline(h = 0.1, col = grey(0.5), lty = 3, lwd = 2)
       panel.lmlineq(x, y, r.squared = TRUE, label = "", ...)
     }
   )
 
-plot_cost_vs_mu2 <- xyplot(corrected_cost ~ mean_mutant_mu,
+plot_cost_vs_mu2 <- xyplot(mean_mutant_mu ~ corrected_cost,
     df_mutant_cost, groups = substrate,
     pointlabels = as.character(df_mutant_cost$gene_name),
     par.settings = custom.colorblind(), col = stdcol[2:4],
-    xlab = expression("µ [h"^-1*"]"),
-    ylab = "protein mass fraction [%]",
+    xlab = "protein mass fraction [%]",
+    ylab = expression("µ [h"^-1*"]"),
     panel = function(x, y, pointlabels, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
       panel.superpose(x, y, ...)
-      panel.repellabels(x, y, labels = pointlabels, y_boundary = c(1,4.5),
+      panel.repellabels(x, y, labels = pointlabels, x_boundary = c(1,4.5),
         draw_box = TRUE, cex = 0.6, ...)},
     panel.groups = function(x, y, ...) {
       panel.xyplot(x, y, ...)
+      panel.abline(h = 0.1, col = grey(0.5), lty = 3, lwd = 2)
       panel.lmlineq(x, y, r.squared = TRUE, label = "", ...)
     }
   )
 
 print(plot_mutant_cost, position = c(0,0.5,1,1), more = TRUE)
-print(plot_cost_vs_mu, position = c(0,0,0.51,0.59), more = TRUE)
-print(plot_cost_vs_mu2, position = c(0.5,0,1,0.59), more = TRUE)
+print(plot_cost_vs_mu, position = c(0,0,0.53,0.59), more = TRUE)
+print(plot_cost_vs_mu2, position = c(0.47,0,1,0.59))
 ```
 
 
 ```{r, echo = FALSE, results = 'hide'}
 svg("../figures/figure_mutant_cost.svg", width = 6.5, height = 5.7)
 print(plot_mutant_cost, position = c(0,0.5,1,1), more = TRUE)
-print(plot_cost_vs_mu, position = c(0,0,0.51,0.59), more = TRUE)
-print(plot_cost_vs_mu2, position = c(0.5,0,1,0.59), more = TRUE)
+print(plot_cost_vs_mu, position = c(0,0,0.53,0.59), more = TRUE)
+print(plot_cost_vs_mu2, position = c(0.47,0,1,0.59))
 dev.off()
 ```
 
-## Prediction of growth advantage using a resource balance analysis (RBA) model
+## Prediction of growth advantage using cell economy model
 
+The constrained Resource Balance Analysis (RBA) model described in [Jahn et al., 2021](https://elifesciences.org/articles/69019) can be used to make predictions on the effect of hydrogenase knockout on cell growth rate. The RBA model is a genome scale metabolic model of *R. eutropha* that takes protein costs and global protein pool limitations into account. In constrast to simple FBA (flux balance analysis), growth rate is ultimately capped by rate limitation of enzymes and space limitation for enzyme mass within the cell, or the cytoplasmic membrane. The model 
+was constrained using experimentally determined steady-state growth rates and protein abundances.
 
+Here, we can ask the question if and how much growth rate would improve by expanding the total protein pool size by the fraction indicated above (e.g. *hoxA* KO freeing up to 4% protein mass). The first step is to import RBA simulation results.
+
+```{r, warning = FALSE, results = 'hide'}
+source(url("https://github.com/m-jahn/R-notebook-ralstonia-proteome/raw/main/pipeline/read_rba_result.R"))
+dir_sim <- "../../../Models/Bacterial-RBA-models/Ralstonia-eutropha-H16/simulation/hydrogenase/"
+
+df_flux <- read_rba_result(list.files(dir_sim, pattern = "fluxes_.*.tsv$", full.names = TRUE))
+df_prot <- read_rba_result(list.files(dir_sim, pattern = "proteins_.*.tsv", full.names = TRUE))
+df_macr <- read_rba_result(list.files(dir_sim, pattern = "macroprocesses_.*.tsv", full.names = TRUE))
+```
+
+The RBA modeling result is very clear: A increase in the protein pool (= decrease of unutilized protein mass) does *not* result in the observed changes of growth rate of up to +50%. The change in growth rate is rather proportional to the amount of saved protein cost.
+
+```{r, fig.width = 3.7, fig.height = 3.7}
+plot_cost_predict <- df_macr %>%
+  mutate(sim_run = as.numeric(sim_run)) %>%
+  arrange(carbon_source, sim_run) %>%
+  group_by(carbon_source, key) %>%
+  mutate(reduced_protein_cost = 0:10) %>%
+  filter(key == "mu") %>%
+  
+  xyplot(value ~ reduced_protein_cost, .,
+    groups = carbon_source, aspect = 1,
+    par.settings = custom.colorblind(),
+    type = "b", lwd = 2, lty = 2, pch = 1,
+    ylim = c(0.09, 0.155), col = stdcol[2:4],
+    xlab = "increase protein pool size [%]",
+    ylab = expression("µ [h"^-1*"]"),
+    panel = function(x, y, z, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.xyplot(x, y, ...)
+      panel.key(..., cex = 0.7, corner = c(0.96, 0.96))
+      panel.key(c("data", "model"), lines = TRUE, lty = c(1,2),
+        pch = c(19, 1), col = grey(0.4),
+        cex = 0.7, corner = c(0.96, 0.72))
+    }
+  )
+
+plot_cost_predict <- plot_cost_predict + as.layer(
+  xyplot(mean_mutant_mu ~ corrected_cost,
+    df_mutant_cost %>%
+      filter(gene_name %in% c("hoxA", "hoxF", "hoxU", "hoxY", "hoxH")),
+    groups = substrate, col = stdcol[2:4],
+    pointlabels = as.character(df_mutant_cost$gene_name),
+    panel = function(x, y, pointlabels, ...) {
+      panel.superpose(x, y, ...)
+      panel.repellabels(x, y, labels = pointlabels, y_boundary = c(0.11,0.16),
+        draw_box = TRUE, cex = 0.6, ...)},
+    panel.groups = function(x, y, ...) {
+      panel.xyplot(x, y, ...)
+      panel.lmline(x, y, ...)
+    }
+  )
+)
+
+print(plot_cost_predict)
+```
+
+```{r, echo = FALSE, results = 'hide'}
+svg("../figures/figure_cost_predict.svg", width = 3.7, height = 3.7)
+print(plot_cost_predict)
+dev.off()
+```
 
 # Session Info
 

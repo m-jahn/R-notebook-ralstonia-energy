@@ -181,7 +181,7 @@ dev.off()
 Most genes correlate in fitness value between conditions. That means, only some genes have a **condition-specific fitness effect**, i.e. increase or decrease fitness of the respective strain in one substrate or growth regime specifically. This section investigates specific genes and their functions that show such differential fitness between conditions. A simple comparison of one condition versus another will not be helpful as there two many possible combinations. To identify interesting sets of genes, cluster analysis can be performed. The first step is to generate a matrix from reformatted fitness data, and  cluster genes by similarity using a generic clustering algorithm such as `hclust(method = "ward.D")`.
 
 ```{r}
-# generate colorpalette for heatmap
+# generate color palette for heatmap
 heat_cols <- diverging_hcl(n = 7, h = c(255, 12), c = c(50, 80), l = c(20, 97), power = c(1, 1.3))
 
 # create a matrix from wide fitness data for plotting heatmap
@@ -241,6 +241,7 @@ gridExtra::grid.arrange(
 )
 ```
 
+## Gene similarity, by cluster
 
 The heat map clusters genes together that show similar expression over different conditions. Alternatively, we can use dimensionality reduction to identify clusters of genes that are similar, e.g. through **PCA**, **NMDS**, or **t-SNE**. 
 
@@ -280,7 +281,7 @@ plot_tsne <- df_tsne %>%
     panel = function(x, y, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
       panel.xyplot(x, y, ...)
-      panel.key(..., cex = 0.7, corner = c(0.02, 0.98))
+      #panel.key(..., cex = 0.7, corner = c(0.02, 0.98))
     }
   )
 
@@ -295,6 +296,56 @@ print(plot_nmds, split = c(1,1,2,1), more = TRUE)
 print(plot_tsne, split = c(2,1,2,1))
 dev.off()
 ```
+
+## Genes in interesting clusters
+
+Different gene clusters appear based on the fitness pattern in different conditions. Clusters specific for litho-autotrophic metabolism are particularly interesting. We can add the cluster IDs to the main data frame, and investigate fitness.
+
+```{r, fig.width = 5, fig.height = 4}
+df_fitness_summary <- df_fitness_summary %>%
+  left_join(by = "locus_tag",
+    enframe(cutreeord(mat_cluster, k = n_clusters), "locus_tag", "cluster")
+  )
+
+df_fitness_summary %>%
+  filter(cluster %in% c(2,3), time == 8, !str_detect(gene_name, "hox|hyp")) %>%
+  group_by(gene_name) %>% filter(norm_gene_fitness_median[7] < -2) %>%
+  ungroup %>%
+  
+  arrange(locus_tag) %>% mutate(gene_name = factor(gene_name, unique(gene_name))) %>%
+  mutate(norm_gene_fitness_median = norm_gene_fitness_median %>%
+    replace(., . < -6, -6) %>% replace(., . > 6, 6)) %>%
+
+  # plot heatmap
+  levelplot(norm_gene_fitness_median ~ gene_name * cond_short, .,
+    par.settings = custom.colorblind(), #colorkey = key,
+    col.regions = colorRampPalette(heat_cols)(12),
+    at = seq(-6, 6, 1), aspect = "iso",
+    xlab = "", ylab = "", scales = list(cex = 0.7, x = list(rot = 90)),
+    panel = function(x, y, z, ...) {
+      panel.levelplot(x, y, z, ...)
+      panel.abline(v = seq_along(unique(x))+0.5, 
+        h = seq_along(unique(y))+0.5, col = "white", lwd = 2)
+    }
+  )
+
+```
+
+Investigating interaction networks with STRING database only reveals the obvious connections of **pts** and **hem** enzymes. However there are some more interesting candidates:
+
+- **ptsI + ptsH (+ glnE)** - according to databases, a clear hit for a PEP-dependent sugar PTS system. This can't be true for _C. necator_ otherwise it would not show the familiar pattern of depletion on hydrogen and growth benefit on other substrates. This PTS system must be implicated in hydrogen metabolism, probably a transporter? The genes downstream of ptsIH do not seem to be affected (H16_A0327, 8, 9).
+- **hemxD + hemY** - genes involved in heme biosynthesis; hemXD (hemD) = Uroporphyrinogen III synthase, hemY = uncharacterized function. Other hem genes such as hemC are either essential, or KO shows no particular phenotype (hemP, hemK1, hemN). Heme is an important cofactor for enzymes of the ETC. Importantly, heme is not a part of hydrogenases excpet for the cytochrome b-like subunit hoxZ from MBH.
+- **hldD** (H16_A0804) - ADP-L-glycero-beta-D-manno-heptose-6-epimerase, involved in LPS sugar phosphate synthesis. No obvious connection to hydrogen metabolism.
+- **glnE** (H16_A1127) - Bifunctional glutamine synthetase adenylyltransferase. Involved in the regulation of glutamine synthetase GlnA. Transfers or removes adenylyl-residues to and from GlnA, thereby regulating N uptake through GlnA. No obvious connection to hydrogen metabolism. Only 1 mutant in library.
+- **H16_A2692** - uncharacterized membrane protein. Is neutral in all other conditions, just as are all surrounding genes (H16_A269[0-9]). Small, 141 AA, potential carbonic anhydrase or transporter?
+- **H16_A2742** - Putative AMP nucleosidase (AMP ), no known domains or published functions. 315 AA, 9 mutants in library. Surrounding genes neutral to growth.
+- **bolA** (H16_A3419) - Predicted transcriptional regulator, no known domains or published functions. Only 1 mutant in library.
+- **H16_B1603** - ABC-type transporter, ATPase coupled transmembrane transporter. Strong depletion on hydrogen only. All surrounding genes are neutral to fitness. Only 1 mutant in library. A candidate for a CO2/HCO3- transporter? Aligns best with a lot of different ABC transporters, with spermidine/putrescine transporters best hits.
+
+**Note regarding known CO2 transporters or carbonic anhydrases**:
+
+- All CAs with quantified fitness are neutral during autotrophic growth (H16_A1192 - _cag_, H16_B2403 - _caa_, H16_B2270 - _can2_). Only H16_A0169 (_can_) is strictly essential, no mutants. This is different to the results from [Gai et al., AMB Express, 2014](https://link.springer.com/article/10.1186/2191-0855-4-2) that found two essential CAs, _can_ and _caa_: "All four purified CAs were capable of performing the interconversion of CO2 and HCO3– [...] Deletion of _can_ affected the growth of R. eutropha; however the growth defect could be compensated by adding CO2 to the culture. Deletion of _caa_, encoding an alpha-CA, had the strongest deleterious influence on cell growth.". Also [Kusian et al., J Bac, 2002](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC135314/) report the essentiality of _can_ for litho-autotrophic growth. _Caa_ fitness was quantified in the library with 11 mutants, yet does not show any phenotype on any substrate. The results in Gai et al. are somewhat contradictory, as the _caa_ completion test in a quadruple-CA mutant had no beneficial effect on growth.
+- No  specific bicarbonate transporters are annotated in _C. necator_.
 
 # Supervised analysis of energy metabaolism
 

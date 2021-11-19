@@ -1,0 +1,1406 @@
+BLASTP 2.9.0+
+
+
+Reference: Stephen F. Altschul, Thomas L. Madden, Alejandro A.
+Schaffer, Jinghui Zhang, Zheng Zhang, Webb Miller, and David J.
+Lipman (1997), "Gapped BLAST and PSI-BLAST: a new generation of
+protein database search programs", Nucleic Acids Res. 25:3389-3402.
+
+
+Reference for composition-based statistics: Alejandro A. Schaffer,
+L. Aravind, Thomas L. Madden, Sergei Shavirin, John L. Spouge, Yuri
+I. Wolf, Eugene V. Koonin, and Stephen F. Altschul (2001),
+"Improving the accuracy of PSI-BLAST protein database searches with
+composition-based statistics and other refinements", Nucleic Acids
+Res. 29:2994-3005.
+
+
+
+Database: uniprotkb_refprotswissprot
+           64,899,224 sequences; 25,452,742,688 total letters
+
+
+
+Query= sp|Q55415|BICA_SYNY3 Bicarbonate transporter BicA OS=Synechocystis
+sp. (strain PCC 6803 / Kazusa) OX=1111708 GN=bicA PE=1 SV=1
+
+Length=564
+                                                                      Score        E
+Sequences producing significant alignments:                          (Bits)     Value
+
+TR:Q0JZ05 Q0JZ05_CUPNH Sulfate permease family (SulP) transporter ...  259        5e-80
+TR:Q0KBW9 Q0KBW9_CUPNH Sulfate permease family (SulP) transporter ...  150        1e-39
+TR:Q0KC78 Q0KC78_CUPNH Sulfate permease family (SulP) transporter ...  132        2e-33
+TR:Q0KA44 Q0KA44_CUPNH Sulfate permease family (SulP) transporter ...  110        3e-26
+TR:Q0JYY8 Q0JYY8_CUPNH MFS transporter, AzgA family OS=Cupriavidus...  48.1       2e-06
+TR:Q0K2Z7 Q0K2Z7_CUPNH Na+/phosphate symporter OS=Cupriavidus neca...  42.0       1e-04
+TR:Q0JY14 Q0JY14_CUPNH MFS transporter, AzgA family OS=Cupriavidus...  41.6       2e-04
+TR:Q0KCX2 Q0KCX2_CUPNH Nucleobase:cation symporter 2 (NCS2) family...  40.0       6e-04
+TR:Q0K715 Q0K715_CUPNH NAD(P) transhydrogenase subunit beta OS=Cup...  37.0       0.005
+TR:Q0KBD0 Q0KBD0_CUPNH MFS transporter, ACS family OS=Cupriavidus ...  32.0       0.18 
+TR:Q0KAD1 Q0KAD1_CUPNH TRAP-type transporter, large permease compo...  31.2       0.34 
+TR:Q0K1J7 Q0K1J7_CUPNH APC transporter, SSS family OS=Cupriavidus ...  30.8       0.43 
+TR:Q7WXA9 Q7WXA9_CUPNH DUF4010 domain-containing protein OS=Cupria...  30.4       0.52 
+TR:Q0KAH3 Q0KAH3_CUPNH MFS transporter, MHS family OS=Cupriavidus ...  30.0       0.72 
+TR:Q0K2Z0 Q0K2Z0_CUPNH Phosphodiesterase/alkaline phosphatase D OS...  30.0       0.79 
+TR:Q0K349 Q0K349_CUPNH Putative permease OS=Cupriavidus necator (s...  29.6       0.82 
+TR:Q0K002 Q0K002_CUPNH APC transporter, AAT family OS=Cupriavidus ...  29.6       0.97 
+TR:Q0JYE4 Q0JYE4_CUPNH ABC-type transporter, permease component OS...  29.3       1.1  
+TR:Q0K8I5 Q0K8I5_CUPNH Membrane transporters of cations and cation...  27.7       1.3  
+TR:Q0KEA0 Q0KEA0_CUPNH Glycine--tRNA ligase beta subunit OS=Cupria...  29.3       1.4  
+TR:Q0K389 Q0K389_CUPNH Predicted ring-cleavage extradiol dioxygena...  28.9       1.5  
+TR:Q0K8B9 Q0K8B9_CUPNH Benzoate transporter (APC superfamily, BenE...  28.9       1.6  
+TR:Q0JZ30 Q0JZ30_CUPNH GGDEF domain-containing protein OS=Cupriavi...  28.9       1.6  
+TR:Q0KFK5 Q0KFK5_CUPNH MFS transporter, DHA2 family OS=Cupriavidus...  28.9       1.7  
+TR:Q0K0M4 Q0K0M4_CUPNH Membrane protein OS=Cupriavidus necator (st...  28.9       1.8  
+TR:Q0K8B7 Q0K8B7_CUPNH Membrane transporters of cations and cation...  27.3       1.9  
+SP:O87816 FDHD_CUPNH Sulfur carrier protein FdhD OS=Cupriavidus ne...  28.5       1.9  
+TR:Q0K2I7 Q0K2I7_CUPNH MFS transporter, ACS family OS=Cupriavidus ...  28.5       2.2  
+TR:Q0K8D2 Q0K8D2_CUPNH Hypothetical membrane spanning protein OS=C...  28.1       2.6  
+TR:Q0JYP9 Q0JYP9_CUPNH Uncharacterized protein OS=Cupriavidus neca...  28.1       2.8  
+TR:Q0K4U4 Q0K4U4_CUPNH Hemagglutinin-related transmembrane protein...  28.1       2.9  
+TR:Q7WXC0 Q7WXC0_CUPNH Heme exporter protein B OS=Cupriavidus neca...  27.7       2.9  
+TR:Q0K6A0 Q0K6A0_CUPNH Sec-independent protein translocase protein...  27.7       3.2  
+TR:Q0K859 Q0K859_CUPNH Geranylgeranyl pyrophosphate synthase OS=Cu...  27.7       3.3  
+TR:Q0K3M1 Q0K3M1_CUPNH Probable extra-cytoplasmic solute receptor ...  27.7       3.5  
+TR:Q0JYF4 Q0JYF4_CUPNH Predicted acyl-CoA transferase/carnitine de...  27.7       3.7  
+TR:Q0K9M6 Q0K9M6_CUPNH Hydrogenase 4 membrane component (E) OS=Cup...  27.3       3.8  
+TR:Q0KAJ1 Q0KAJ1_CUPNH Multisubunit Na+/H+ antiporter, MnhD subuni...  27.7       3.9  
+TR:Q0K761 Q0K761_CUPNH ABC-type transporter, periplasmic component...  27.3       3.9  
+TR:Q0KFP0 Q0KFP0_CUPNH Hypothetical membrane anchored protein OS=C...  27.7       4.2  
+TR:Q0K9H0 Q0K9H0_CUPNH ABC-type transporter, permease component OS...  27.3       4.6  
+TR:Q0K7G2 Q0K7G2_CUPNH Putative innner membrane protein OS=Cupriav...  27.3       4.7  
+TR:Q0K5J2 Q0K5J2_CUPNH Transcriptional regulator, TetR/AcrR-family...  26.9       4.9  
+TR:Q0JZI8 Q0JZI8_CUPNH Putative transporter OS=Cupriavidus necator...  26.6       5.1  
+TR:Q0K2D8 Q0K2D8_CUPNH Hypothetical membrane associated protein OS...  26.9       5.5  
+TR:Q0K945 Q0K945_CUPNH ABC-type transporter, permease component: T...  26.9       5.6  
+TR:Q0K5E9 Q0K5E9_CUPNH Cation/multidrug efflux pump OS=Cupriavidus...  27.3       5.6  
+TR:Q0K482 Q0K482_CUPNH Transcriptional regulator, LuxR-family OS=C...  27.3       5.7  
+TR:Q0K8I6 Q0K8I6_CUPNH Transport permease protein OS=Cupriavidus n...  26.9       5.8  
+TR:Q0K8G4 Q0K8G4_CUPNH ABC-type transporter, permease component: H...  26.9       5.9  
+TR:Q0K4P8 Q0K4P8_CUPNH Integrase/recombinase protein OS=Cupriavidu...  26.9       6.1  
+TR:Q0KEL5 Q0KEL5_CUPNH GGDEF domain-containing protein OS=Cupriavi...  26.9       6.3  
+TR:Q0K6Z6 Q0K6Z6_CUPNH Uncharacterized protein OS=Cupriavidus neca...  26.6       6.4  
+TR:Q7WWV6 Q7WWV6_CUPNH Putative muconolactone transporter OS=Cupri...  26.9       6.5  
+TR:Q0K5F9 Q0K5F9_CUPNH Uncharacterized protein OS=Cupriavidus neca...  26.2       6.8  
+TR:Q0K508 Q0K508_CUPNH ABC-type transporter, duplicated permease d...  26.9       6.9  
+TR:Q0K957 Q0K957_CUPNH Integral membrane protein, interacts with F...  26.6       7.0  
+TR:Q0KB47 Q0KB47_CUPNH Bo3-type quinol oxidase, subunit I OS=Cupri...  26.9       7.0  
+TR:Q0KFH8 Q0KFH8_CUPNH Probable extra-cytoplasmic solute receptor ...  26.6       7.9  
+TR:Q0K9X5 Q0K9X5_CUPNH D-Aminopeptidase OS=Cupriavidus necator (st...  26.6       8.1  
+TR:Q0JZL6 Q0JZL6_CUPNH Uncharacterized protein OS=Cupriavidus neca...  25.8       8.8  
+
+
+>TR:Q0JZ05 Q0JZ05_CUPNH Sulfate permease family (SulP) transporter OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 
+/ NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_B2237 PE=3 
+SV=1
+Length=561
+
+ Score = 259 bits (662),  Expect = 5e-80
+ Identities = 191/559 (34%), Positives = 280/559 (50%), Gaps = 44/559 (8%)
+
+Query  15   DLFGGVTAAVIALPMALAFGIASGAGATAGLWGAVIVGFFAALFGGTPTLISEPTGPMTV  74
+            ++  GV   V+ALP+A+AF IASGA    GL+ A++ G   +LFGG+   I+ PTG   V
+Sbjct  21   NIVSGVIVGVVALPLAMAFAIASGAKPEQGLYTAIVAGLAVSLFGGSRLQIAGPTGAFIV  80
+
+Query  75   VQTAVIASLVAADPDNGLAMAFTVVMMAGLFQIAFGLLKLGKYVTMMPYTVISGFMSGIG  134
+            V +AV A        +G+       +MAGL  +A GL +LG  +  +P  VI GF +GIG
+Sbjct  81   VLSAVTAR-------HGIDGLQIATLMAGLILLAMGLTRLGSVIRFVPAPVIVGFTAGIG  133
+
+Query  135  IILVILQLAPFLGQASPKGG-----VIGTLQALPNLVSNVRPVETLLALMTVGIIWFMPS  189
+            +I+ + Q   F G     G      +   LQALP       P  T LAL ++ ++   P 
+Sbjct  134  VIIFVGQWRDFFGLPPVAGEHFHEKLWHLLQALPQW----HPATTALALGSLALVVGAPR  189
+
+Query  190  -RWKKFAPPQLVALVLGTIISITLFGDLDIRRIGEIQAGLP-ALQLPVFQADQLQRMLI-  246
+             RW +  P  LVAL++ T +   LF    +  IG    GLP  L +P      L R+L  
+Sbjct  190  VRWLRRIPGPLVALLVATAVQ-ALFRFDGVATIGTAFGGLPRGLPVPALPDITLARVLEL  248
+
+Query  247  --DAAVLGMLGCIDALLTSVVADSLTRTEHNSNKELVGQGIGNVMSGLFGGLGGAGATMG  304
+               A  + MLG I++LL++VVAD +  T H+SN+ELVGQGI N+++ LFGG    GA   
+Sbjct  249  AGPAFTIAMLGAIESLLSAVVADGMAGTRHDSNQELVGQGIANILAPLFGGFAATGAIAR  308
+
+Query  305  TVVNIQSGGRTALSGLIRAMVLLVVILGAAKLAATIPLAVLAGIAFKVGVDIIDW-GFLK  363
+            T  NI++GG + L+G++ A+ L++V+L  A LAA++PLA LA I F V  ++ +   F +
+Sbjct  309  TATNIRNGGNSPLAGVVHALTLVMVLLFLAPLAASVPLATLAAILFVVAYNMSEGRQFAR  368
+
+Query  364  RAHHVSIKGALIMYAVIVLTVLVDLIAAVGIGVFIANILTIDRMSALQSKAVKSISDADD  423
+                       I+     LTVL DL+ AV IGV +A +  + RMSA    A + + D + 
+Sbjct  369  MVRRAPRADVAILLITFTLTVLTDLVVAVNIGVILAMLQFLRRMSASVEVARQDVVDVER  428
+
+Query  424  EILLSANEKRWLDEGNG-------RVLLFQLSGPMIFGVAKAIARE-HNAIQECAAIVFD  475
+            E+          D G G        VL++ + GP  FG  +A  R       E   ++  
+Sbjct  429  EL---------GDTGAGLPARMPPGVLVYAIDGPFFFGAVEACERALVQTHTEPRVLLIR  479
+
+Query  476  LSDVPHLGVTASLALENAIEEAAEKGRAVYIVGATGQTKRRLEKLQVFRFVPESNCYDDR  535
+            L  VP + +T    LE  I    ++G  V +  A  + + +L +  V   + E N  D  
+Sbjct  480  LGRVPFMDMTGLQTLEAVIVTLQKRGVPVVLAEANERVREKLARAGVLAALGEGNYVD--  537
+
+Query  536  SEALKDAVLALGPHESEDS  554
+              +L   V   G   SED+
+Sbjct  538  --SLAQVVQRCGELASEDA  554
+
+
+>TR:Q0KBW9 Q0KBW9_CUPNH Sulfate permease family (SulP) transporter OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 
+/ NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_A1366 PE=3 
+SV=1
+Length=596
+
+ Score = 150 bits (379),  Expect = 1e-39
+ Identities = 119/466 (26%), Positives = 219/466 (47%), Gaps = 15/466 (3%)
+
+Query  4    TNKIHFRNLQGDLFGGVTAAVIALPMALAFGIASGAGATAGLWGAVIVGFFAALFGGTPT  63
+            + ++    L+ DL  G+  AV+ LP  +AF   +G     G++ AV+    AALFG +  
+Sbjct  17   SQRVDKTTLRADLVAGLLGAVLVLPQGVAFATLAGLPPQYGIYSAVVPCIVAALFGSSWH  76
+
+Query  64   LISEPTGPMTVVQTAVIASLVAADPDNGLAMAFTVVMMAGLFQIAFGLLKLGKYVTMMPY  123
+            ++S PT   ++   A+++ L  A     +A+A  V ++ G+ Q+A G L+LG     +  
+Sbjct  77   VMSGPTNANSLALFAMLSPLAFAGSPAYIALALAVTIVVGVMQLAVGTLRLGTLANFISP  136
+
+Query  124  TVISGFMSGIGIILVILQLAPFLGQASPKG-GVIGTLQALPNLVSNVRPVETLLALMTVG  182
+            +V+ GF  G   ++ +  L    G A P G    G L+ L   +  +      +  +T+ 
+Sbjct  137  SVLLGFTCGAATLIGLYALKDLFGLAVPTGTSAFGVLRHLFENIDAINWGAAAVGAVTLV  196
+
+Query  183  IIWFMPSRWKKFAPPQLVALVLGTIISITL-----FGDLDIRRIGEIQAGLPALQLPVFQ  237
+            +       W +  P  L+ L+ G  +++ L      G   +  +G I + LP   LP   
+Sbjct  197  VTLLCKRLWPRL-PFMLLGLLAGYGVALLLNQSGAGGAHHVNVVGPIPSALPRFHLPDVD  255
+
+Query  238  ADQLQRMLIDAAVLGMLGCIDALLTSVVADSLTRTEH-NSNKELVGQGIGNVMSGLFGGL  296
+              +L  +L  A+ L ++  +   ++   A +L   +H ++N+E +GQG+ N+  G F G 
+Sbjct  256  WRKLPDLLGIASALTIV-ALGQSISIAKAVALRSGQHIDANREFIGQGLSNIAGGFFSGY  314
+
+Query  297  GGAGATMGTVVNIQSGGRTALSGLIRAMVLLVVILGAAKLAATIPLAVLAGIAFKVGVDI  356
+               G+   +V N ++G RT L+ +  A+ L+ ++  +A L A IP+A +A +   V   +
+Sbjct  315  ISCGSLNRSVPNFEAGARTPLASVFSALWLVALVAVSAPLLAQIPMAAIAAMLLLVAWGL  374
+
+Query  357  IDWGFLKRAHHVSIKGALIMYAVIVLTVLVDLIAAVGIGVFIANILTIDRMSALQSKAVK  416
+            +D   L+R   +S     I       T+++ L  AV +G  ++ +  + R S     AV+
+Sbjct  375  LDTARLRRIFTLSRTEFAIAIGTFAATLVIRLEMAVLLGTVLSLVAYLYRTS---RPAVR  431
+
+Query  417  S-ISDADD--EILLSANEKRWLDEGNGRVLLFQLSGPMIFGVAKAI  459
+            S + DADD        +E R       ++ L ++ G + FG  + +
+Sbjct  432  SLVPDADDPGRRFTPLDELRRPQPECPQLKLLRMEGAIYFGAVQYV  477
+
+
+>TR:Q0KC78 Q0KC78_CUPNH Sulfate permease family (SulP) transporter OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 
+/ NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_A1253 PE=3 
+SV=1
+Length=576
+
+ Score = 132 bits (331),  Expect = 2e-33
+ Identities = 114/541 (21%), Positives = 240/541 (44%), Gaps = 15/541 (3%)
+
+Query  12   LQGDLFGGVTAAVIALPMALAFGIASGAGATAGLWGAVIVGFFAALFGGTPTLISEPTGP  71
+            L  DL  G+    + +P+ +A+  ASG     GL+  ++     AL G +  L+  P   
+Sbjct  38   LPKDLAAGLVLTTMLVPVGIAYAEASGVPGVYGLYATMVPLLVYALLGPSRILVLGPDSA  97
+
+Query  72   MTVVQTAVIASLVAADPDNGLAMAFTVVMMAGLFQIAFGLLKLGKYVTMMPYTVISGFMS  131
+            +     AV+  +   DP   + +A  + +++G+  I  GLL+LG    ++   +  G+M+
+Sbjct  98   LAAPILAVVLQVSGGDPGRAVMVASMMAIVSGVVCIVMGLLRLGFITELLSKPIRYGYMN  157
+
+Query  132  GIGIILVILQLAPFLGQASPKGGVIGTLQALPNLVSNVRPVETLLALMTVGIIWFMPSRW  191
+            GI + +++ QL      +    G +  + +L   +          A+    ++  +  + 
+Sbjct  158  GIALTVLVSQLPKLFAISIEDAGPLREMISLGRAILGGETNWYSFAVGAGSLVLILLLKR  217
+
+Query  192  KKFAPPQLVALVLGTIISITLFGDLD---IRRIGEIQAGLPALQLPVFQADQLQRMLIDA  248
+             +  P  L+A+++ T+ ++++F DLD   ++ +G+   GLP   +P      L  +L+  
+Sbjct  218  FERVPGILIAVIVATV-AVSMF-DLDQNGVKVLGKTPQGLPGFVVPWVSGADLVAILLGG  275
+
+Query  249  AVLGMLGCIDALLTSVVADSLTRTEHNSNKELVGQGIGNVMSGLFGGLGGAGATMGTVVN  308
+              + ++   D  + S    + T T  + N+E+VG G  N+ +G F G   + +   T V 
+Sbjct  276  IAVALISFADTSVLSRTFAARTNTRVDPNQEMVGLGAANLAAGFFQGFPISSSASRTPVA  335
+
+Query  309  IQSGGRTALSGLIRAMVLLVVILGAAKLAATIPLAVLAGIAFKVGVDIIDWGFLKRAHHV  368
+              +G +T L+G++ A+ + ++++ A  L   +P + LA +     + + ++  LKR + +
+Sbjct  336  EAAGAKTQLTGVVGALAVALLLMFAPNLLQYLPNSALAAVVIAAAIGLFEFADLKRIYRI  395
+
+Query  369  SIKGALIMYAVIVLTVLVDLIAAVGIGVFIANILTIDRMSALQSKAVKSISDADDEILLS  428
+                    +  +V    V +  A+  G+ +A +L +        +   ++    + +   
+Sbjct  396  Q---QWEFWLSMVCFAAVAVFGAIP-GIILAVVLAVIEFLWDGWRPHYAVLGRVEGLRGY  451
+
+Query  429  ANEKRWLD-EGNGRVLLFQLSGPMIFGVAKAI-AREHNAIQECAA----IVFDLSDVPHL  482
+             + KR+ D E    +LLF+   P+ F  A+   AR   AI E       +V     V  +
+Sbjct  452  HDTKRYPDAERIDGLLLFRWDAPLFFANAELFQARLMEAIDESPTPVRRVVVAAEPVTSV  511
+
+Query  483  GVTASLALENAIEEAAEKGRAVYIVGATGQTKRRLEKLQVFRFVPESNCYDDRSEALKDA  542
+             VT++  L        E+G A++        + +L++ ++   + + N +     A+ D 
+Sbjct  512  DVTSADMLRELSGILRERGIALHFAEMKDPVRDKLKRFELMEAIGDKNFHPTVGSAVDDY  571
+
+Query  543  V  543
+            V
+Sbjct  572  V  572
+
+
+>TR:Q0KA44 Q0KA44_CUPNH Sulfate permease family (SulP) transporter OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 
+/ NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_A2027 PE=3 
+SV=1
+Length=567
+
+ Score = 110 bits (275),  Expect = 3e-26
+ Identities = 125/516 (24%), Positives = 219/516 (42%), Gaps = 36/516 (7%)
+
+Query  10   RNLQGDLFGGVTAAVIALPMALAFGIASGAGATAGLWGAVIVGFFAALFGGTPTLISEPT  69
+            + L  D+  G + A + LP A+A+   +   A AGL G ++      + G +   +   T
+Sbjct  28   QRLGRDVIAGCSIAGLLLPEAVAYAGIANLPAQAGLVGLLVGLVIYGIVGTSRFAVVSAT  87
+
+Query  70   GPMTVVQTAVIASLVAADPDNGLAMAFTVVMMAGLFQIAFGLLKLGKYVTMMPYTVISGF  129
+                 V  A   S   AD    LA+A   V +AG+F +  G+ +LG     +   V+ GF
+Sbjct  88   SSSAAVLAAATLSTSGADAALRLALAAGFVTLAGVFLVLAGIARLGGITDFIAKPVLRGF  147
+
+Query  130  MSGIGIILVILQLAPFLGQASPKGGVIGTLQALPNLV------SNVRPVETLLALMTVGI  183
+              G+ +I+++ Q+       S   G+  T   LP         S    +  L A +    
+Sbjct  148  TFGLAVIIILRQI-------SSIAGIHPTHSDLPRFTYQFLHESAGWNLNALAACLAALA  200
+
+Query  184  IWFMPSRWKKFAPPQLVALVLG-TIISITLFGDLDIRRIGEIQAGLPALQLPVFQADQLQ  242
+            + F  +R ++  P  LV +VLG T    T      I  +G I      + LP  Q  Q  
+Sbjct  201  LLFALARLRR-VPGPLVVIVLGITAAYATDLSHYGIAEVGTIDLANVTIGLPDLQRIQWL  259
+
+Query  243  RMLIDAAVLGMLGCIDALLTSVVADSLTRTEHNS-NKELVGQGIGNVMSGLFGGLGGAGA  301
+            R+   A  L ++   ++   S+ + +L   +  S N++LV  G+ N+ SGL  G+     
+Sbjct  260  RVGELAFALVLILYAES-YGSIRSFALKYGDVTSPNRDLVALGLANIGSGLLHGMAVGAG  318
+
+Query  302  TMGTVVNIQSGGRTALSGLIRAMVLLVVILGAAKLAATIPLAVLAGI-----AFKVGVDI  356
+               T  N  +G ++ L+G   A V+ +++       A  P  VLA I     +  + +D 
+Sbjct  319  YSATSANEAAGAQSRLAGWCAAAVIALIVAALLPQLARTPEPVLAAIVIHAVSHTLRLDA  378
+
+Query  357  IDWGFLKRAHHVSIKGALIMYAVIVLTVLVDLIAAVGIGVFIANILTIDRMSALQSKAVK  416
+                +  R   + +  A +  AV++L VL  L+ A+GI +    +LT+   S  +   + 
+Sbjct  379  FRPYWTWRRDRLLVVAACV--AVVLLGVLDGLLVAIGISL----MLTLRSFSEPRVSELG  432
+
+Query  417  SISDADDEILLSANEKRWLDEGNGRVLLFQLSGPMIFGVAKAIAREHNAIQECA-----A  471
+             +  + D + ++A+ +     G   VL+ +   PM F  A+ +      + E A      
+Sbjct  433  RLGSSHDYVDIAAHPEARTLSG---VLIVRPEAPMFFANAERMLARARHLHEAAGPGLHT  489
+
+Query  472  IVFDLSDVPHLGVTASLALENAIEEAAEKGRAVYIV  507
+            +VF + + P +  +   AL     E A KG+ + +V
+Sbjct  490  LVFSMEETPDIDGSTIEALHTFASEVAAKGQRLLLV  525
+
+
+>TR:Q0JYY8 Q0JYY8_CUPNH MFS transporter, AzgA family OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 
+/ H16 / Stanier 337) OX=381666 GN=H16_B2254 PE=4 SV=1
+Length=464
+
+ Score = 48.1 bits (113),  Expect = 2e-06
+ Identities = 90/379 (24%), Positives = 155/379 (41%), Gaps = 62/379 (16%)
+
+Query  25   IALPMALAFGIASGAGATAGL-WGAVIVGFFAALFGGTPTLISEPTGPMTVVQTAVIASL  83
+            I+L   +AFG+  G G +  +  GAV       L G   T IS     +T V++ ++ +L
+Sbjct  104  ISLTAFMAFGLVLGQGLSPAVALGAVF------LMGVIFTAIS-----VTGVRSWILRNL  152
+
+Query  84   VAADPDNGLAMAFTVVMMAGLFQIAFGLLKLGKYV-TMMPYTVIS-GFMSGIGIILVILQ  141
+             A        +A    +  GLF +     ++G  V    P   +S G ++   +++ +L 
+Sbjct  153  PAG-------VAHGTGIGIGLFLLLIASNEVGLVVKNAHPGLPVSLGKITSFPVVMSVLG  205
+
+Query  142  LAPFLGQASPK--GGVIGTLQALPNLVSNVRPVETLLALMTVGIIWFMPSRWKKFAPPQL  199
+            LA   G    K  GG++  + A+  L     P     A+   G+          FA P L
+Sbjct  206  LAAIFGLERRKVPGGILLVIIAISALGLAFDP-----AVKFTGV----------FALPSL  250
+
+Query  200  VALVLGTIISITLFGDLDIRRIGEIQAGLPALQLPVFQADQLQRMLIDAAVLGMLGCIDA  259
+             A    ++I     G +D+R        L A  LP   A      L+  AV    G I A
+Sbjct  251  SAPGHESLI-----GAMDVR------GALTAAVLPSVLA------LVMTAVFDATGTIRA  293
+
+Query  260  LLTSVVADSLTRTEHNSNKELVGQGIGNVMSGLFGGLGGAGATMGTVVNIQSGGRTALSG  319
+            +       +     HN  + L    + ++ SG+FGG   A A + + V + +G +T L+ 
+Sbjct  294  VAGQAGQLNAAGHIHNGGRALTADSVSSIFSGMFGG-APAAAYIESTVGVAAGAKTGLTA  352
+
+Query  320  LIRAMVLLVVILGAAKLAATIPLAVLAGIAFKVGVDIIDWGFLKRAHHVSIKGALIMYAV  379
+            ++  + L V ++  + LA  +P    A     VG+ ++    + R H   +  A+   A 
+Sbjct  353  VVVGL-LFVAVMFFSPLAGLVPSYATAPALMYVGLLML--SSVSRLHMDDLVDAM---AG  406
+
+Query  380  IVLTVLVDLIAAVGIGVFI  398
+            +V  V + L   +  G+ +
+Sbjct  407  LVCAVFIVLTCNIVTGIML  425
+
+
+>TR:Q0K2Z7 Q0K2Z7_CUPNH Na+/phosphate symporter OS=Cupriavidus necator (strain 
+ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / H16 
+/ Stanier 337) OX=381666 GN=nptA2 PE=4 SV=1
+Length=559
+
+ Score = 42.0 bits (97),  Expect = 1e-04
+ Identities = 67/244 (27%), Positives = 103/244 (42%), Gaps = 40/244 (16%)
+
+Query  128  GFMSGIGIILVILQLAP--FLGQASPKGGVIGTLQALPNLVSNVRPVETLLALMTVGIIW  185
+            GF++G+G+  +I   +    +  A   GG++    ALP ++        +  L+TV I W
+Sbjct  47   GFLAGLGVTALIQSSSATALMTSAFVAGGLVSLPAALPIVLGADVGTSLMARLLTVDISW  106
+
+Query  186  FMPSRWKKFAPPQLVALVLGTIISITLFGDLDIR-RIGEIQAGLP----ALQLPVFQADQ  240
+              P           + LV+G  I++ L G   +R + GE+  GL     ALQL    A  
+Sbjct  107  LSP-----------LLLVIG--IALRLSGKASLRGQAGEVIVGLGLITLALQLIRLYAAP  153
+
+Query  241  LQRMLIDAAVLGMLGCIDALLTSVVADSLTRTEHNSNKELVGQGIGNVMSGLFGGLGGAG  300
+            L    I  A+   LG  DALL  V+   +T   ++S   ++        +   GG+ G  
+Sbjct  154  LLHAEIVRAIFTSLG-NDALLALVIGAFVTLLAYSSLAAVL-----LTATLAMGGVIGPA  207
+
+Query  301  ATMGTVVNIQSGGRTALSGLIRAMVLLVVILGAAKLAATIPLAVL----AGI-AFKVGVD  355
+              +  V+    G     SGLI  +       G++  A  + LA L    AGI AF   +D
+Sbjct  208  TALPLVLGANLG-----SGLIACL----ANSGSSPAARRVSLANLIFRFAGILAFLPLLD  258
+
+Query  356  IIDW  359
+             I W
+Sbjct  259  AIPW  262
+
+
+>TR:Q0JY14 Q0JY14_CUPNH MFS transporter, AzgA family OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 
+/ H16 / Stanier 337) OX=381666 GN=azgA PE=3 SV=1
+Length=458
+
+ Score = 41.6 bits (96),  Expect = 2e-04
+ Identities = 70/325 (22%), Positives = 124/325 (38%), Gaps = 59/325 (18%)
+
+Query  39   AGATAGLWGAVIVGFFAALFGGTPTLISEPTGPMTVVQTAVIASLVAADPDNGLAMAFTV  98
+            A   A   G +I+GF+A      P  ++   G       A  A  V          A   
+Sbjct  80   ATCLAAAIGTLIMGFYA----NYPIAMAPGMG-----LNAYFAYTVVKGMGFAWEAALGA  130
+
+Query  99   VMMAGLFQIAFGLLKLGKYVTM-MPYTVISGFMSGIGIILVILQLAPFLGQASPKGGVIG  157
+            V ++G   +   L ++ + +   +P+++     +GIG+ L I+ L           G++ 
+Sbjct  131  VFISGCLFLLVTLFRVREMIVNGIPHSIRVAITAGIGLFLAIVALK--------NAGIVT  182
+
+Query  158  TLQALPNLVSNVRPVETLLALMTVGIIWFMPSRWKKFAPPQLVALVLGTIISITLFGD--  215
+               A    + ++     +LA++   +I  +     K A   L+ ++L T++S    G+  
+Sbjct  183  ASPATLVTIGDLHQPSAVLAIIGFFVIVALDHLRVKGAI--LIGILLTTLLSFAFAGNTF  240
+
+Query  216  ----------------LDIRR---IGEIQAGLPALQLPVFQADQLQRMLIDAAVLGMLGC  256
+                            LDI     IG I   L    + +F A      + + A L   G 
+Sbjct  241  HGVFSAPPSLGPTLFKLDISAALSIGVINVVLVFFLVELFDATGTLMGVANRAGLLKAGK  300
+
+Query  257  IDALLTSVVADSLTRTEHNSNKELVGQGIGNVMSGLFGGLGGAGATMGTVVNIQSGGRTA  316
+            +D L  ++++DS                   +M+G F G     A + +   +Q+GGRT 
+Sbjct  301  MDRLNKALMSDSTA-----------------IMAGSFLGTSSTTAYIESASGVQAGGRTG  343
+
+Query  317  LSGLIRAMVLLVVILGAAKLAATIP  341
+            L+  +   VL +  L  A LA T+P
+Sbjct  344  LTA-VTVAVLFLAALFIAPLAGTVP  367
+
+
+>TR:Q0KCX2 Q0KCX2_CUPNH Nucleobase:cation symporter 2 (NCS2) family transporter 
+OS=Cupriavidus necator (strain ATCC 17699 / DSM 428 
+/ KCTC 22496 / NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_A1007 
+PE=3 SV=1
+Length=468
+
+ Score = 40.0 bits (92),  Expect = 6e-04
+ Identities = 60/293 (20%), Positives = 125/293 (43%), Gaps = 27/293 (9%)
+
+Query  72   MTVVQTAVIASLVA--ADPDNGLAMAFTVVMMAGLFQIAFGLLKLGKYVTMMPYTVISGF  129
+            M  V  A +A ++A   DP+ GL   +  V+ +G+F I    + +G+ + + P  V    
+Sbjct  87   MMGVTFASVAPMIAIGTDPNVGLLGIYGAVIASGIFGILIAPM-MGRMLGLFPPVVTGTV  145
+
+Query  130  MSGIGIILVILQLA-PFLGQASPKGGVIGTLQALPNLVSNVRPVETLLALMTVGIIWFMP  188
+            ++ IG+ L+ + +     GQ + +  + G ++ +PNL          +A +T+ II  + 
+Sbjct  146  ITLIGVSLMRVGINWAAGGQPTTRAVIDGVVKEVPNLAYG-DLANLGIAGLTLLIILLLT  204
+
+Query  189  SRWKKFAP--PQLVALVLGTIISITL----FGDLD----IRRIGEIQAGLPALQLPVFQA  238
+               +        L+ ++ GT++++ +    F  LD    +  I  +  G+P  ++    +
+Sbjct  205  KYGRGLVANCAVLLGIIAGTLVAMAMGKVSFEGLDEASFVAVITPLHFGMPTFEVTAILS  264
+
+Query  239  DQLQRMLIDAAVLGMLGCIDALLTSVVADSLTRTEHNSNKELVGQGIGNVMSGLFGGLG-  297
+              +  ++      GM       L+ +    L  +  +  + L   G+G V+ G+F     
+Sbjct  265  MCIVMLITLVESTGMF----LALSDITGKKL--SNEDLTRGLRADGLGTVIGGIFNTFPY  318
+
+Query  298  ---GAGATMGTVVNIQSGGRTALSGLIRAMVLLVVILGAAKLAATIPLAVLAG  347
+                    + TV  ++S    A  G+I  ++   +    A + A++P  VL G
+Sbjct  319  TSFSQNVGLVTVTGVRSRYVAAAGGII--LIAFGLFPKMAHVVASVPQFVLGG  369
+
+
+>TR:Q0K715 Q0K715_CUPNH NAD(P) transhydrogenase subunit beta OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 
+10442 / H16 / Stanier 337) OX=381666 GN=pntB3 PE=3 SV=1
+Length=490
+
+ Score = 37.0 bits (84),  Expect = 0.005
+ Identities = 70/291 (24%), Positives = 115/291 (40%), Gaps = 38/291 (13%)
+
+Query  20   VTAAVIALPMALAFGIASGAGATAGLWGAVIVGFFAALF--GGTPTLISEPTGPMTVVQT  77
+            VT  V+ + +   F  A  A ++ G   A+I   FAAL   GG    +++       VQ 
+Sbjct  50   VTTLVLIIKLKNEFLAAGTAQSSVGTGLALI---FAALVVGGGIGAYVAKK------VQM  100
+
+Query  78   AVIASLVAADPDN-GLAMAFTVVMMAGLFQIAFGLLKLGKYVTMMPYTV---ISGFMSGI  133
+              +  LVAA     GLA  F + + A     AFG+   G ++  +   +   I  F+  I
+Sbjct  101  TKMPELVAAMHSLIGLAAVF-IAVAAVAEPAAFGISPAGSHLIPLGNRIELFIGCFVGAI  159
+
+Query  134  GIILVILQLAPFLGQASPKGGVIGTLQALPNLVSNVRPVETLLALMTVG--IIWFMPSRW  191
+                 ++      G+   +       Q  P + +    +  LLA+  VG  +I+F+   W
+Sbjct  160  TFSGSVIAFGKLAGRYKFR-----LFQGAPVVFAGQHWLNLLLAVAMVGFGVIFFLSQDW  214
+
+Query  192  KKFAPPQLVALVLGTIISITLFGDLDIRRIGEIQAGLPALQLPVFQADQLQRMLIDAAVL  251
+              F     +A VLG +I I + G  D+  +  +                   MLI A   
+Sbjct  215  LPFLIMLAIAFVLGVLIIIPI-GGADMPVVVSMLNSYSGWAAAGIGFSLNNPMLIIAG--  271
+
+Query  252  GMLGCIDALLTSVVADSLTRTEHNSNKELVGQGIGNVMSGLFGGLGGAGAT  302
+             ++G   A+L+ ++  ++ R+              NV+ G FGG   A AT
+Sbjct  272  SLVGSSGAILSYIMCKAMNRS------------FFNVLLGGFGGATAAAAT  310
+
+
+>TR:Q0KBD0 Q0KBD0_CUPNH MFS transporter, ACS family OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / 
+H16 / Stanier 337) OX=381666 GN=H16_A1559 PE=4 SV=1
+Length=457
+
+ Score = 32.0 bits (71),  Expect = 0.18
+ Identities = 26/96 (27%), Positives = 45/96 (47%), Gaps = 7/96 (7%)
+
+Query  97   TVVMMAGLFQIAFGLLKLGKYVTMMPYTVISGFMSGIGIILVILQLAPFLGQASPKGGVI  156
+            T V +A L   A G+L        +P + +SG  +  G I V+  +    G  SP   ++
+Sbjct  363  TTVAIAALSLAAAGVLTCAPLFWSLPTSFLSGIAAASG-IAVVNSVGNLAGFVSPY--MV  419
+
+Query  157  GTLQALPNLVSNVRPVETLLALMTVG--IIWFMPSR  190
+            G L+ +    S   P+  L A++ VG  ++W  P++
+Sbjct  420  GALKDMTQ--STQLPMYVLSAILVVGAVLVWLTPAK  453
+
+
+>TR:Q0KAD1 Q0KAD1_CUPNH TRAP-type transporter, large permease component 
+OS=Cupriavidus necator (strain ATCC 17699 / DSM 428 / KCTC 22496 
+/ NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_A1939 
+PE=4 SV=1
+Length=622
+
+ Score = 31.2 bits (69),  Expect = 0.34
+ Identities = 81/372 (22%), Positives = 135/372 (36%), Gaps = 51/372 (14%)
+
+Query  20   VTAAVIALPMALAFGIASGAGATAGLWGAVIVGFFAALFGGTPTLISEPTGPMTVVQTAV  79
+            V    I +P+A AFG+A+           + +          P  + E    + ++   +
+Sbjct  212  VVCVAIGVPIAFAFGLATMCYLAFTTTTPLSI---------VPNRMQEGMSHLILLAVPL  262
+
+Query  80   IASLVAADPDNGLAMAFTVVMMAGLFQIAFGLLKLGKYVTMMPYTVISGF--MSGIGIIL  137
+               L A     GLA A    +   +  +  GL    +YV +    ++SG        +  
+Sbjct  263  FVFLGALIEMTGLARAMISFLANLIGHVRGGL----QYVLLGAMYIVSGISGAKAADMAA  318
+
+Query  138  VILQLAPFLGQASPK-GGVIGTLQALPNLVSNVRPVETLLALMTVGIIW--FMPSRWKKF  194
+            V   L P + Q   + G +IG L A   +   + P    + L+TVG +    + S +   
+Sbjct  319  VAPALFPEMKQRGARDGDLIGLLSASGAMSETIPP---SIVLITVGSVTGVSITSLFIGG  375
+
+Query  195  APPQLVALVLGTIIS---------ITLFGDLDIRRIGEIQAGLPALQLPVFQADQLQRML  245
+              P  V LV+   +           T+        +  +   LPAL LPV     +   +
+Sbjct  376  LMPAAVGLVMMACVGWFQTRKEDMSTVVRPTRAVIVKSLLVALPALALPVIIRTAVVEGV  435
+
+Query  246  IDAAVLGMLGCIDALLTSV----------VADSLTRTEHNSNKELVGQGIGNVMSGLFGG  295
+              A  +  +G   A+L  +          +   L  T   S   L+  G    M+     
+Sbjct  436  ATATEVSTIGIFYAVLAGIFVYRRFHWRSIYPMLVDTAALSGAILLIVGCATTMAWALTQ  495
+
+Query  296  LGGAGATMGTVVNIQSGGRTALSGLIRAMVLLVVILGAAKLAATIPLAVLAG-----IAF  350
+             G AG  +  +++   GG+T   G +    L  V+LG+  L   IP  VL G     IA 
+Sbjct  496  SGFAG-DLVKIMSAVPGGKT---GFLLVSALAFVLLGS--LLEGIPAIVLFGPLLFPIAK  549
+
+Query  351  KVGVDIIDWGFL  362
+             VGV  + +  +
+Sbjct  550  IVGVHEVHYAMV  561
+
+
+>TR:Q0K1J7 Q0K1J7_CUPNH APC transporter, SSS family OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / 
+H16 / Stanier 337) OX=381666 GN=H16_B1337 PE=3 SV=1
+Length=523
+
+ Score = 30.8 bits (68),  Expect = 0.43
+ Identities = 26/98 (27%), Positives = 42/98 (43%), Gaps = 5/98 (5%)
+
+Query  390  AAVGIGVFIANILTIDRMSALQ----SKAVKSISDADDEILLSANEKRW-LDEGNGRVLL  444
+            A +G+GV +   +T+  M A       KAV  +      +LL+     + L+    R + 
+Sbjct  154  AVIGVGVLMMIYVTVGGMIATTWVQIVKAVLLLFGGSLLMLLALGHFGFSLEALAARAIA  213
+
+Query  445  FQLSGPMIFGVAKAIAREHNAIQECAAIVFDLSDVPHL  482
+               SGP +       A   +A+  C A V  LS +PH+
+Sbjct  214  VHRSGPALLAPGTLFADPVSALSLCVATVLGLSGLPHI  251
+
+
+>TR:Q7WXA9 Q7WXA9_CUPNH DUF4010 domain-containing protein OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 
+/ H16 / Stanier 337) OX=381666 GN=PHG227 PE=3 SV=1
+Length=370
+
+ Score = 30.4 bits (67),  Expect = 0.52
+ Identities = 19/73 (26%), Positives = 34/73 (47%), Gaps = 8/73 (11%)
+
+Query  280  LVGQGIGNVMSGLFGGLGGAGATMGTVV--------NIQSGGRTALSGLIRAMVLLVVIL  331
+            + G+  G  M+GLFGG   + AT+G +          +      AL   +   + + ++L
+Sbjct  190  MFGEHFGLPMTGLFGGFVSSVATIGAMAVRARKADSPVHGPVAAALLSTVATFIQITLLL  249
+
+Query  332  GAAKLAATIPLAV  344
+            GA  ++A   LA+
+Sbjct  250  GATSVSALQALAL  262
+
+
+>TR:Q0KAH3 Q0KAH3_CUPNH MFS transporter, MHS family OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / 
+H16 / Stanier 337) OX=381666 GN=H16_A1897 PE=4 SV=1
+Length=435
+
+ Score = 30.0 bits (66),  Expect = 0.72
+ Identities = 24/84 (29%), Positives = 39/84 (46%), Gaps = 10/84 (12%)
+
+Query  315  TALSGLIRAMVLLVVILGAAKLAATIPLAVLAG---------IAFKVGVDIIDWGFLKRA  365
+            T   GL + M+L  VI GAA    T+PL  L G         +   VG+ +  + F K  
+Sbjct  276  TVTLGLPKTMMLNAVIAGAAVALFTMPLTGLLGDKIGHRKIFVVGSVGICLFGFAFFKLL  335
+
+Query  366  HHVSIKGALIMYAVIVLTVLVDLI  389
+               S+ GA+ +  VI + ++  ++
+Sbjct  336  GSGSV-GAVYLAMVIAIGLIYAML  358
+
+
+>TR:Q0K2Z0 Q0K2Z0_CUPNH Phosphodiesterase/alkaline phosphatase D OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / 
+NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=phoD PE=4 SV=1
+Length=669
+
+ Score = 30.0 bits (66),  Expect = 0.79
+ Identities = 27/104 (26%), Positives = 48/104 (46%), Gaps = 17/104 (16%)
+
+Query  181  VGIIWFMPSRWKKFAPPQLVALVLGTIISITLFGDLDIR----RIG---------EIQAG  227
+            VG ++F+P+     A  Q +A   GT+  +++ GD        R+G           Q  
+Sbjct  343  VGALYFVPAETLAAAEAQKIAAAGGTLTPVSMLGDAQRAWWQDRVGADATAWKLWANQLS  402
+
+Query  228  LPALQLPVFQADQLQRMLIDAAVL--GMLGCIDALLTSVVADSL  269
+            L  +Q+ V QA  + R++  A VL    L  +++ + + +AD L
+Sbjct  403  LLRMQVDVIQA--VARLIARALVLANNSLSSLESAIANALADDL  444
+
+
+>TR:Q0K349 Q0K349_CUPNH Putative permease OS=Cupriavidus necator (strain 
+ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / H16 / Stanier 
+337) OX=381666 GN=H16_B0783 PE=4 SV=1
+Length=291
+
+ Score = 29.6 bits (65),  Expect = 0.82
+ Identities = 39/154 (25%), Positives = 63/154 (41%), Gaps = 27/154 (18%)
+
+Query  284  GIGNVMSGLFGGLGGAGATMGTVVNIQSGGRTALSGLIRAMVLLVVILGAAKLAATIPLA  343
+            G+G  +  +FG + G         N   G  TAL   + A+V+L   L  A  A   P  
+Sbjct  158  GVGWALYIVFGQMAG---------NAHGGQATALGLTMAALVVLPFGLAHAGTAMFSPTL  208
+
+Query  344  VLAGIAFKVGVDIIDWGF----LKRAHHVSIKGALIMYAVIVLTVLVDLIAAVGIGVFIA  399
+            +L G+A  +    I +      LKR H  +              +L+ +  A+G    +A
+Sbjct  209  LLFGLAVGILSSAIPYSLEMVALKRLHRRT------------FGILLSMEPAMGALAGLA  256
+
+Query  400  NILTIDRMSALQSKAVKSISDADDEILLSANEKR  433
+                 +++SALQ  A+ SI  A     +++  KR
+Sbjct  257  --FLHEQLSALQWLAIASIITASAGCTMTSRGKR  288
+
+
+>TR:Q0K002 Q0K002_CUPNH APC transporter, AAT family OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / 
+H16 / Stanier 337) OX=381666 GN=H16_B1890 PE=4 SV=1
+Length=478
+
+ Score = 29.6 bits (65),  Expect = 0.97
+ Identities = 18/49 (37%), Positives = 31/49 (63%), Gaps = 1/49 (2%)
+
+Query  294  GGLGGAGATMGTVVNIQSGGRTA-LSGLIRAMVLLVVILGAAKLAATIP  341
+            GG+ GAG  +G+ V I+S G  A LS LI  +++++V+    ++A  +P
+Sbjct  26   GGVIGAGLFVGSGVVIKSAGPAAVLSFLITGLLVVLVMRMLGEMACAMP  74
+
+
+>TR:Q0JYE4 Q0JYE4_CUPNH ABC-type transporter, permease component OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / 
+NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_B2448 PE=4 
+SV=1
+Length=305
+
+ Score = 29.3 bits (64),  Expect = 1.1
+ Identities = 62/292 (21%), Positives = 121/292 (41%), Gaps = 36/292 (12%)
+
+Query  117  YVTMMPYTVISGFMSGIGIILV-----ILQLAPFLGQASPKGGVIGTLQALPNLVSNVRP  171
+            ++ ++P  ++ G +  +  I V     IL  A   G+ +   G   T + L      + P
+Sbjct  7    FLNLVPMGLMQGLIYALIAIAVMIPFRILNFADMTGEGTLAFGACVTAKCLS---VGLEP  63
+
+Query  172  VETLLALMTVGIIWFMPSRWKKFAPPQLVALVLGTIISITLFGDLDIRRIGEIQAGL---  228
+            V +LL     G +    + +        V  +L  I+ +++   +DIR +G+    L   
+Sbjct  64   VSSLLIGAAAGFLGGSATAY--IHEKVKVNTLLCGILVLSMLYSIDIRVMGQPNTALFTF  121
+
+Query  229  PAL--QLPVFQADQLQRM----LIDAAVLGML--------GCIDALLTSVVADSLTRTEH  274
+            P L   LP        R+    ++D A++ ++        G     L S VA +  +  +
+Sbjct  122  PNLFQYLPGDDGTLTSRIALLAVVDIALIALIFWFLGTQHGMAMRSLGSSVAMAKAQGIN  181
+
+Query  275  NSNKELVGQGIGNVMSGLFGGLGGAGATMGTVVNIQSGGRTALSGLIRAMVLLVVILGAA  334
+                 LVG G+ N+++ L GGL    A      ++  G  T ++GL  +++L   I+G  
+Sbjct  182  IKVYVLVGLGLANLIAALGGGL---LAQNQGFADVNMGFGTLINGL-ASLLLGEAIIGNR  237
+
+Query  335  KLAATIPLAVLAGIA-FKVGVDIIDWGFLKRAHHVSIKGALIMYAVIVLTVL  385
+             +   +   VL  +  F++   ++ +GF        +K    ++ +I L +L
+Sbjct  238  TILRQVAAPVLGSVVYFQLISIVLAFGF----QPSDLKMVTAVFVLITLLIL  285
+
+
+>TR:Q0K8I5 Q0K8I5_CUPNH Membrane transporters of cations and cationic drugs 
+OS=Cupriavidus necator (strain ATCC 17699 / DSM 428 / KCTC 
+22496 / NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_A2604 
+PE=3 SV=1
+Length=106
+
+ Score = 27.7 bits (60),  Expect = 1.3
+ Identities = 16/50 (32%), Positives = 31/50 (62%), Gaps = 1/50 (2%)
+
+Query  94   MAFTVVMMAGLFQIAFGL-LKLGKYVTMMPYTVISGFMSGIGIILVILQL  142
+            MA+T++ +AGLF++ + + LK  +  T +  +VI+     I ++L+ L L
+Sbjct  1    MAWTLLALAGLFEVVWAIGLKYTEGFTRLVPSVITLIGMAISVLLLALAL  50
+
+
+>TR:Q0KEA0 Q0KEA0_CUPNH Glycine--tRNA ligase beta subunit OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 
+/ H16 / Stanier 337) OX=381666 GN=glyS PE=3 SV=1
+Length=707
+
+ Score = 29.3 bits (64),  Expect = 1.4
+ Identities = 42/124 (34%), Positives = 51/124 (41%), Gaps = 20/124 (16%)
+
+Query  291  GLFGGLG-------GAG----ATMGTVVNIQSG-GRTALSGLIRAMVLLVVILGAAKLAA  338
+            GLF GLG       GA     AT   +  + SG  R+A     R  VL + +   A    
+Sbjct  33   GLFAGLGERDLLEPGATVTPFATPRRLAALVSGVRRSAPDREQREKVLPLSVALDANGEP  92
+
+Query  339  TIPLAV-LAGIAFKVGVDIIDWGFLKRAHHVSIKGALIMY-------AVIVLTVLVDLIA  390
+            T PLA  LA +A  VGV  IDW  L+RA     +     Y       A  V   L D IA
+Sbjct  93   TAPLAKKLAALAKSVGVAEIDWQSLERASDGKAEAFFYRYTARGAELAAAVQAALEDTIA  152
+
+Query  391  AVGI  394
+             + I
+Sbjct  153  KLPI  156
+
+
+>TR:Q0K389 Q0K389_CUPNH Predicted ring-cleavage extradiol dioxygenase OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 
+/ NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_B0738 
+PE=4 SV=1
+Length=324
+
+ Score = 28.9 bits (63),  Expect = 1.5
+ Identities = 33/126 (26%), Positives = 56/126 (44%), Gaps = 7/126 (6%)
+
+Query  415  VKSISDADDEILLSANEKRWLDEGNGRVLLFQLSGPMIFGVAKAIAREHNAIQECAAIVF  474
+            V+S +  D      A+   ++ +G G  L    + P    V   + R+H+   EC A++ 
+Sbjct  76   VESQASLDQLAKAIADAPGFVKQGEGDTLRVGCTDPNGLAVRFQVTRKHDVQVEC-ALMN  134
+
+Query  475  DLSDVPHLGVTASLALENAIEEAAEKGRAVYIVGATGQTKRRLEKLQVFRFVPESNCYDD  534
+              +D P L   + +  ++A     E G  V+ V     T+R    ++ F FVP S+ Y D
+Sbjct  135  TWNDKPRLNQRSPI-YDHA--TPIEVGHVVFFVKDVKATERFY--VEKFGFVP-SDRYPD  188
+
+Query  535  RSEALK  540
+            R   L+
+Sbjct  189  RGAFLR  194
+
+
+>TR:Q0K8B9 Q0K8B9_CUPNH Benzoate transporter (APC superfamily, BenE family) 
+OS=Cupriavidus necator (strain ATCC 17699 / DSM 428 / KCTC 
+22496 / NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_A2672 
+PE=4 SV=1
+Length=406
+
+ Score = 28.9 bits (63),  Expect = 1.6
+ Identities = 43/176 (24%), Positives = 73/176 (41%), Gaps = 28/176 (16%)
+
+Query  229  PALQLPVFQADQLQRMLIDAAVLGMLGCIDALLTSVV-------ADSLTRTEHNSNKELV  281
+            PA       + +L  + + A V G++  +    +S+V       A  LT  + +S    +
+Sbjct  10   PAATFMTTASLKLSDLSVSALVAGLVATLTGYTSSLVLMIQAGHAAHLTDAQISSWIWAL  69
+
+Query  282  GQGIGNVMSGLFGGLGG----AGATMGTVVNIQSGGRTALSGLIRAMVLLVVILGAA---  334
+              G+G     L   L      A +T G  + I S      +  I A +L  +++ AA   
+Sbjct  70   SMGMGITTISLSLALRVPIVVAWSTPGAALLIASLPGVPYAEAIGAFLLAGLMMAAAGMT  129
+
+Query  335  --------KLAATIPLAVLAGIAFKVGVDIIDWGFLKRAHHVSIKGALIMYAVIVL  382
+                     L A+I  A+LAGI F++ VD+    F++  H   +   L M+A  +L
+Sbjct  130  GWFDKLMRALPASIASALLAGILFRISVDV----FVQAQHQTVL--LLAMFAAYLL  179
+
+
+>TR:Q0JZ30 Q0JZ30_CUPNH GGDEF domain-containing protein OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 
+/ H16 / Stanier 337) OX=381666 GN=H16_B2212 PE=4 SV=1
+Length=417
+
+ Score = 28.9 bits (63),  Expect = 1.6
+ Identities = 29/101 (29%), Positives = 41/101 (41%), Gaps = 11/101 (11%)
+
+Query  24   VIALPMALAFGIASGAGATAGLWGAVIVGFFAALFGGTPTLISEPTGPMTVVQTAVIA-S  82
+            V A  +ALA   ASG G    L     V  +  ++ G       P  P  +    VI   
+Sbjct  46   VSAAGLALAISAASGTGQLGTLGALAFVAGWLLIYRGVRVYYGVPAHPAALAAAGVIGLG  105
+
+Query  83   LVAADPDNGLAMAFTVVMMAGLFQIAFGLL---KLGKYVTM  120
+            L AA   +G+     VV+     +I +GLL    LG + T+
+Sbjct  106  LTAA--TSGMPDGQQVVL-----RIVYGLLALVSLGTFATL  139
+
+
+>TR:Q0KFK5 Q0KFK5_CUPNH MFS transporter, DHA2 family OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 
+/ H16 / Stanier 337) OX=381666 GN=H16_A0064 PE=4 SV=1
+Length=521
+
+ Score = 28.9 bits (63),  Expect = 1.7
+ Identities = 43/155 (28%), Positives = 65/155 (42%), Gaps = 7/155 (5%)
+
+Query  197  PQLVALVLGTIISITLFGDLDIRRIGEIQAGLPALQLPVFQADQLQRMLIDAAVLGMLGC  256
+            P L+A V G  I   L   +   R G + AG  A  L +     +   +  A VL  +  
+Sbjct  324  PFLLATVAGNFIVAWLAPRVGRMR-GILSAGYIAGALGLIALALVTPAVPLAVVLAAMTL  382
+
+Query  257  IDALLTSVVADSLTRTEHNSNKELVGQGIGN--VMSGLFGGLGGAGATMGTVVNIQSGGR  314
+                L   +  +L   ++   +   G G G   V+  L   LGGA A  GT++ ++    
+Sbjct  383  AGVGLGMTMVATLMSVQNALERRDTGAGTGALLVLRSLGSALGGALA--GTLLTLEFRHA  440
+
+Query  315  TALSGLIRAMVLLVVILGAAKLAATIP--LAVLAG  347
+             A SG+ +A+ L  +  G+   A   P   AVLAG
+Sbjct  441  LAASGVTQALDLGALRHGSEAFAQLSPSVRAVLAG  475
+
+
+>TR:Q0K0M4 Q0K0M4_CUPNH Membrane protein OS=Cupriavidus necator (strain 
+ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / H16 / Stanier 
+337) OX=381666 GN=H16_B1665 PE=4 SV=1
+Length=795
+
+ Score = 28.9 bits (63),  Expect = 1.8
+ Identities = 14/34 (41%), Positives = 20/34 (59%), Gaps = 0/34 (0%)
+
+Query  23   AVIALPMALAFGIASGAGATAGLWGAVIVGFFAA  56
+            A+ +LP+  AFG+  G GA   LW + I+   AA
+Sbjct  754  ALSSLPLLKAFGLTVGPGAVLALWFSAILARPAA  787
+
+
+>TR:Q0K8B7 Q0K8B7_CUPNH Membrane transporters of cations and cationic drugs 
+OS=Cupriavidus necator (strain ATCC 17699 / DSM 428 / KCTC 
+22496 / NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=emrE 
+PE=3 SV=1
+Length=110
+
+ Score = 27.3 bits (59),  Expect = 1.9
+ Identities = 20/92 (22%), Positives = 39/92 (42%), Gaps = 23/92 (25%)
+
+Query  317  LSGLIRAMVLLVVILGAAKLAATIPLAVLAGIAFKVGVDIIDWGFLKRAHHVSIKGALIM  376
+            ++G + A  LL++++       T+P+ +   I    G+ ++                  +
+Sbjct  37   VTGYVAAFYLLMLVM------RTVPVGIAYAIWSGAGIVLVS-----------------L  73
+
+Query  377  YAVIVLTVLVDLIAAVGIGVFIANILTIDRMS  408
+             AV++   + DL A  GIG+ IA +  I   S
+Sbjct  74   IAVVLYRQVPDLAACAGIGLIIAGVAVIQLFS  105
+
+
+>SP:O87816 FDHD_CUPNH Sulfur carrier protein FdhD OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / H16 
+/ Stanier 337) OX=381666 GN=fdhD PE=2 SV=2
+Length=288
+
+ Score = 28.5 bits (62),  Expect = 1.9
+ Identities = 27/92 (29%), Positives = 41/92 (45%), Gaps = 11/92 (12%)
+
+Query  280  LVGQGIG--NVMSGLFGGLGGAGATMGTVVNIQSGGRTALSGLIRAMVLLVVILGAAKLA  337
+            LV + +G  N +  L G L  +G       +I SG     S     MVL    +GA  LA
+Sbjct  190  LVREDVGRHNALDKLAGALASSGE------DISSGAVLVTSRASYEMVLKTAAIGAGVLA  243
+
+Query  338  A-TIPLAVLAGIAFKVGVDIIDWGFLKRAHHV  368
+            A + P A+   +A +  + +   GF++   HV
+Sbjct  244  AVSAPTALAVRLAEQASITLA--GFVRAGAHV  273
+
+
+>TR:Q0K2I7 Q0K2I7_CUPNH MFS transporter, ACS family OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / 
+H16 / Stanier 337) OX=381666 GN=H16_B0996 PE=4 SV=1
+Length=448
+
+ Score = 28.5 bits (62),  Expect = 2.2
+ Identities = 41/164 (25%), Positives = 61/164 (37%), Gaps = 39/164 (24%)
+
+Query  248  AAVLGMLGCIDALLTSVVADSLTRTE-HNSNKELVGQGIGNVMSGLFGGLGGAGATMGTV  306
+            AAV  + G    +L    +D       H S   LVG              GGA A +  +
+Sbjct  296  AAVAYLCGAAGMILNGAHSDRRNEVRWHFSGSALVG--------------GGAMAVLAVL  341
+
+Query  307  VNIQSGGRTALSGLIRAMVLLVVILG---AAKLAATIPLAVLAGIAFKVGVDIID-----  358
+            +  Q      LS +I  + +   ++G   A  +   +P   LAG A  VGV +I+     
+Sbjct  342  LGAQ-----VLSPVIALLAMTAALVGTMSAIPVFWQLPNRYLAGSAAAVGVALINSVANL  396
+
+Query  359  --------WGFLKRAHHVSIKGALIMYAVIVLTVLVDLIAAVGI  394
+                     G +K        G   +Y V V+ VL  ++  VGI
+Sbjct  397  AGFGAPYVMGLIKNTTGKLTSG---LYLVAVIEVLAAVLVLVGI  437
+
+
+>TR:Q0K8D2 Q0K8D2_CUPNH Hypothetical membrane spanning protein OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 
+10442 / H16 / Stanier 337) OX=381666 GN=H16_A2659 PE=4 SV=1
+Length=327
+
+ Score = 28.1 bits (61),  Expect = 2.6
+ Identities = 60/245 (24%), Positives = 91/245 (37%), Gaps = 44/245 (18%)
+
+Query  197  PQLVALVLGTIISITLFGDLDIRRI----GEIQAGLPALQLPVFQADQLQRMLIDAAVLG  252
+            P+L    LG +    LF  L +R +    G I  GL  L   VF           AA LG
+Sbjct  84   PRLAVTALGVVAGFPLFSSLAMREVPASHGAIVIGLLPLATAVF-----------AAWLG  132
+
+Query  253  MLGCIDALLTSVVADSLTRTEHNSNKELVGQGIGNVMSG---LFGG--LGGAGATMGTVV  307
+                  A   S VA S            V QG G +      LF    LG  G   G  +
+Sbjct  133  RERPSPAFWLSAVAGSALVVGF-----AVWQGAGGLQHADWYLFAAVVLGALGYAEGGKL  187
+
+Query  308  NIQSGGRTALS-GLIRAMVLLVVILG------AAKLAATIPLAVLAGIA----FKVGVDI  356
+            + + GG   +S  L+ ++ +LV ++          +AA  P A   G+A    F + V  
+Sbjct  188  SREQGGLETISWALVVSLPVLVPVVAWLTLRDLPAIAAASPRA-WGGMAYVSVFSMFVGF  246
+
+Query  357  IDW------GFLKRAHHVSIKGALIMYAVIVLTVLVDLIA-AVGIGVFIANILTIDRMSA  409
+            + W      G + R   + +    +  A   L +   L A  +   V +  ++ + R +A
+Sbjct  247  LFWYAGLAKGGVARVGQIQLLQPFLTLAGGALILAEPLDAPTIAFAVAVIAVVALGRRAA  306
+
+Query  410  LQSKA  414
+            +Q  A
+Sbjct  307  VQQSA  311
+
+
+>TR:Q0JYP9 Q0JYP9_CUPNH Uncharacterized protein OS=Cupriavidus necator (strain 
+ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / H16 
+/ Stanier 337) OX=381666 GN=H16_B2343 PE=4 SV=1
+Length=397
+
+ Score = 28.1 bits (61),  Expect = 2.8
+ Identities = 20/55 (36%), Positives = 24/55 (44%), Gaps = 9/55 (16%)
+
+Query  14   GDLFGGVTAAVIALPMALAFG-IASGAGATAG--------LWGAVIVGFFAALFG  59
+            GDLFGGV         A+  G +A GA A  G        + GA + GF A   G
+Sbjct  96   GDLFGGVVPYAFVATKAITHGLVAPGAAAPQGWSEDFVQRVVGATLPGFTAFTLG  150
+
+
+>TR:Q0K4U4 Q0K4U4_CUPNH Hemagglutinin-related transmembrane protein OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 
+/ NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_B0179 PE=4 
+SV=1
+Length=470
+
+ Score = 28.1 bits (61),  Expect = 2.9
+ Identities = 32/108 (30%), Positives = 44/108 (41%), Gaps = 15/108 (14%)
+
+Query  227  GLPALQLPVFQADQLQRMLIDAAVLGMLGCIDALLTSVVAD------SLTRTEHNSNKEL  280
+            GL AL   +     L   L   A  G  G   A +TS+V+       S T     S    
+Sbjct  330  GLGALSPVLAPVTALAGGLTGGAGAGGTGSPLAPVTSLVSSITGGLGSATGGSTGSPLAP  389
+
+Query  281  VGQGIGNVMSGLFGGLGGAGATMGT---------VVNIQSGGRTALSG  319
+            V   +  V++G+ GG+ GA A  GT         VV   +GG T+ +G
+Sbjct  390  VTTAVSGVVNGVVGGVTGAAAGTGTTSPLAPVTNVVAAVTGGATSTAG  437
+
+
+ Score = 28.1 bits (61),  Expect = 2.9
+ Identities = 22/63 (35%), Positives = 31/63 (49%), Gaps = 2/63 (3%)
+
+Query  19   GVTAAVIALPMALAFGIASGAGA-TAGLWGAVIVGFFAALFGGTPTLISEPTG-PMTVVQ  76
+            G  + V+A   ALA G+  GAGA   G   A +    +++ GG  +     TG P+  V 
+Sbjct  332  GALSPVLAPVTALAGGLTGGAGAGGTGSPLAPVTSLVSSITGGLGSATGGSTGSPLAPVT  391
+
+Query  77   TAV  79
+            TAV
+Sbjct  392  TAV  394
+
+
+>TR:Q7WXC0 Q7WXC0_CUPNH Heme exporter protein B OS=Cupriavidus necator (strain 
+ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / H16 
+/ Stanier 337) OX=381666 GN=ccmB PE=3 SV=1
+Length=225
+
+ Score = 27.7 bits (60),  Expect = 2.9
+ Identities = 14/31 (45%), Positives = 19/31 (61%), Gaps = 3/31 (10%)
+
+Query  18   GGVTAAVIALPMA---LAFGIASGAGATAGL  45
+            G V   ++ LP+    L FG ++GAGA AGL
+Sbjct  159  GTVLLCILVLPLCVPVLVFGASAGAGADAGL  189
+
+
+>TR:Q0K6A0 Q0K6A0_CUPNH Sec-independent protein translocase protein TatC 
+OS=Cupriavidus necator (strain ATCC 17699 / DSM 428 / KCTC 
+22496 / NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=tatC PE=3 
+SV=1
+Length=265
+
+ Score = 27.7 bits (60),  Expect = 3.2
+ Identities = 25/110 (23%), Positives = 45/110 (41%), Gaps = 27/110 (25%)
+
+Query  78   AVIASLVAADPDNGLAMAFTVVMMAGL---------FQIAFGLLKLGKYVTMMPYTVISG  128
+            A + + ++ D D  L+ A T  +  G+           + FG+++L K   + PY ++  
+Sbjct  154  APLGAEMSTDIDKYLSFAMTTFLAFGITFEVPVVVIVLVRFGVVELEKLKQIRPYVIVGA  213
+
+Query  129  FMSG-------------IGIILVILQ-----LAPFLGQASPKGGVIGTLQ  160
+            F+               + + LV L      LA F+G+ SP+    G  Q
+Sbjct  214  FIIAAIVTPPDVLSQLLLAVPLVALYELGLLLARFVGRPSPEATASGETQ  263
+
+
+>TR:Q0K859 Q0K859_CUPNH Geranylgeranyl pyrophosphate synthase OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 
+10442 / H16 / Stanier 337) OX=381666 GN=ispA PE=3 SV=1
+Length=294
+
+ Score = 27.7 bits (60),  Expect = 3.3
+ Identities = 23/77 (30%), Positives = 33/77 (43%), Gaps = 15/77 (19%)
+
+Query  297  GGAGATMGTVVNIQSGGRTAL------------SGLIRAMVLLVVILG---AAKLAATIP  341
+            G  G   G  +++Q+ GR                 L+RA V +  + G   A  LAA   
+Sbjct  149  GSTGMAGGQAIDLQNVGRAMTREALEAMHRMKTGALLRASVRMGALCGEIDAEGLAALDR  208
+
+Query  342  LAVLAGIAFKVGVDIID  358
+             A   G+AF+V  DI+D
+Sbjct  209  YAAAVGLAFQVVDDILD  225
+
+
+>TR:Q0K3M1 Q0K3M1_CUPNH Probable extra-cytoplasmic solute receptor OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 
+/ NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_B0606 PE=3 
+SV=1
+Length=345
+
+ Score = 27.7 bits (60),  Expect = 3.5
+ Identities = 23/74 (31%), Positives = 37/74 (50%), Gaps = 7/74 (9%)
+
+Query  16  LFGGVTAAVIALPM-ALAFGIASGAGATAGLWGAVIVGFFAALFGGTPT-----LISEPT  69
+           L GG+ AAV+A P+ A A G  + AGAT   + A  +        G  +     ++S+P 
+Sbjct  14  LTGGLLAAVLASPICAGAAGATAAAGATGASYPAKPIALMVPYPAGGASDAIARVLSQPV  73
+
+Query  70  GPMTVVQTAVIASL  83
+           G   + QT ++ +L
+Sbjct  74  GKQ-LGQTVLVENL  86
+
+
+>TR:Q0JYF4 Q0JYF4_CUPNH Predicted acyl-CoA transferase/carnitine dehydratase 
+OS=Cupriavidus necator (strain ATCC 17699 / DSM 428 / KCTC 
+22496 / NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_B2438 
+PE=4 SV=1
+Length=410
+
+ Score = 27.7 bits (60),  Expect = 3.7
+ Identities = 15/46 (33%), Positives = 21/46 (46%), Gaps = 2/46 (4%)
+
+Query  282  GQGIGNVMSGLFGGLGGAGATMGTVVNIQSGGRTALSGLIRAMVLL  327
+            G  + ++M G+FG +G   A      N    G+   SGL    VLL
+Sbjct  166  GSSVNDIMGGMFGAIGVLAALYER--NATGAGKEVQSGLFENCVLL  209
+
+
+>TR:Q0K9M6 Q0K9M6_CUPNH Hydrogenase 4 membrane component (E) OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 
+10442 / H16 / Stanier 337) OX=381666 GN=H16_A2198 PE=4 SV=1
+Length=219
+
+ Score = 27.3 bits (59),  Expect = 3.8
+ Identities = 17/48 (35%), Positives = 23/48 (48%), Gaps = 5/48 (10%)
+
+Query  7    IHFRNLQGDLFGGVTAAVIALPMALAFGIASGAGATAGLWGAVIVGFF  54
+            I F  ++  LF   TAA   +PM +  GIA        L G +I+G F
+Sbjct  155  IGFLAMENGLFFAATAATYGMPMVVELGIALDV-----LIGVLILGVF  197
+
+
+>TR:Q0KAJ1 Q0KAJ1_CUPNH Multisubunit Na+/H+ antiporter, MnhD subunit OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 
+/ NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=mnhD PE=4 
+SV=1
+Length=513
+
+ Score = 27.7 bits (60),  Expect = 3.9
+ Identities = 37/156 (24%), Positives = 62/156 (40%), Gaps = 27/156 (17%)
+
+Query  212  LFGDLDIRRIGEIQAGLPALQLPVFQADQLQRMLI-----------------DAAVLGML  254
+            L G L++  +G   AGLPA   P+  A     ML+                  A+  G +
+Sbjct  182  LSGTLNMAHLGLRLAGLPAQDQPLAVAAGAMLMLVFALKAALFPLYFWLPRAYASATGPV  241
+
+Query  255  GCIDALLTSVVADSLTRTEHNSNKELVGQGIGNVMSGLFGGLGGAGATMGTVVNIQSGGR  314
+              + A++T V   ++ R +      L+  G      GL G        +  ++ +  G  
+Sbjct  242  AALFAIMTKVGIYAMLRCD-----ALIFGG----PQGLLGPFLHDWVFLLALITLAVGAL  292
+
+Query  315  TAL-SGLIRAMVLLVVILGAAKLAATIPLAVLAGIA  349
+             A+ +G +RAM   +V+     LAA + +   AG A
+Sbjct  293  GAVAAGTLRAMTSYLVVASVGLLAACVSMQTQAGWA  328
+
+
+>TR:Q0K761 Q0K761_CUPNH ABC-type transporter, periplasmic component: SulT 
+family OS=Cupriavidus necator (strain ATCC 17699 / DSM 428 
+/ KCTC 22496 / NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=tupB 
+PE=3 SV=1
+Length=232
+
+ Score = 27.3 bits (59),  Expect = 3.9
+ Identities = 28/119 (24%), Positives = 44/119 (37%), Gaps = 28/119 (24%)
+
+Query  23   AVIALPMALAFGIASGAGAT-----------AGLWGAVIV-------GFFAALFGGTPTL  64
+            AVI  P+ LAF +++  GA            AG W   +        G  AA+  G   +
+Sbjct  107  AVIGFPVVLAFALSTLQGADVRLRETAWVLGAGRWRTFLTVIRELRFGLMAAVVAGFGRV  166
+
+Query  65   ISEP----------TGPMTVVQTAVIASLVAADPDNGLAMAFTVVMMAGLFQIAFGLLK  113
+            I+E            G    + TA+       +   G+A+   +V +A L  I    L+
+Sbjct  167  IAEVGSALMIGGNIEGSTRTITTAIALETSKGEFAQGIALGIVLVALALLVNIGMAWLQ  225
+
+
+>TR:Q0KFP0 Q0KFP0_CUPNH Hypothetical membrane anchored protein OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 
+10442 / H16 / Stanier 337) OX=381666 GN=H16_A0029 PE=4 SV=1
+Length=853
+
+ Score = 27.7 bits (60),  Expect = 4.2
+ Identities = 26/92 (28%), Positives = 38/92 (41%), Gaps = 13/92 (14%)
+
+Query  296  LGGAGATMGTVVNIQSGGRTALSGLIRAMVLLVVILGAAKLAATIPLAVLAGIAFKVGVD  355
+            +G AGA +G   +   G      G      L     G+    A +PLA    +AF VGV 
+Sbjct  747  IGFAGAVVGVGWDAYHGADEGRKGNYFVSGLYFTSAGSGLATAILPLASEEFLAFLVGVP  806
+
+Query  356  IIDWGFLKRAHHVSIKGALIMYAVIVLTVLVD  387
+               W FL           ++++AV V  +L+D
+Sbjct  807  --SWPFL-----------VVLFAVNVGILLLD  825
+
+
+>TR:Q0K9H0 Q0K9H0_CUPNH ABC-type transporter, permease component OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / 
+NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_A2254 PE=4 
+SV=1
+Length=341
+
+ Score = 27.3 bits (59),  Expect = 4.6
+ Identities = 29/112 (26%), Positives = 54/112 (48%), Gaps = 11/112 (10%)
+
+Query  198  QLVALVLGTIISITLFGDLDIRRIG-EIQAGLPALQLPVFQADQLQRMLIDAAVLG-MLG  255
+            +L+A+ LG +I I +   L+  RIG  I+AG+   ++      +++R+ I   V G  L 
+Sbjct  194  RLIAMALGLVIFIAMLLLLNRTRIGLLIRAGVENREMVEALGYRVRRLFIGVFVAGAALA  253
+
+Query  256  CIDALLTSVVADSLTRTEHNSNKELVGQGIGNVMSGLFGGLGGAGATMGTVV  307
+             +  +L  +   ++T          +G  + NV+  +   +GG G+T G  V
+Sbjct  254  GLGGVLWGLYQQNITAA--------IGAQV-NVLIFIVIIIGGLGSTTGCFV  296
+
+
+>TR:Q0K7G2 Q0K7G2_CUPNH Putative innner membrane protein OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 
+/ H16 / Stanier 337) OX=381666 GN=H16_A2983 PE=4 SV=1
+Length=364
+
+ Score = 27.3 bits (59),  Expect = 4.7
+ Identities = 17/62 (27%), Positives = 30/62 (48%), Gaps = 9/62 (15%)
+
+Query  14   GDLFG------GVTAAVIALPMALAFGIASGAGATAGL---WGAVIVGFFAALFGGTPTL  64
+            GD +G      GV  A++A      F + + A   AG+   +G  + GF+ AL   +P +
+Sbjct  207  GDFYGVYLRAFGVMVALVAAAALAGFMLGATASGQAGMMLSFGIGVTGFYLALLAVSPYV  266
+
+Query  65   IS  66
+            ++
+Sbjct  267  MA  268
+
+
+>TR:Q0K5J2 Q0K5J2_CUPNH Transcriptional regulator, TetR/AcrR-family OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 
+/ NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_A3672 PE=4 
+SV=1
+Length=210
+
+ Score = 26.9 bits (58),  Expect = 4.9
+ Identities = 24/72 (33%), Positives = 32/72 (44%), Gaps = 12/72 (17%)
+
+Query  438  GNGRVLLFQLSGPMIFGVAKAIAREHNA-----IQECAAIVF-----DLSDVPHLGVTAS  487
+            G   V L Q+S     GVAK+    H       + E A  +F     +L   PH G TA+
+Sbjct  40   GYAEVTLDQISAEA--GVAKSSLLWHFGSKEMLLAEAATSLFRDIGEELGTEPHRGKTAA  97
+
+Query  488  LALENAIEEAAE  499
+              LENA +  A+
+Sbjct  98   RRLENAFDRVAD  109
+
+
+>TR:Q0JZI8 Q0JZI8_CUPNH Putative transporter OS=Cupriavidus necator (strain 
+ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / H16 / 
+Stanier 337) OX=381666 GN=H16_B2054 PE=4 SV=1
+Length=153
+
+ Score = 26.6 bits (57),  Expect = 5.1
+ Identities = 32/131 (24%), Positives = 52/131 (40%), Gaps = 20/131 (15%)
+
+Query  284  GIGNVMSGLFGGLGGAGATMGTVVNIQSGGRTALSGLIRAMVLLVVILGAAK--------  335
+            G+  V+ GL       G +MGT   +  G    L GL+ A++  VV+L +          
+Sbjct  12   GLMFVLVGLGFSWVARGYSMGTAAKMGPGYFPFLLGLVLAVLGAVVLLSSLSPKGEEDHL  71
+
+Query  336  -------LAATIPLAVLAGIAFK-----VGVDIIDWGFLKRAHHVSIKGALIMYAVIVLT  383
+                   L   +   VL G+  K     + V ++       +H  S KGAL+   V+VL 
+Sbjct  72   ARWDLKTLLWILGSVVLFGLLLKPLGMVLSVFVLVMVSSMASHEFSWKGALLNAVVLVLI  131
+
+Query  384  VLVDLIAAVGI  394
+             L   +  + +
+Sbjct  132  SLGAFVYGINL  142
+
+
+>TR:Q0K2D8 Q0K2D8_CUPNH Hypothetical membrane associated protein OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / 
+NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_B1045 PE=4 
+SV=1
+Length=259
+
+ Score = 26.9 bits (58),  Expect = 5.5
+ Identities = 15/24 (63%), Positives = 16/24 (67%), Gaps = 0/24 (0%)
+
+Query  27  LPMALAFGIASGAGATAGLWGAVI  50
+           L MA A G+AS A A AG  GAVI
+Sbjct  3   LLMAAALGLASAAVAAAGAAGAVI  26
+
+
+>TR:Q0K945 Q0K945_CUPNH ABC-type transporter, permease component: TauT family 
+OS=Cupriavidus necator (strain ATCC 17699 / DSM 428 / 
+KCTC 22496 / NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_A2381 
+PE=3 SV=1
+Length=263
+
+ Score = 26.9 bits (58),  Expect = 5.6
+ Identities = 25/99 (25%), Positives = 40/99 (40%), Gaps = 12/99 (12%)
+
+Query  24   VIALPMALAFGIASGAGATAGLWGAVIVGFFAALFGGTPTLISEPTGPMTVVQTAVIASL  83
+            V  +   LAFGI + AG   GLW         AL   T  ++      M  +   ++A +
+Sbjct  65   VTLIETVLAFGIGTVAGLGVGLW--------LALSPMTSAILDPYVKAMNSMPRVILAPI  116
+
+Query  84   VAADPDNGL----AMAFTVVMMAGLFQIAFGLLKLGKYV  118
+             A     G+    A+A T+V     F +  G+ ++   V
+Sbjct  117  FAVWFGLGIWSKVALAVTLVFFIVFFNVYQGVKEVSPVV  155
+
+
+>TR:Q0K5E9 Q0K5E9_CUPNH Cation/multidrug efflux pump OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 
+/ H16 / Stanier 337) OX=381666 GN=acrB7a PE=4 SV=1
+Length=1065
+
+ Score = 27.3 bits (59),  Expect = 5.6
+ Identities = 22/92 (24%), Positives = 42/92 (46%), Gaps = 7/92 (8%)
+
+Query  290  SGLFGGLGGAGATMGTVVNIQSGGRTALSGLIRAMVLLVVILGAAKLAATIPLAVLAGI-  348
+            S +F   GG  A        QS   T +  L+ A+ ++  +LG    +   PL +LAG+ 
+Sbjct  859  SSIFTSWGGDAAVF------QSSQATQIVLLVAAIAVIYTLLGVLYESYIHPLTILAGLP  912
+
+Query  349  AFKVGVDIIDWGFLKRAHHVSIKGALIMYAVI  380
+            +  VG  +  + F      +++ G L++  ++
+Sbjct  913  SAAVGALLTLFIFNVELSLIAVIGVLMLIGIV  944
+
+
+>TR:Q0K482 Q0K482_CUPNH Transcriptional regulator, LuxR-family OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 
+10442 / H16 / Stanier 337) OX=381666 GN=H16_B0393 PE=4 SV=1
+Length=1290
+
+ Score = 27.3 bits (59),  Expect = 5.7
+ Identities = 24/78 (31%), Positives = 33/78 (42%), Gaps = 11/78 (14%)
+
+Query  19   GVTAAVIALPMALAFGIASGAGATAGLWGAVIVGFFAALFGGTPTLISEPTGPMTVVQTA  78
+            GV+AA ++     A G+ASG G   GL G            G     S P       +  
+Sbjct  118  GVSAASVSRHWRAA-GLASGLGGLGGLGG----------LNGINGRASGPAPFHFTGRAV  166
+
+Query  79   VIASLVAADPDNGLAMAF  96
+             I +L AA P++ L +AF
+Sbjct  167  EIVALYAAGPEHALVLAF  184
+
+
+>TR:Q0K8I6 Q0K8I6_CUPNH Transport permease protein OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / 
+H16 / Stanier 337) OX=381666 GN=H16_A2603 PE=3 SV=1
+Length=287
+
+ Score = 26.9 bits (58),  Expect = 5.8
+ Identities = 22/58 (38%), Positives = 33/58 (57%), Gaps = 8/58 (14%)
+
+Query  299  AGATMGTVVNIQ---SGGRTALSGLIRAMVLLVVILGAAKLAATI---PLAVLAGIAF  350
+            A  T+G VV  +   +  +  LSGL  A++L+   LG A++   +   P+ VLAGIAF
+Sbjct  131  APLTLGDVVLGEIAWAASKAVLSGL--AIMLVAGALGYAQMPGALLALPVIVLAGIAF  186
+
+
+>TR:Q0K8G4 Q0K8G4_CUPNH ABC-type transporter, permease component: HAAT family 
+OS=Cupriavidus necator (strain ATCC 17699 / DSM 428 / 
+KCTC 22496 / NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=livH1 
+PE=4 SV=1
+Length=308
+
+ Score = 26.9 bits (58),  Expect = 5.9
+ Identities = 29/119 (24%), Positives = 53/119 (45%), Gaps = 23/119 (19%)
+
+Query  300  GATMGTVVNIQSGGRTALSGLIRAMVLL------------VVILGAAKLAATIPLAVLAG  347
+            G T+G +  + + G T + G+I  +               +V L A    A  PL ++ G
+Sbjct  15   GLTLGAIYALIAIGYTMVYGIIGMINFAHGEIYMIGAYVGLVTLTAIGAQAGYPLPLVLG  74
+
+Query  348  IAFKVGVDIID-WGF-LKRAHHVSIKGALIMYAVIVLTVLVDLIAAVGIGVFIANILTI  404
+             A  V V +   +G+ ++R  +  ++G            LV LI+A+G+ +F+ N + I
+Sbjct  75   AALLVSVLVTGVYGYAVERVAYRPLRGG---------PRLVPLISAIGMSIFLQNYVQI  124
+
+
+>TR:Q0K4P8 Q0K4P8_CUPNH Integrase/recombinase protein OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 
+/ H16 / Stanier 337) OX=381666 GN=H16_B0225 PE=4 SV=1
+Length=340
+
+ Score = 26.9 bits (58),  Expect = 6.1
+ Identities = 16/53 (30%), Positives = 30/53 (57%), Gaps = 4/53 (8%)
+
+Query  188  PSRWKKFAPPQLVALVLGTIISITLFGDLDIRRIGEIQAGLPA-LQLPVFQAD  239
+            P++WK+     L+A++LG  + +   G+    R+  I+AG P  + L + +AD
+Sbjct  161  PTQWKRARDVALLAVLLGGGLKV---GEARALRVDAIEAGAPGRMALRMVRAD  210
+
+
+>TR:Q0KEL5 Q0KEL5_CUPNH GGDEF domain-containing protein OS=Cupriavidus necator 
+(strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 
+/ H16 / Stanier 337) OX=381666 GN=H16_A0406 PE=4 SV=1
+Length=390
+
+ Score = 26.9 bits (58),  Expect = 6.3
+ Identities = 18/57 (32%), Positives = 27/57 (47%), Gaps = 0/57 (0%)
+
+Query  177  ALMTVGIIWFMPSRWKKFAPPQLVALVLGTIISITLFGDLDIRRIGEIQAGLPALQL  233
+            AL+++ +  F    W  F  PQLVA +    I I L   L I  +  ++ G  A Q+
+Sbjct  96   ALVSLPLALFAALAWFDFMQPQLVARICILNIGIALILLLGIAPLARLRTGSTADQV  152
+
+
+>TR:Q0K6Z6 Q0K6Z6_CUPNH Uncharacterized protein OS=Cupriavidus necator (strain 
+ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / H16 
+/ Stanier 337) OX=381666 GN=H16_A3150 PE=4 SV=1
+Length=202
+
+ Score = 26.6 bits (57),  Expect = 6.4
+ Identities = 14/40 (35%), Positives = 22/40 (55%), Gaps = 1/40 (3%)
+
+Query  282  GQGIGNVMSGLFGGLGGAGATMGTVVNIQSGGRTALSGLI  321
+            G  +G+++ GL GG GGA A     +   +GG  AL  ++
+Sbjct  89   GLDLGSLLGGLLGGQGGAPAN-SQALGAAAGGIGALQQIL  127
+
+
+>TR:Q7WWV6 Q7WWV6_CUPNH Putative muconolactone transporter OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 
+10442 / H16 / Stanier 337) OX=381666 GN=mmlH PE=4 SV=1
+Length=427
+
+ Score = 26.9 bits (58),  Expect = 6.5
+ Identities = 21/71 (30%), Positives = 34/71 (48%), Gaps = 8/71 (11%)
+
+Query  84   VAADPDNGLAMAFTVVMM---AGLFQIAFGLLKLGKYVTMMPYTVISGFMSGIGIILVIL  140
+            VAAD  + +    T++M+   A +  +++ LL L   +T      I GF+ G   I +  
+Sbjct  275  VAADLCDRIGRRPTLIMLSICAWIVTVSYMLLPLNPTLT-----AILGFLVGFSAIGMFA  329
+
+Query  141  QLAPFLGQASP  151
+             L PFL +  P
+Sbjct  330  ALGPFLSELFP  340
+
+
+>TR:Q0K5F9 Q0K5F9_CUPNH Uncharacterized protein OS=Cupriavidus necator (strain 
+ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / H16 
+/ Stanier 337) OX=381666 GN=H16_A3706 PE=4 SV=1
+Length=151
+
+ Score = 26.2 bits (56),  Expect = 6.8
+ Identities = 14/29 (48%), Positives = 15/29 (52%), Gaps = 6/29 (21%)
+
+Query  282  GQGIGNVMSGLFGGL------GGAGATMG  304
+            G   GN M G  GGL      GGAGA +G
+Sbjct  88   GTAAGNAMGGRTGGLIGAGLGGGAGAALG  116
+
+
+>TR:Q0K508 Q0K508_CUPNH ABC-type transporter, duplicated permease domains 
+OS=Cupriavidus necator (strain ATCC 17699 / DSM 428 / KCTC 
+22496 / NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_B0110 
+PE=3 SV=1
+Length=575
+
+ Score = 26.9 bits (58),  Expect = 6.9
+ Identities = 24/80 (30%), Positives = 32/80 (40%), Gaps = 3/80 (4%)
+
+Query  189  SRWKKFAPPQLVALVLGTIISITLFGDLDIRRIGE---IQAGLPALQLPVFQADQLQRML  245
+            S W+ F    L     G   +  L   L I   G    +  G P L L  ++A   Q+  
+Sbjct  202  SPWRTFCTVTLPGARQGLFAAACLVLTLVITDFGVPKVVGGGYPVLALEAYKAVVGQQQF  261
+
+Query  246  IDAAVLGMLGCIDALLTSVV  265
+               A++GML    ALLT  V
+Sbjct  262  DRGALIGMLLLAPALLTFAV  281
+
+
+>TR:Q0K957 Q0K957_CUPNH Integral membrane protein, interacts with FtsH OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 
+/ NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=ftsI3 PE=3 
+SV=1
+Length=234
+
+ Score = 26.6 bits (57),  Expect = 7.0
+ Identities = 22/105 (21%), Positives = 45/105 (43%), Gaps = 7/105 (7%)
+
+Query  297  GGAGATMGTVVNIQSGGRTALSGLIRAM---VLLVVILGAAKLAATIPLAVLAGIAFKVG  353
+            GG  A  G +  I +  +   SGL + +   V+L+++   A +   +P  ++      +G
+Sbjct  124  GGTAAVFGAMATIATVSKRDFSGLGKFLFVGVILLILASVANIWLQLPSLMITVSVIAIG  183
+
+Query  354  V----DIIDWGFLKRAHHVSIKGALIMYAVIVLTVLVDLIAAVGI  394
+            +     + D   +      +   A +   + V  V V+L+A +GI
+Sbjct  184  IFSAYILFDVQRVVNGGETNYITATLAIYLDVYNVFVNLLALLGI  228
+
+
+>TR:Q0KB47 Q0KB47_CUPNH Bo3-type quinol oxidase, subunit I OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 
+10442 / H16 / Stanier 337) OX=381666 GN=cyoB2 PE=3 SV=1
+Length=658
+
+ Score = 26.9 bits (58),  Expect = 7.0
+ Identities = 49/178 (28%), Positives = 80/178 (45%), Gaps = 32/178 (18%)
+
+Query  90   NGLAMAFTVV--MMAGLFQIAFGLLKLGKYVTMMPYT-VISGFMSGIGIILVILQLAPFL  146
+            +G+ M F V   ++ GL  +   L ++G      P+   +S +MS +G +LV+L +  F+
+Sbjct  106  HGVIMIFFVATPLVLGLMNVIVPL-QIGARDVAFPFVNSLSFWMSAMGAVLVMLSM--FV  162
+
+Query  147  GQASPKGGVIGTLQALPNLVSNVRPVETLLALMTVGIIWFMPSRWKKFAPPQLVALVLGT  206
+            G  +  G V     A P       P+  L    T G+ +++ S         L    LGT
+Sbjct  163  GDFAATGWV-----AYP-------PLSELGYSPTPGVDYYIWS---------LQISGLGT  201
+
+Query  207  IISITLFGDLDIRRIGEIQA-GLPALQLPVFQADQLQRMLIDAAVLGMLGCIDALLTS  263
+                TL G   I  I  ++A GL  +++PVF    L   ++  A+  +L    ALLT+
+Sbjct  202  ----TLTGINFIVTILRMRAPGLNLMKMPVFTWTALITNILIVAIFPVLTATLALLTA  255
+
+
+>TR:Q0KFH8 Q0KFH8_CUPNH Probable extra-cytoplasmic solute receptor OS=Cupriavidus 
+necator (strain ATCC 17699 / DSM 428 / KCTC 22496 
+/ NCIMB 10442 / H16 / Stanier 337) OX=381666 GN=H16_A0091 PE=3 
+SV=1
+Length=322
+
+ Score = 26.6 bits (57),  Expect = 7.9
+ Identities = 23/71 (32%), Positives = 34/71 (48%), Gaps = 10/71 (14%)
+
+Query  30  ALAFGIASGAGATAGLWGA----VIVGFFAALFGGTPTLISEPTGP---MTVVQTAVIAS  82
+           A A  +A+ AGA A  W A    ++VG+ A   GG+  L++    P     + Q+ VI +
+Sbjct  9   AAALCLAASAGAVASAWPAKPITLVVGYTA---GGSVDLVARTIAPELGKRLGQSVVIEN  65
+
+Query  83  LVAADPDNGLA  93
+           L  A    G A
+Sbjct  66  LGGAGGTIGAA  76
+
+
+>TR:Q0K9X5 Q0K9X5_CUPNH D-Aminopeptidase OS=Cupriavidus necator (strain 
+ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / H16 / Stanier 
+337) OX=381666 GN=dmpA PE=3 SV=1
+Length=348
+
+ Score = 26.6 bits (57),  Expect = 8.1
+ Identities = 21/63 (33%), Positives = 26/63 (41%), Gaps = 5/63 (8%)
+
+Query  32   AFGIASGAGATAGLWGAVIVGFFAALFGGTP---TLISEPTGPMTVVQTAVIASLVAADP  88
+            AFG+  G G  + L G   VG       GTP   T+     GP  V + A      AA P
+Sbjct  170  AFGVKGGIGTASRLAGGYRVGALVLANFGTPESLTVAGRLAGPELVQRLA--QPDTAAQP  227
+
+Query  89   DNG  91
+            + G
+Sbjct  228  EKG  230
+
+
+>TR:Q0JZL6 Q0JZL6_CUPNH Uncharacterized protein OS=Cupriavidus necator (strain 
+ATCC 17699 / DSM 428 / KCTC 22496 / NCIMB 10442 / H16 
+/ Stanier 337) OX=381666 GN=H16_B2026 PE=4 SV=1
+Length=146
+
+ Score = 25.8 bits (55),  Expect = 8.8
+ Identities = 22/83 (27%), Positives = 32/83 (39%), Gaps = 2/83 (2%)
+
+Query  256  CIDALLTSVVADSLTRTEHNSNKELVGQGIGNVMSGLFGGLGGAGATMGTVVNIQSGGRT  315
+            C+  LLT+     L     N+    +G   G  + G  G  G  GA +G  V   +GG  
+Sbjct  10   CLTLLLTAATTPVLADDLKNAVGGGLGGAAGAAVGGALG--GSTGAVVGGAVGGGAGGAV  67
+
+Query  316  ALSGLIRAMVLLVVILGAAKLAA  338
+              +   R   ++   LG    AA
+Sbjct  68   TANKKERTGAIVGGALGGGAGAA  90
+
+
+
+Lambda      K        H
+   0.323    0.139    0.396 
+
+Gapped
+Lambda      K        H
+   0.267   0.0410    0.140 
+
+Effective search space used: 731092600
+
+
+  Database: uniprotkb_refprotswissprot
+    Posted date:  Nov 17, 2021 04:43 PM
+  Number of letters in database: 25,452,742,688
+  Number of sequences in database:  64,899,224
+
+
+
+Matrix: BLOSUM62
+Gap Penalties: Existence: 11, Extension: 1
+Neighboring words threshold: 11
+Window for multiple hits: 40
+

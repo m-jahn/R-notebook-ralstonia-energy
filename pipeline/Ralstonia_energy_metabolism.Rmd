@@ -199,13 +199,16 @@ mat_cluster <- mat_heatmap %>% dist %>% hclust(method = "ward.D2")
 mat_heatmap <- mat_heatmap[order.dendrogram(as.dendrogram(mat_cluster)), c(1,5,2,6,4,8,3,7)]
 ```
 
-The second step is to find the optimal number of clusters for subdividing the data set. Silhouette analysis can be used for this purpose. However, the result is not entirely clear, but suggests a number of 4 to 10 clusters would give good separation.
+The second step is to find the optimal number of clusters for subdividing the data set. Silhouette analysis can be used for this purpose. However, the result is not entirely clear, but suggests a number of 5 to 10 clusters would give good separation. A wrapper for more or less fully automated silhouette analysis is available in my `Rtools` package (random collection of helper functions).
+
+```{r, eval = FALSE}
+devtools::install_github("m-jahn/Rtools")
+```
+
 
 ```{r, fig.width = 4, fig.height = 4}
-#devtools::install_github("m-jahn/Rtools")
-set.seed(123)
-silhouette_result <- Rtools::silhouette_analysis(mat = mat_heatmap, n = 2:20)
-print(silhouette_result$plot.summary)
+silhouette_result <- Rtools::silhouette_analysis(mat = mat_heatmap, n_clusters = 2:20, n_repeats = 10)
+print(silhouette_result$plot_summary)
 n_clusters = 7
 ```
 
@@ -297,7 +300,9 @@ print(plot_tsne, split = c(2,1,2,1))
 dev.off()
 ```
 
-## Genes in interesting clusters
+## Interesting clusters: Hydrogen metabolism genes
+
+**Potential CO2 transporters or carbonic anhydrases**
 
 Different gene clusters appear based on the fitness pattern in different conditions. Clusters specific for litho-autotrophic metabolism are particularly interesting. We can add the cluster IDs to the main data frame, and investigate fitness.
 
@@ -328,7 +333,6 @@ df_fitness_summary %>%
         h = seq_along(unique(y))+0.5, col = "white", lwd = 2)
     }
   )
-
 ```
 
 Investigating interaction networks with STRING database only reveals the obvious connections of **pts** and **hem** enzymes. However there are some more interesting candidates:
@@ -342,10 +346,65 @@ Investigating interaction networks with STRING database only reveals the obvious
 - **bolA** (H16_A3419) - Predicted transcriptional regulator, no known domains or published functions. Only 1 mutant in library.
 - **H16_B1603** - ABC-type transporter, ATPase coupled transmembrane transporter. Strong depletion on hydrogen only. All surrounding genes are neutral to fitness. Only 1 mutant in library. A candidate for a CO2/HCO3- transporter? Aligns best with a lot of different ABC transporters, with spermidine/putrescine transporters best hits.
 
-**Note regarding known CO2 transporters or carbonic anhydrases**:
+## CO2 transporter/carbonic anhydrase homologs
 
-- All CAs with quantified fitness are neutral during autotrophic growth (H16_A1192 - _cag_, H16_B2403 - _caa_, H16_B2270 - _can2_). Only H16_A0169 (_can_) is strictly essential, no mutants. This is different to the results from [Gai et al., AMB Express, 2014](https://link.springer.com/article/10.1186/2191-0855-4-2) that found two essential CAs, _can_ and _caa_: "All four purified CAs were capable of performing the interconversion of CO2 and HCO3– [...] Deletion of _can_ affected the growth of R. eutropha; however the growth defect could be compensated by adding CO2 to the culture. Deletion of _caa_, encoding an alpha-CA, had the strongest deleterious influence on cell growth.". Also [Kusian et al., J Bac, 2002](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC135314/) report the essentiality of _can_ for litho-autotrophic growth. _Caa_ fitness was quantified in the library with 11 mutants, yet does not show any phenotype on any substrate. The results in Gai et al. are somewhat contradictory, as the _caa_ completion test in a quadruple-CA mutant had no beneficial effect on growth.
-- No  specific bicarbonate transporters are annotated in _C. necator_.
+All CAs with quantified fitness are neutral during lithoautotrophic growth (H16_A1192 - _cag_, H16_B2403 - _caa_, H16_B2270 - _can2_). Only H16_A0169 (_can_) is strictly essential, no mutants are available. This is different to the results from [Gai et al., AMB Express, 2014](https://link.springer.com/article/10.1186/2191-0855-4-2) that found two essential CAs, _can_ and _caa_: 
+
+"All four purified CAs were capable of performing the interconversion of CO2 and HCO3– [...] Deletion of _can_ affected the growth of R. eutropha; however the growth defect could be compensated by adding CO2 to the culture. Deletion of _caa_, encoding an alpha-CA, had the strongest deleterious influence on cell growth.". 
+
+Also [Kusian et al., J Bac, 2002](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC135314/) report the essentiality of _can_ for lithoautotrophic growth. _Caa_ fitness was quantified in the library with 11 mutants, yet does not show any phenotype on any substrate. The results in Gai et al. are somewhat contradictory, as the _caa_ completion test in a quadruple-CA mutant had no beneficial effect on growth. 
+
+Altogether, no specific bicarbonate transporters are annotated in _C. necator_. However, important bicarbonate (HCO3+) or CO2 transporters known from e.g. cyanobacteria (_Synechocystis_ sp. PCC 6803) could be used to search for homologous genes in _C. necator_. The following CO2/HCO3+ transporters are known in _Synechocystis_:
+
+- **BicA** (sll0834): constitutive high-flux, low-affinity Na+/HCO3+ symport
+- **SbtA** (slr1512): inducible low-flux, high-affinity Na+/HCO3+ symport
+- **BCT1** (cmpABCD operon/slr0040-44): inducible high-affinity, ATP-dependent uniport
+- **NDH** (nuo operon/): all genes of this operon are essential in _C. necator_, no cond. fitness
+
+The first three of these genes were blasted against the genome of _C. necator_. The figure shows alignment scores for the top 20 hits.
+
+```{r, fig.width = 6.5, fig.height = 3}
+df_co2_transport_align <- read_tsv("../data/alignments/CO2_transporters.tsv", col_types = cols()) %>%
+  group_by(target_name) %>%
+  mutate(rank = seq_along(uniprot))
+  
+  xyplot(score + -log10(e_value) ~ rank | target_name, df_co2_transport_align,
+    par.settings = custom.colorblind(), xlim = c(-1, 21),
+    xlab = "rank", ylab = expression("-log"[10]*" e value, score"),
+    between = list(x = 0.5, y = 0.5), lwd = 0,
+    scales = list(alternating = FALSE),
+    panel = function(x, y, z, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.barplot(x, y, ewidth = 0.5, fill_alpha = 0.7, ...)
+      panel.key(..., points = FALSE, corner = c(0.97, 0.97))
+    }
+  )
+```
+BicA and cmpB seem to have some very similar homologs in the _C. necator_ genome. However, none of these homologs has a clear phenotype related to hydrogen metabolism.
+
+```{r, fig.width = 9.5, fig.height = 3.5}
+df_co2_transport_align %>%
+  filter(rank <= 20) %>% 
+  select(uniprot, target_name, rank) %>%
+  inner_join(df_fitness_summary, by = "uniprot") %>% ungroup %>%
+  mutate(norm_gene_fitness_median = norm_gene_fitness_median %>%
+    replace(., . < -6, -6) %>% replace(., . > 6, 6)) %>%
+
+  # plot heatmap
+  levelplot(norm_gene_fitness_median ~ 
+      factor(paste(target_name, format(rank, digits = 2), "-", locus_tag)) * cond_short, .,
+    par.settings = custom.colorblind(), #colorkey = key,
+    col.regions = colorRampPalette(heat_cols)(12),
+    at = seq(-6, 6, 1), aspect = "iso",
+    xlab = "", ylab = "", scales = list(cex = 0.7, x = list(rot = 90)),
+    panel = function(x, y, z, ...) {
+      panel.levelplot(x, y, z, ...)
+      panel.abline(v = seq_along(unique(x))+0.5, 
+        h = seq_along(unique(y))+0.5, col = "white", lwd = 2)
+    }
+  )
+```
+
 
 # Supervised analysis of energy metabaolism
 

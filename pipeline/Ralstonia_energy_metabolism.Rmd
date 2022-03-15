@@ -300,118 +300,12 @@ print(plot_tsne, split = c(2,1,2,1))
 dev.off()
 ```
 
-## Interesting clusters: Hydrogen metabolism genes
-
-**Potential CO2 transporters or carbonic anhydrases**
-
-Different gene clusters appear based on the fitness pattern in different conditions. Clusters specific for litho-autotrophic metabolism are particularly interesting. We can add the cluster IDs to the main data frame, and investigate fitness.
-
-```{r, fig.width = 5, fig.height = 4}
-df_fitness_summary <- df_fitness_summary %>%
-  left_join(by = "locus_tag",
-    enframe(cutreeord(mat_cluster, k = n_clusters), "locus_tag", "cluster")
-  )
-
-df_fitness_summary %>%
-  filter(cluster %in% c(2,3), time == 8, !str_detect(gene_name, "hox|hyp")) %>%
-  group_by(gene_name) %>% filter(norm_gene_fitness_median[7] < -2) %>%
-  ungroup %>%
-  
-  arrange(locus_tag) %>% mutate(gene_name = factor(gene_name, unique(gene_name))) %>%
-  mutate(norm_gene_fitness_median = norm_gene_fitness_median %>%
-    replace(., . < -6, -6) %>% replace(., . > 6, 6)) %>%
-
-  # plot heatmap
-  levelplot(norm_gene_fitness_median ~ gene_name * cond_short, .,
-    par.settings = custom.colorblind(), #colorkey = key,
-    col.regions = colorRampPalette(heat_cols)(12),
-    at = seq(-6, 6, 1), aspect = "iso",
-    xlab = "", ylab = "", scales = list(cex = 0.7, x = list(rot = 90)),
-    panel = function(x, y, z, ...) {
-      panel.levelplot(x, y, z, ...)
-      panel.abline(v = seq_along(unique(x))+0.5, 
-        h = seq_along(unique(y))+0.5, col = "white", lwd = 2)
-    }
-  )
-```
-
-Investigating interaction networks with STRING database only reveals the obvious connections of **pts** and **hem** enzymes. However there are some more interesting candidates:
-
-- **ptsI + ptsH (+ glnE)** - according to databases, a clear hit for a PEP-dependent sugar PTS system. This can't be true for _C. necator_ otherwise it would not show the familiar pattern of depletion on hydrogen and growth benefit on other substrates. This PTS system must be implicated in hydrogen metabolism, probably a transporter? The genes downstream of ptsIH do not seem to be affected (H16_A0327, 8, 9).
-- **hemxD + hemY** - genes involved in heme biosynthesis; hemXD (hemD) = Uroporphyrinogen III synthase, hemY = uncharacterized function. Other hem genes such as hemC are either essential, or KO shows no particular phenotype (hemP, hemK1, hemN). Heme is an important cofactor for enzymes of the ETC. Importantly, heme is not a part of hydrogenases excpet for the cytochrome b-like subunit hoxZ from MBH.
-- **hldD** (H16_A0804) - ADP-L-glycero-beta-D-manno-heptose-6-epimerase, involved in LPS sugar phosphate synthesis. No obvious connection to hydrogen metabolism.
-- **glnE** (H16_A1127) - Bifunctional glutamine synthetase adenylyltransferase. Involved in the regulation of glutamine synthetase GlnA. Transfers or removes adenylyl-residues to and from GlnA, thereby regulating N uptake through GlnA. No obvious connection to hydrogen metabolism. Only 1 mutant in library.
-- **H16_A2692** - uncharacterized membrane protein. Is neutral in all other conditions, just as are all surrounding genes (H16_A269[0-9]). Small, 141 AA, potential carbonic anhydrase or transporter?
-- **H16_A2742** - Putative AMP nucleosidase (AMP ), no known domains or published functions. 315 AA, 9 mutants in library. Surrounding genes neutral to growth.
-- **bolA** (H16_A3419) - Predicted transcriptional regulator, no known domains or published functions. Only 1 mutant in library.
-- **H16_B1603** - ABC-type transporter, ATPase coupled transmembrane transporter. Strong depletion on hydrogen only. All surrounding genes are neutral to fitness. Only 1 mutant in library. A candidate for a CO2/HCO3- transporter? Aligns best with a lot of different ABC transporters, with spermidine/putrescine transporters best hits.
-
-## CO2 transporter/carbonic anhydrase homologs
-
-All CAs with quantified fitness are neutral during lithoautotrophic growth (H16_A1192 - _cag_, H16_B2403 - _caa_, H16_B2270 - _can2_). Only H16_A0169 (_can_) is strictly essential, no mutants are available. This is different to the results from [Gai et al., AMB Express, 2014](https://link.springer.com/article/10.1186/2191-0855-4-2) that found two essential CAs, _can_ and _caa_: 
-
-"All four purified CAs were capable of performing the interconversion of CO2 and HCO3– [...] Deletion of _can_ affected the growth of R. eutropha; however the growth defect could be compensated by adding CO2 to the culture. Deletion of _caa_, encoding an alpha-CA, had the strongest deleterious influence on cell growth.". 
-
-Also [Kusian et al., J Bac, 2002](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC135314/) report the essentiality of _can_ for lithoautotrophic growth. _Caa_ fitness was quantified in the library with 11 mutants, yet does not show any phenotype on any substrate. The results in Gai et al. are somewhat contradictory, as the _caa_ completion test in a quadruple-CA mutant had no beneficial effect on growth. 
-
-Altogether, no specific bicarbonate transporters are annotated in _C. necator_. However, important bicarbonate (HCO3+) or CO2 transporters known from e.g. cyanobacteria (_Synechocystis_ sp. PCC 6803) could be used to search for homologous genes in _C. necator_. The following CO2/HCO3+ transporters are known in _Synechocystis_:
-
-- **BicA** (sll0834): constitutive high-flux, low-affinity Na+/HCO3+ symport
-- **SbtA** (slr1512): inducible low-flux, high-affinity Na+/HCO3+ symport
-- **BCT1** (cmpABCD operon/slr0040-44): inducible high-affinity, ATP-dependent uniport
-- **NDH** (nuo operon/): all genes of this operon are essential in _C. necator_, no cond. fitness
-
-The first three of these genes were blasted against the genome of _C. necator_. The figure shows alignment scores for the top 20 hits.
-
-```{r, fig.width = 6.5, fig.height = 3}
-df_co2_transport_align <- read_tsv("../data/alignments/CO2_transporters.tsv", col_types = cols()) %>%
-  group_by(target_name) %>%
-  mutate(rank = seq_along(uniprot))
-  
-  xyplot(score + -log10(e_value) ~ rank | target_name, df_co2_transport_align,
-    par.settings = custom.colorblind(), xlim = c(-1, 21),
-    xlab = "rank", ylab = expression("-log"[10]*" e value, score"),
-    between = list(x = 0.5, y = 0.5), lwd = 0,
-    scales = list(alternating = FALSE),
-    panel = function(x, y, z, ...) {
-      panel.grid(h = -1, v = -1, col = grey(0.9))
-      panel.barplot(x, y, ewidth = 0.5, fill_alpha = 0.7, ...)
-      panel.key(..., points = FALSE, corner = c(0.97, 0.97))
-    }
-  )
-```
-BicA and cmpB seem to have some very similar homologs in the _C. necator_ genome. However, none of these homologs has a clear phenotype related to hydrogen metabolism.
-
-```{r, fig.width = 9.5, fig.height = 3.5}
-df_co2_transport_align %>%
-  filter(rank <= 20) %>% 
-  select(uniprot, target_name, rank) %>%
-  inner_join(df_fitness_summary, by = "uniprot") %>% ungroup %>%
-  mutate(norm_gene_fitness_median = norm_gene_fitness_median %>%
-    replace(., . < -6, -6) %>% replace(., . > 6, 6)) %>%
-
-  # plot heatmap
-  levelplot(norm_gene_fitness_median ~ 
-      factor(paste(target_name, format(rank, digits = 2), "-", locus_tag)) * cond_short, .,
-    par.settings = custom.colorblind(), #colorkey = key,
-    col.regions = colorRampPalette(heat_cols)(12),
-    at = seq(-6, 6, 1), aspect = "iso",
-    xlab = "", ylab = "", scales = list(cex = 0.7, x = list(rot = 90)),
-    panel = function(x, y, z, ...) {
-      panel.levelplot(x, y, z, ...)
-      panel.abline(v = seq_along(unique(x))+0.5, 
-        h = seq_along(unique(y))+0.5, col = "white", lwd = 2)
-    }
-  )
-```
-
 
 # Supervised analysis of energy metabaolism
 
 Generalized function plot (small) heatmaps.
 
 ```{r}
-# generalized function to plot (small) heatmaps
 heatmap_fitness <- function(data, key = TRUE) {
   
   # make some small adjustments to optical appearance
@@ -422,8 +316,8 @@ heatmap_fitness <- function(data, key = TRUE) {
   # plot heatmap
   levelplot(norm_gene_fitness_median ~ factor(gene_name) * cond_short, .,
     par.settings = custom.colorblind(), colorkey = key,
-    col.regions = colorRampPalette(heat_cols)(16),
-    at = seq(-6, 6, 1), aspect = "iso",
+    col.regions = colorRampPalette(heat_cols)(25),
+    at = seq(-6, 6, 0.5), aspect = "iso",
     xlab = "", ylab = "", scales = list(cex = 0.7, x = list(rot = 90)),
     panel = function(x, y, z, ...) {
       panel.levelplot(x, y, z, ...)
@@ -476,17 +370,18 @@ genome_plot <- function(df, xlim = NULL, title = "") {
 ```{r, fig.width = 7, fig.height = 4}
 # plot heatmap
 df_moco <- df_fitness_summary %>% filter(time == 8, grepl("mo[aedbg]", gene_name)) %>%
-  mutate(gene_name = str_remove(gene_name, "^moaA ")) %>%
+  filter(!str_detect(gene_name, "moaA2")) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "mo[aedbg]([A-Z0-9]+)?") %>%
     str_replace("mog", "mogA")) %>%
-  ungroup %>% arrange(gene_name)
+  mutate(gene_name = factor(gene_name, c("moaA", "moaC", "moaD", "moaE", "moaF",
+    "modA", "modB", "modC", "mogA", "moeA1", "moeA2", "moeA3", "mobA", "mobB", "mobB2", "mobB3")))
 plot_moco_fit <- heatmap_fitness(df_moco)
 
 # plot genomic locations
 df_moco <- df_moco %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
 plot_moco_g1 <- genome_plot(df_moco, xlim = c(2455.9, 2458.6), title = "chr 1")
-plot_moco_g2 <- genome_plot(df_moco, xlim = c(725.7, 728.3), title = "chr 1")
+plot_moco_g2 <- genome_plot(df_moco, xlim = c(2787.8, 2791.2), title = "chr 1")
 
 print(plot_moco_fit, position = c(0,0.21,1,1.05), more = TRUE)
 print(plot_moco_g1, position = c(0.17,-0.1,0.57,0.4), more = TRUE)
@@ -522,23 +417,24 @@ dev.off()
 df_fdh <- df_fitness_summary %>% filter(time == 8, grepl("fd[swho]", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "fd[swho][A-Z0-9]+")) %>%
   mutate(gene_name = recode(gene_name, `fdhD` = "fdsC", `fdhC` = "fdhC1", `fdhE` = "fdhE1")) %>%
-  ungroup %>% arrange(gene_name)
+  mutate(gene_name = factor(gene_name, c(paste0("fds", c("A", "B", "C", "D", "G", "R")),
+    "fdwA", "fdwB", paste0("fdh", c("A1", "B1", "C1", "D1", "E1", "A2")), "fdoG")))
 plot_fdh_fit <- heatmap_fitness(df_fdh)
 
 # plot genomic locations
 df_fdh <- df_fdh %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
-plot_fdh_g1 <- genome_plot(df_fdh, xlim = c(3167.9, 3174.9), title = "chr 1")
-plot_fdh_g2 <- genome_plot(df_fdh, xlim = c(677.7, 685.6), title = "chr 1")
+plot_fdh_g1 <- genome_plot(df_fdh, xlim = c(677.7, 685.6), title = "chr 1")
+plot_fdh_g2 <- genome_plot(df_fdh, xlim = c(3167.9, 3174.9), title = "chr 1")
 
 print(plot_fdh_fit, position = c(0,0.23,1,1.05), more = TRUE)
-print(plot_fdh_g1, position = c(0.17,-0.1,0.56,0.4), more = TRUE)
+print(plot_fdh_g1, position = c(0.17,-0.1,0.57,0.4), more = TRUE)
 print(plot_fdh_g2, position = c(0.52,-0.1,0.83,0.4))
 ```
 ```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_fdh.svg", width = 7, height = 4)
 print(plot_fdh_fit, position = c(0,0.23,1,1.05), more = TRUE)
-print(plot_fdh_g1, position = c(0.17,-0.1,0.56,0.4), more = TRUE)
+print(plot_fdh_g1, position = c(0.17,-0.1,0.57,0.4), more = TRUE)
 print(plot_fdh_g2, position = c(0.52,-0.1,0.83,0.4))
 dev.off()
 ```
@@ -630,16 +526,12 @@ plot_hyp_g3 <- genome_plot(df_hyp, xlim = c(85.0, 89.7), title = "pHG1")
 
 print(plot_hyp_fit, position = c(0,0.23,1,1.05), more = TRUE)
 print(plot_hyp_g1, position = c(0.26,-0.1,0.78,0.4), more = TRUE)
-#print(plot_hyp_g2, position = c(0.36,-0.1,0.71,0.4), more = TRUE)
-#print(plot_hyp_g3, position = c(0.68,-0.1,1.0,0.4))
 ```
 
 ```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_hyp.svg", width = 7, height = 4)
 print(plot_hyp_fit, position = c(0,0.23,1,1.05), more = TRUE)
 print(plot_hyp_g1, position = c(0.26,-0.1,0.78,0.4), more = TRUE)
-#print(plot_hyp_g2, position = c(0.36,-0.1,0.71,0.4), more = TRUE)
-#print(plot_hyp_g3, position = c(0.68,-0.1,1.0,0.4))
 dev.off()
 ```
 
@@ -668,7 +560,8 @@ Cytochrome e- transport proteins, cytochrome reductases, and terminal oxidases.
     According to String DB, `H16_A3576` is in same operon as thiosulphate oxidation
     pathway (SoxXYZABCD), where thiosulfate is used as electron source [Zhang et al., 2020](https://www.nature.com/articles/s41396-020-0684-5)
 - **terminal cytochrome C oxidases**
-  - coxMNOPQ = bb3 complex, affinity unknown?
+  - coxMNOPQ = bb3 complex, affinity unknown, not essential for growth or N-fixation in B.
+    japonycum where it was discovered. []()
   - ctaABCDEG = aa3 complex, low O2 affinity
   - ccoGNOP = cbb3 complex, high affinity, high similarity to NO3 reductase
   - VP2641 (`H16_A1031`) = Membrane spanning protein, RDD family. PFAM: unknown function, 
@@ -829,6 +722,84 @@ svg(filename = "../figures/figure_fit_nos.svg", width = 6, height = 4)
 print(plot_nos_fit, position = c(0,0.25,1,1.0), more = TRUE)
 print(plot_nos_g1, position = c(0.22,-0.1,0.85,0.4))
 dev.off()
+```
+
+## Non-hydrogenase genes important for H2 fitness
+
+Different gene clusters appear based on the fitness pattern in different conditions. Clusters specific for lithoautotrophic metabolism are particularly interesting. We can add the cluster IDs to the main data frame, and investigate fitness.
+
+```{r, fig.width = 5, fig.height = 4}
+df_fitness_summary <- df_fitness_summary %>%
+  left_join(by = "locus_tag",
+    enframe(cutreeord(mat_cluster, k = n_clusters), "locus_tag", "cluster")
+  )
+
+df_fitness_summary %>%
+  filter(cluster %in% c(2,3), time == 8, !str_detect(gene_name, "hox|hyp")) %>%
+  group_by(gene_name) %>% filter(norm_gene_fitness_median[7] < -2) %>%
+  ungroup %>%
+  
+  arrange(locus_tag) %>% mutate(gene_name = factor(gene_name, unique(gene_name))) %>%
+  mutate(norm_gene_fitness_median = norm_gene_fitness_median %>%
+    replace(., . < -6, -6) %>% replace(., . > 6, 6)) %>%
+  heatmap_fitness
+```
+
+Investigating interaction networks with STRING database only reveals the obvious connections of **pts** and **hem** enzymes. However there are some more interesting candidates:
+
+- **ptsI + ptsH (+ glnE)** - according to databases, a clear hit for a PEP-dependent sugar PTS system. This can't be true for _C. necator_ otherwise it would not show the familiar pattern of depletion on hydrogen and growth benefit on other substrates. This PTS system must be implicated in hydrogen metabolism, probably a transporter? The genes downstream of ptsIH do not seem to be affected (H16_A0327, 8, 9).
+- **hemxD + hemY** - genes involved in heme biosynthesis; hemXD (hemD) = Uroporphyrinogen III synthase, hemY = uncharacterized function. Other hem genes such as hemC are either essential, or KO shows no particular phenotype (hemP, hemK1, hemN). Heme is an important cofactor for enzymes of the ETC. Importantly, heme is not a part of hydrogenases excpet for the cytochrome b-like subunit hoxZ from MBH.
+- **hldD** (H16_A0804) - ADP-L-glycero-beta-D-manno-heptose-6-epimerase, involved in LPS sugar phosphate synthesis. No obvious connection to hydrogen metabolism.
+- **glnE** (H16_A1127) - Bifunctional glutamine synthetase adenylyltransferase. Involved in the regulation of glutamine synthetase GlnA. Transfers or removes adenylyl-residues to and from GlnA, thereby regulating N uptake through GlnA. No obvious connection to hydrogen metabolism. Only 1 mutant in library.
+- **H16_A2692** - uncharacterized membrane protein. Is neutral in all other conditions, just as are all surrounding genes (H16_A269[0-9]). Small, 141 AA, potential carbonic anhydrase or transporter?
+- **H16_A2742** - Putative AMP nucleosidase (AMP ), no known domains or published functions. 315 AA, 9 mutants in library. Surrounding genes neutral to growth.
+- **bolA** (H16_A3419) - Predicted transcriptional regulator, no known domains or published functions. Only 1 mutant in library.
+- **H16_B1603** - ABC-type transporter, ATPase coupled transmembrane transporter. Strong depletion on hydrogen only. All surrounding genes are neutral to fitness. Only 1 mutant in library. A candidate for a CO2/HCO3- transporter? Aligns best with a lot of different ABC transporters, with spermidine/putrescine transporters best hits.
+
+## CO2 transporter/carbonic anhydrase homologs
+
+All CAs with quantified fitness are neutral during lithoautotrophic growth (H16_A1192 - _cag_, H16_B2403 - _caa_, H16_B2270 - _can2_). Only H16_A0169 (_can_) is strictly essential, no mutants are available. This is different to the results from [Gai et al., AMB Express, 2014](https://link.springer.com/article/10.1186/2191-0855-4-2) that found two essential CAs, _can_ and _caa_: 
+
+"All four purified CAs were capable of performing the interconversion of CO2 and HCO3– [...] Deletion of _can_ affected the growth of R. eutropha; however the growth defect could be compensated by adding CO2 to the culture. Deletion of _caa_, encoding an alpha-CA, had the strongest deleterious influence on cell growth.". 
+
+Also [Kusian et al., J Bac, 2002](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC135314/) report the essentiality of _can_ for lithoautotrophic growth. _Caa_ fitness was quantified in the library with 11 mutants, yet does not show any phenotype on any substrate. The results in Gai et al. are somewhat contradictory, as the _caa_ completion test in a quadruple-CA mutant had no beneficial effect on growth. 
+
+Altogether, no specific bicarbonate transporters are annotated in _C. necator_. However, important bicarbonate (HCO3+) or CO2 transporters known from e.g. cyanobacteria (_Synechocystis_ sp. PCC 6803) could be used to search for homologous genes in _C. necator_. The following CO2/HCO3+ transporters are known in _Synechocystis_:
+
+- **BicA** (sll0834): constitutive high-flux, low-affinity Na+/HCO3+ symport
+- **SbtA** (slr1512): inducible low-flux, high-affinity Na+/HCO3+ symport
+- **BCT1** (cmpABCD operon/slr0040-44): inducible high-affinity, ATP-dependent uniport
+- **NDH** (nuo operon/): all genes of this operon are essential in _C. necator_, no cond. fitness
+
+The first three of these genes were blasted against the genome of _C. necator_. The figure shows alignment scores for the top 20 hits.
+
+```{r, fig.width = 6.5, fig.height = 3}
+df_co2_transport_align <- read_tsv("../data/alignments/CO2_transporters.tsv", col_types = cols()) %>%
+  group_by(target_name) %>%
+  mutate(rank = seq_along(uniprot))
+  
+  xyplot(score + -log10(e_value) ~ rank | target_name, df_co2_transport_align,
+    par.settings = custom.colorblind(), xlim = c(-1, 21),
+    xlab = "rank", ylab = expression("-log"[10]*" e value, score"),
+    between = list(x = 0.5, y = 0.5), lwd = 0,
+    scales = list(alternating = FALSE),
+    panel = function(x, y, z, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.barplot(x, y, ewidth = 0.5, fill_alpha = 0.7, ...)
+      panel.key(..., points = FALSE, corner = c(0.97, 0.97))
+    }
+  )
+```
+BicA and cmpB seem to have some very similar homologs in the _C. necator_ genome. However, none of these homologs has a clear phenotype related to hydrogen metabolism.
+
+```{r, fig.width = 9.5, fig.height = 3.5}
+df_co2_transport_align %>%
+  filter(rank <= 20) %>% 
+  select(uniprot, target_name, rank) %>%
+  inner_join(df_fitness_summary, by = "uniprot") %>% ungroup %>%
+  mutate(norm_gene_fitness_median = norm_gene_fitness_median %>%
+    replace(., . < -6, -6) %>% replace(., . > 6, 6)) %>%
+  heatmap_fitness
 ```
 
 ## Main conclusions

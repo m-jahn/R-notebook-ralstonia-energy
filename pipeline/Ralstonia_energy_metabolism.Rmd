@@ -72,10 +72,18 @@ load("../data/barseq/20210928_H2_fitness.Rdata")
 df_fitness_h2 <- fitness_gene %>% ungroup %>%
   mutate(substrate = "hydrogen", condition = "pulse")
 
+load("../data/barseq/20220420_lowCO2_NO3.Rdata")
+df_fitness_lowco2 <- fitness_gene %>% ungroup %>%
+  mutate(
+    substrate = if_else(condition == "NO3_batch", "nitrate", "hydrogen"),
+    condition = if_else(condition == "NO3_batch", "pulse", "continuous"))
+
 # merge fitness tables
-df_fitness <- bind_rows(df_fitness_frc, df_fitness_suc, df_fitness_no3, df_fitness_h2) %>%
+df_fitness <- bind_rows(df_fitness_frc, df_fitness_suc, df_fitness_no3,
+  df_fitness_h2, df_fitness_lowco2) %>%
   rename(locus_tag = locusId)
-rm("df_fitness_frc", "df_fitness_suc", "df_fitness_h2", "df_fitness_no3", "fitness_gene")
+rm("df_fitness_frc", "df_fitness_suc", "df_fitness_h2", "df_fitness_no3",
+   "df_fitness_lowco2", "fitness_gene")
 
 # import genome annotation
 df_ref <- read_csv("../data/ref/Ralstonia_H16_genome_annotation.csv",
@@ -103,9 +111,12 @@ df_fitness_summary <- df_fitness %>%
   ) %>%
   left_join(df_ref) %>% ungroup %>%
   mutate(cond_short = if_else(condition == "pulse", "P", "C")) %>%
-  mutate(cond_short = paste0(substrate, " - ", cond_short) %>% factor(., unique(.)[c(2,6,4,8,1,5,7,3)]))
-
-levels(df_fitness_summary$cond_short)
+  mutate(cond_short = paste0(substrate, " - ", cond_short) %>%
+    factor(levels = paste0(
+      rep(c("fructose", "succinate", "formate", "hydrogen", "nitrate"), each = 2),
+      rep(c(" - P", " - C"), 5)
+    ))
+  )
 ```
 
 
@@ -198,7 +209,7 @@ mat_heatmap <- df_fitness_comp %>% ungroup %>%
 
 # create cluster for reordering
 mat_cluster <- mat_heatmap %>% dist %>% hclust(method = "ward.D2")
-mat_heatmap <- mat_heatmap[order.dendrogram(as.dendrogram(mat_cluster)), c(1,5,2,6,4,8,3,7)]
+mat_heatmap <- mat_heatmap[order.dendrogram(as.dendrogram(mat_cluster)), c(4,9,3,8,1,6,5,10,2,7)]
 ```
 
 The second step is to find the optimal number of clusters for subdividing the data set. Silhouette analysis can be used for this purpose. However, the result is not entirely clear, but suggests a number of 5 to 10 clusters would give good separation. A wrapper for more or less fully automated silhouette analysis is available in my `Rtools` package (random collection of helper functions).
@@ -227,7 +238,7 @@ plot_heatmap <- levelplot(mat_heatmap,
   xlab = "", ylab = "", scales = list(x = list(draw = FALSE)),
   panel = function(x, y, z, ...) {
     panel.levelplot(x, y, z, ...)
-    panel.abline(h = 1:5+0.5, col = "white", lwd = 1.5)
+    panel.abline(h = 1:9+0.5, col = "white", lwd = 1.5)
   }
 )
 
@@ -416,7 +427,7 @@ genome_plot <- function(df, xlim = NULL, title = "") {
 - mog = molybdopterin biosynthesis protein (role unclear?)
 
 
-```{r, fig.width = 7, fig.height = 4}
+```{r, fig.width = 7, fig.height = 4.2}
 # plot heatmap
 df_moco <- df_fitness_summary %>% filter(time == 8, grepl("mo[aedbg]", gene_name)) %>%
   filter(!str_detect(gene_name, "moaA2")) %>%
@@ -461,7 +472,7 @@ dev.off()
 - fdoGHI = secondary membrane-bound FDH
 
 
-```{r, fig.width = 7, fig.height = 4}
+```{r, fig.width = 7, fig.height = 4.2}
 # plot heatmap
 df_fdh <- df_fitness_summary %>% filter(time == 8, grepl("fd[swho]", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "fd[swho][A-Z0-9]+")) %>%
@@ -480,6 +491,7 @@ print(plot_fdh_fit, position = c(0,0.23,1,1.05), more = TRUE)
 print(plot_fdh_g1, position = c(0.17,-0.1,0.57,0.4), more = TRUE)
 print(plot_fdh_g2, position = c(0.52,-0.1,0.83,0.4))
 ```
+
 ```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_fdh.svg", width = 7, height = 4)
 print(plot_fdh_fit, position = c(0,0.23,1,1.05), more = TRUE)
@@ -515,7 +527,7 @@ dev.off()
   [Burgdorf et al., J Bac, 2005](https://pubmed.ncbi.nlm.nih.gov/15838039/)
 
 
-```{r, fig.width = 8, fig.height = 4}
+```{r, fig.width = 8, fig.height = 4.2}
 # plot heatmap
 df_hyd <- df_fitness_summary %>% filter(time == 8, grepl("hox", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "hox[A-Z0-9]+")) %>%
@@ -535,6 +547,7 @@ print(plot_hyd_g1, position = c(0.15,-0.1,0.39,0.4), more = TRUE)
 print(plot_hyd_g2, position = c(0.35,-0.1,0.65,0.4), more = TRUE)
 print(plot_hyd_g3, position = c(0.61,-0.1,0.90,0.4))
 ```
+
 ```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_hyd.svg", width = 8, height = 4)
 print(plot_hyd_fit, position = c(0,0.23,1,1.05), more = TRUE)
@@ -556,7 +569,7 @@ dev.off()
 - hypA2,B2,F2 = alternative genes for hypA1,B1,F1, not sufficient alone for hydrogenase formation
 - hypF3,hypC2,hypD2,hypE2,hypA3,hypB3. The physiological function of these extra hyp genes is unclear
 
-```{r, fig.width = 7, fig.height = 4}
+```{r, fig.width = 7, fig.height = 4.2}
 df_hyp <- df_fitness_summary %>% filter(time == 8, grepl("hyp", gene_name)) %>%
   # correct names of several hyp genes to make it more systematic
   mutate(gene_name = gsub("hypA PHG094", "hypA2 PHG094", gene_name)) %>%
@@ -617,7 +630,7 @@ Cytochrome e- transport proteins, cytochrome reductases, and terminal oxidases.
     potential transporter? Interacts with cytochrome c553 and qcrC, cytochrome reductase. 
     It's depletion implicates this protein in formate-specific e- transport in the membrane.
 
-```{r, fig.width = 10, fig.height = 4}
+```{r, fig.width = 10, fig.height = 4.2}
 df_etc <- df_fitness_summary %>% filter(time == 8, locus_tag %in% c("H16_A3451", "H16_A0830",
     "H16_A0846", "16_B1452", "H16_A3576", "H16_A1121", "H16_A1120", "H16_A1031") | 
     grepl("qcr|cco|cta|cox[MNOPQ] |cyo|cyd", gene_name)) %>%
@@ -664,7 +677,7 @@ Reaction: HNO3- + QH2 --> NO2- + H2O + Q.
 
 Two copies of the *nar* operon, one on the megaplasmid and one on chromosome 2. Several other enzymes catalyze similar reactions as NAR. NAS is cytoplasmic and NADH dependent nitrate reductase [Cramm R, 2008](https://pubmed.ncbi.nlm.nih.gov/18957861/). NAP is membrane protein complex accepting QH2, involved in nitrate respiration but probably also dissipation of excess redox power. Here we just focus on the main NAR enzyme.
 
-```{r, fig.width = 6, fig.height = 4}
+```{r, fig.width = 6, fig.height = 4.2}
 df_nar <- df_fitness_summary %>%
   filter(time == 8, grepl("nar", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "nar([A-Z0-9]+)?") %>%
@@ -695,7 +708,7 @@ Reaction: NO2- + QH2 --> NO + H2O + Q
 NIR is a cd1 type copper containing terminal oxidase, homodimer of 2 nirS subunits.
 The genes for nitrite reductase are assembled in a cluster  (nirS, -C, -F, -D, -G, -H, -J, -N, -E)   spanning 8.6  kb  on  chromosome  2. The  first  gene  of  this  cluster,  nirS,  is the structural gene encoding  cd1  -NIR.  The  re-maining genes are presumed to be accessory genes essential  for  maturation  of  active  nitrite  reductase (?).
 
-```{r, fig.width = 6, fig.height = 4}
+```{r, fig.width = 6, fig.height = 4.2}
 df_nir <- df_fitness_summary %>%
   filter(time == 8, grepl("nir", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "nir([A-Z0-9]+)?"))
@@ -723,7 +736,7 @@ Reaction: NO + QH2 --> N2O + H2O + Q
 
 From [Cramm R, 2008](https://pubmed.ncbi.nlm.nih.gov/18957861/): "The catalytic sub-unit (NorB) of all NORs that have been characterized to date contains one high-spin heme b and a binuclear catalytic center of a low-spin heme b and a non-heme iron. The best investigated NORs are heterodimers that contain, in addition to NorB, a heme c-containing subunit NorC which channels lectrons from the physiological electron donor cytochrome c to NorB."
 
-```{r, fig.width = 6, fig.height = 4}
+```{r, fig.width = 6, fig.height = 4.2}
 df_nor <- df_fitness_summary %>%
   filter(time == 8, grepl("nor", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "nor([A-Z0-9]+)?"))
@@ -751,7 +764,7 @@ Reaction: N2O + QH2 --> N2 + H2O + Q
 
 The NOS of R. eutropha H16 has not been investigated on the biochemical level. Genes for NOS are located adjacent to the nor genes on pHG1. NosC (PHG253) might be the cyt c that is the e- donor for NOS. The nosC KO is enriched on formate, i.e. grows better than WT. Is nosC taking e- away from formate-fed ETC?
 
-```{r, fig.width = 6, fig.height = 4}
+```{r, fig.width = 6, fig.height = 4.2}
 df_nos <- df_fitness_summary %>%
   filter(time == 8, grepl("nos", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "nos([A-Z0-9]+)?"))
@@ -777,15 +790,15 @@ dev.off()
 
 Different gene clusters appear based on the fitness pattern in different conditions. Clusters specific for lithoautotrophic metabolism are particularly interesting. We can add the cluster IDs to the main data frame, and investigate fitness.
 
-```{r, fig.width = 5, fig.height = 4}
+```{r, fig.width = 8, fig.height = 4.2}
 df_fitness_summary <- df_fitness_summary %>%
   left_join(by = "locus_tag",
     enframe(cutreeord(mat_cluster, k = n_clusters), "locus_tag", "cluster")
   )
 
 df_fitness_summary %>%
-  filter(cluster %in% c(2,3), time == 8, !str_detect(gene_name, "hox|hyp")) %>%
-  group_by(gene_name) %>% filter(norm_gene_fitness_median[7] < -2) %>%
+  filter(cluster != 1, time == 8, !str_detect(gene_name, "hox|hyp")) %>%
+  group_by(gene_name) %>% filter(all(norm_gene_fitness_median[c(3,8)] < -2)) %>%
   ungroup %>%
   
   arrange(locus_tag) %>% mutate(gene_name = factor(gene_name, unique(gene_name))) %>%

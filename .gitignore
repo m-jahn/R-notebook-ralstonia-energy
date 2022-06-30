@@ -39,6 +39,6 @@ vignettes/*.pdf
 .Renviron
 
 # non-pipeline files
-pipeline/*.Rdata
+pipeline/*.RData
 pipeline/*.nb.html
 figures/*

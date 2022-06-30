@@ -778,6 +778,40 @@ plot_nos_g1 <- genome_plot(df_nos, xlim = c(261.1, 271.9), title = "pHG1")
 print(plot_nos_fit, position = c(0,0.25,1,1.0), more = TRUE)
 print(plot_nos_g1, position = c(0.22,-0.1,0.85,0.4))
 ```
+## Comparison of nitrate respiration conditions
+
+- we have two different nitrate respiration conditions, continuous and pulsed
+- low depletion of nitrate/nitrite/nitrous respiration mutants probably due to constant NO3 supply
+
+```{r, fig.width = 6, fig.height = 6}
+df_fitness_summary %>%
+  filter(substrate == "nitrate", time == 8, !is.na(gene_name)) %>%
+  select(gene_name, condition, norm_gene_fitness_median) %>%
+  pivot_wider(names_from = condition, values_from = norm_gene_fitness_median) %>%
+  mutate(
+    dfit = pulse - continuous,
+    significant = !between(dfit, quantile(dfit, probs = c(0.003), na.rm = TRUE),
+      quantile(dfit, probs = c(0.997), na.rm = TRUE))) %>%
+  
+  # plot
+  xyplot(continuous ~ pulse, data = ., groups = significant,
+    labels = .[["gene_name"]],
+    par.settings = custom.colorblind(), col = custom_colors,
+    xlim = c(-9, 3), ylim = c(-9, 3),
+    xlab = "Nitrate respiration (P)", ylab = "Nitrate respiration (C)",
+    panel = function(x, y, labels, ...) {
+      panel.grid(h = -1, col = grey(0.9))
+      panel.abline(a = 0, b = 1, col = grey(0.5), lty = 2, size = 0.8)
+      panel.abline(a = 4, b = 1, col = grey(0.5), lty = 2, size = 0.8)
+      panel.abline(a = -4, b = 1, col = grey(0.5), lty = 2, size = 0.8)
+      panel.xyplot(x, y, ...)
+      panel.repellabels(x, y, labels, cex = 0.6,
+        selected = .[["significant"]],
+        draw_box = TRUE, box_fill = "white", box_line = TRUE, ...)
+    }
+  )
+```
+
 
 ```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_nos.svg", width = 6, height = 4)
@@ -790,18 +824,20 @@ dev.off()
 
 Different gene clusters appear based on the fitness pattern in different conditions. Clusters specific for lithoautotrophic metabolism are particularly interesting. We can add the cluster IDs to the main data frame, and investigate fitness.
 
-```{r, fig.width = 8, fig.height = 4.2}
+```{r}
 df_fitness_summary <- df_fitness_summary %>%
   left_join(by = "locus_tag",
     enframe(cutreeord(mat_cluster, k = n_clusters), "locus_tag", "cluster")
   )
+```
 
+
+```{r, fig.width = 8, fig.height = 4.2}
 df_fitness_summary %>%
   filter(cluster != 1, time == 8, !str_detect(gene_name, "hox|hyp")) %>%
-  group_by(gene_name) %>% filter(all(norm_gene_fitness_median[c(3,8)] < -2)) %>%
-  ungroup %>%
-  
-  arrange(locus_tag) %>% mutate(gene_name = factor(gene_name, unique(gene_name))) %>%
+  group_by(gene_name) %>% filter(all(norm_gene_fitness_median[c(3,8)] < -2) | locus_tag %in% c("H16_A0325", "H16_A0326")) %>%
+  ungroup %>% arrange(locus_tag) %>%
+  mutate(gene_name = factor(gene_name, unique(gene_name))) %>%
   mutate(norm_gene_fitness_median = norm_gene_fitness_median %>%
     replace(., . < -6, -6) %>% replace(., . > 6, 6)) %>%
   heatmap_fitness
@@ -812,11 +848,49 @@ Investigating interaction networks with STRING database only reveals the obvious
 - **ptsI + ptsH (+ glnE)** - according to databases, a clear hit for a PEP-dependent sugar PTS system. This can't be true for _C. necator_ otherwise it would not show the familiar pattern of depletion on hydrogen and growth benefit on other substrates. This PTS system must be implicated in hydrogen metabolism, probably a transporter? The genes downstream of ptsIH do not seem to be affected (H16_A0327, 8, 9).
 - **hemxD + hemY** - genes involved in heme biosynthesis; hemXD (hemD) = Uroporphyrinogen III synthase, hemY = uncharacterized function. Other hem genes such as hemC are either essential, or KO shows no particular phenotype (hemP, hemK1, hemN). Heme is an important cofactor for enzymes of the ETC. Importantly, heme is not a part of hydrogenases excpet for the cytochrome b-like subunit hoxZ from MBH.
 - **hldD** (H16_A0804) - ADP-L-glycero-beta-D-manno-heptose-6-epimerase, involved in LPS sugar phosphate synthesis. No obvious connection to hydrogen metabolism.
-- **glnE** (H16_A1127) - Bifunctional glutamine synthetase adenylyltransferase. Involved in the regulation of glutamine synthetase GlnA. Transfers or removes adenylyl-residues to and from GlnA, thereby regulating N uptake through GlnA. No obvious connection to hydrogen metabolism. Only 1 mutant in library.
-- **H16_A2692** - uncharacterized membrane protein. Is neutral in all other conditions, just as are all surrounding genes (H16_A269[0-9]). Small, 141 AA, potential carbonic anhydrase or transporter?
-- **H16_A2742** - Putative AMP nucleosidase (AMP ), no known domains or published functions. 315 AA, 9 mutants in library. Surrounding genes neutral to growth.
-- **bolA** (H16_A3419) - Predicted transcriptional regulator, no known domains or published functions. Only 1 mutant in library.
-- **H16_B1603** - ABC-type transporter, ATPase coupled transmembrane transporter. Strong depletion on hydrogen only. All surrounding genes are neutral to fitness. Only 1 mutant in library. A candidate for a CO2/HCO3- transporter? Aligns best with a lot of different ABC transporters, with spermidine/putrescine transporters best hits.
+<!-- Other genes that were essential on only one autotrophic condition (high CO2): -->
+<!-- - **glnE** (H16_A1127) - Bifunctional glutamine synthetase adenylyltransferase. Involved in the regulation of glutamine synthetase GlnA. Transfers or removes adenylyl-residues to and from GlnA, thereby regulating N uptake through GlnA. No obvious connection to hydrogen metabolism. Only 1 mutant in library. -->
+<!-- - **H16_A2692** - uncharacterized membrane protein. Is neutral in all other conditions, just as are all surrounding genes (H16_A269[0-9]). Small, 141 AA, potential carbonic anhydrase or transporter? -->
+<!-- - **H16_A2742** - Putative AMP nucleosidase (AMP ), no known domains or published functions. 315 AA, 9 mutants in library. Surrounding genes neutral to growth. -->
+<!-- - **bolA** (H16_A3419) - Predicted transcriptional regulator, no known domains or published functions. Only 1 mutant in library. -->
+<!-- - **H16_B1603** - ABC-type transporter, ATPase coupled transmembrane transporter. Strong depletion on hydrogen only. All surrounding genes are neutral to fitness. Only 1 mutant in library. A candidate for a CO2/HCO3- transporter? Aligns best with a lot of different ABC transporters, with spermidine/putrescine transporters best hits. -->
+
+## Comparison of genes important for low vs high CO2 autotrophy
+
+- two conditions with lithoautotrophic growth are available
+- they differ in some points such as bioreactor vs sealed flask, date and time of cultivation etc
+- main difference is gas composition: pulsed (flask) cultivation has 15% CO2
+- continuous (bioreactor) cultivation has athmosperic CO2 (0.05%)
+
+```{r, fig.width = 6, fig.height = 6}
+df_fitness_summary %>%
+  filter(substrate == "hydrogen", time == 8, !is.na(gene_name)) %>%
+  select(gene_name, condition, norm_gene_fitness_median) %>%
+  pivot_wider(names_from = condition, values_from = norm_gene_fitness_median) %>%
+  mutate(
+    dfit = pulse - continuous,
+    significant = !between(dfit, quantile(dfit, probs = c(0.003), na.rm = TRUE),
+      quantile(dfit, probs = c(0.997), na.rm = TRUE))) %>%
+  
+  # plot
+  xyplot(continuous ~ pulse, data = ., groups = significant,
+    labels = .[["gene_name"]],
+    par.settings = custom.colorblind(), col = custom_colors,
+    xlim = c(-9, 3), ylim = c(-9, 3),
+    xlab = "H2 + high CO2 (P)", ylab = "H2 + low CO2 (C)",
+    panel = function(x, y, labels, ...) {
+      panel.grid(h = -1, col = grey(0.9))
+      panel.abline(a = 0, b = 1, col = grey(0.5), lty = 2, size = 0.8)
+      panel.abline(a = 4, b = 1, col = grey(0.5), lty = 2, size = 0.8)
+      panel.abline(a = -4, b = 1, col = grey(0.5), lty = 2, size = 0.8)
+      panel.xyplot(x, y, ...)
+      panel.repellabels(x, y, labels, cex = 0.6,
+        selected = .[["significant"]],
+        draw_box = TRUE, box_fill = "white", box_line = TRUE, ...)
+    }
+  )
+```
+
 
 ## CO2 transporter/carbonic anhydrase homologs
 

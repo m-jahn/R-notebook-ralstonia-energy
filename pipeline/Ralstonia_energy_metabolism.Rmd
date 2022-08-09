@@ -979,7 +979,7 @@ mutant_mu <- function(fold_change, pop_mu, time, log2_fc = FALSE) {
 
 Then select the hydrogenase mutants where an enrichment was observed in heterotrophic conditions.
 
-```{r, fig.width = 6.5, fig.height = 6.5}
+```{r, fig.width = 6.5, fig.height = 4.5}
 list_hyd_selection <- c(paste0("hox", c("A", "K", "G", "Z", "F", "U", "Y", "H")),
     paste0("hyp", c("A", "B", "C", "D", "E", "F", "X")))
   
@@ -1014,27 +1014,9 @@ df_mutant_mu <- df_increased_mu %>%
   select(locus_tag, time, condition, substrate,
     norm_gene_fitness_median, gene_name, cond_short, mutant_mu)
 
-plot_mutant_mu <- xyplot(mutant_mu ~ gene_name, df_mutant_mu,
-    groups = substrate, as.table = TRUE,
-    col = stdcol[2:4], xlab = "", ylab = expression("µ [h"^-1*"]"),
-    par.settings = custom.colorblind(), lwd = 2,
-    panel = function(x, y, ...) {
-      panel.grid(h = -1, v = -1, col = grey(0.9))
-      panel.abline(h = 0.1, col = grey(0.5), lty = 3, lwd = 2)
-      panel.barplot(x, y, beside = TRUE, ...)
-    }
-  )
-
-print(plot_increased_mu, position = c(0.035,0.35,1,1), more = TRUE)
-print(plot_mutant_mu, position = c(0,0,1,0.43))
+print(plot_increased_mu)
 ```
 
-```{r, echo = FALSE, results = 'hide'}
-svg("../figures/figure_mutant_mu.svg", width = 6.5, height = 6.5)
-print(plot_increased_mu, position = c(0.035,0.35,1,1), more = TRUE)
-print(plot_mutant_mu, position = c(0,0,1,0.43))
-dev.off()
-```
 
 ## Growth advantage *versus* protein cost
 
@@ -1049,13 +1031,19 @@ load(url("https://github.com/m-jahn/R-notebook-ralstonia-proteome/blob/main/data
 head(Ralstonia_eutropha[1:10])
 ```
 
-The first plot is the protein abundance as relative mass fraction (protein cost), the second is the correlation of protein cost and growth rate advantage of KO mutants. Here it is important to consider that a KO by transposon integration will have an effect on the downstream gene expression, effectively disrupting transcription/translation of the entire operon downstream of the integration site. This is shown in the third plot with estimated total protein cost saved by KO.
+Different figures are made to visualize:
+- growth rate (similar to above)
+- protein abundance as relative mass fraction (protein cost)
+- protein abundance that is saved for each particular KO
+- and finally, correlation of protein cost and growth rate advantage of KO mutants
+
+With the last item it is important to consider that a KO by transposon integration will have an effect on the downstream gene expression, effectively disrupting transcription/translation of the entire operon downstream of the integration site.
 
 ```{r}
 df_mutant_cost <- df_mutant_mu %>%
   group_by(locus_tag, gene_name, substrate) %>%
   summarize(.groups = "drop",
-    mean_mutant_mu = mean(mutant_mu), 
+    mean_mutant_mu = mean(mutant_mu),
     sd_mutant_mu = sd(mutant_mu)) %>%
   inner_join(by = c("locus_tag", "substrate"),
     Ralstonia_eutropha %>% ungroup %>% filter(growthrate == 0.1) %>%
@@ -1063,7 +1051,7 @@ df_mutant_cost <- df_mutant_mu %>%
   arrange(gene_name)
 ```
 
-If we assume that each KO knocks out the gene expression of all consecutive genes of the operon, we need to sum up protein cost these effected gene sets; make a binary matrix of associations for each KO with a number of affected genes (0 = FALSE, 1 = TRUE), and multiply with protein mass.
+If we assume that each KO knocks out the gene expression of all consecutive genes of the operon, we need to sum up protein cost for these effected gene sets; we make a binary matrix of associations for each KO with a number of affected genes (0 = FALSE, 1 = TRUE), and multiply with protein mass.
 
 ```{r}
 mat_mutant_genomic <- matrix(ncol = length(list_hyd_selection),
@@ -1077,42 +1065,51 @@ mat_mutant_genomic <- matrix(ncol = length(list_hyd_selection),
     rep(c(0,1), c(14,1))
   )
 )
-
+rownames(mat_mutant_genomic) <- filter(df_mutant_cost, substrate == "formate") %>% pull(gene_name) %>% as.character()
 df_mutant_cost <- df_mutant_cost %>% group_by(substrate) %>%
-  mutate(corrected_cost = mean_mass_fraction_norm %>% {colSums(.*100*mat_mutant_genomic)})
+  mutate(
+    corrected_cost = mean_mass_fraction_norm %>% {colSums(.*100*mat_mutant_genomic)},
+    corrected_sd = sd_massfraction %>% {colSums(.*100*mat_mutant_genomic)}
+  )
 ```
 
-All plots together on one canvas.
 
-```{r, fig.width = 6.5, fig.height = 5.7}
-plot_mutant_cost <- xyplot(mean_mass_fraction_norm*100 ~ gene_name, df_mutant_cost,
-    groups = substrate, par.settings = custom.colorblind(),
-    error_margin = df_mutant_cost[["sd_massfraction"]]*100,
-    lwd = 2, col = stdcol[2:4], ylim = c(-0.05, 1.55),
-    xlab = "", ylab = "protein mass fraction [%]",
+```{r, fig.width = 6.5, fig.height = 7.5}
+plot_mutant_mu <- xyplot(mutant_mu ~ gene_name, df_mutant_mu,
+    groups = substrate, as.table = TRUE,
+    col = stdcol[2:4], xlab = "", ylab = expression("estimated µ [h"^-1*"]"),
+    par.settings = custom.colorblind(), lwd = 2,
     panel = function(x, y, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
-      panel.barplot(x, y, beside = TRUE, ...)
-      panel.key(pch = 15, corner = c(0.98, 0.95), ...)
+      panel.abline(h = 0.1, col = grey(0.5), lty = 3, lwd = 2)
+      panel.errbars(x, y, beside = TRUE, ...)
+      #panel.key(pch = 15, corner = c(0.98, 0.95), ...)
     }
   )
 
-plot_cost_vs_mu <- xyplot(mean_mutant_mu ~ mean_mass_fraction_norm*100,
-    df_mutant_cost, groups = substrate,
-    pointlabels = as.character(df_mutant_cost$gene_name),
-    par.settings = custom.colorblind(), col = stdcol[2:4],
-    xlab = "protein mass fraction [%]",
-    ylab = expression("µ [h"^-1*"]"),
-    panel = function(x, y, pointlabels, ...) {
+plot_mutant_cost <- xyplot(mean_mass_fraction_norm*100 ~ gene_name, df_mutant_cost,
+    groups = substrate, par.settings = custom.colorblind(),
+    error_margin = df_mutant_cost[["sd_massfraction"]]*100,
+    lwd = 2, col = stdcol[2:4], ylim = c(-0.2, 5.0), pch = 1,
+    xlab = "", ylab = "protein mass fraction [%]",
+    panel = function(x, y, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
-      panel.superpose(x, y, ...)
-      panel.repellabels(x, y, labels = pointlabels, x_boundary = c(0.5,1.5),
-        draw_box = TRUE, cex = 0.6, ...)},
-    panel.groups = function(x, y, ...) {
-      panel.xyplot(x, y, ...)
-      panel.abline(h = 0.1, col = grey(0.5), lty = 3, lwd = 2)
-      panel.lmlineq(x, y, r.squared = TRUE, label = "", ...)
+      panel.errbars(x, y, beside = TRUE, ...)
+      panel.key(corner = c(0.98, 0.95), ...)
+      panel.key(corner = c(0.98, 0.60),
+        labels = c("individual cost", "total cost (est.)"),
+        col = grey(0.5), pch = c(1, 19))
     }
+  ) + as.layer(
+    xyplot(corrected_cost ~ gene_name, df_mutant_cost,
+      groups = substrate,
+      error_margin = df_mutant_cost[["corrected_sd"]],
+      #par.settings = custom.colorblind(),
+      lwd = 2, col = stdcol[2:4],
+      panel = function(x, y, ...) {
+        panel.errbars(x, y, beside = TRUE, ...)
+      }
+    )
   )
 
 plot_cost_vs_mu2 <- xyplot(mean_mutant_mu ~ corrected_cost,
@@ -1133,9 +1130,9 @@ plot_cost_vs_mu2 <- xyplot(mean_mutant_mu ~ corrected_cost,
     }
   )
 
-print(plot_mutant_cost, position = c(0,0.5,1,1), more = TRUE)
-print(plot_cost_vs_mu, position = c(0,0,0.53,0.59), more = TRUE)
-print(plot_cost_vs_mu2, position = c(0.47,0,1,0.59))
+print(plot_mutant_mu, position = c(-0.02, 0.62, 1, 1), more = TRUE)
+print(plot_mutant_cost, position = c(0.02, 0.31, 1, 0.68), more = TRUE)
+print(plot_cost_vs_mu2, position = c(-0.02, 0, 0.5, 0.38))
 ```
 
 

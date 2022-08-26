@@ -37,6 +37,7 @@ suppressPackageStartupMessages({
   library(latticeExtra)
   library(latticetools)
   library(tidyverse)
+  library(forcats)
   library(dendextend)
   library(colorspace)
   library(stringi)
@@ -74,9 +75,8 @@ df_fitness_h2 <- fitness_gene %>% ungroup %>%
 
 load("../data/barseq/20220420_lowCO2_NO3.Rdata")
 df_fitness_lowco2 <- fitness_gene %>% ungroup %>%
-  mutate(
-    substrate = if_else(condition == "NO3_batch", "nitrate", "hydrogen"),
-    condition = if_else(condition == "NO3_batch", "pulse", "continuous"))
+  filter(condition == "NO3_batch") %>%
+  mutate(substrate = "nitrate", condition = "pulse")
 
 # merge fitness tables
 df_fitness <- bind_rows(df_fitness_frc, df_fitness_suc, df_fitness_no3,
@@ -115,7 +115,7 @@ df_fitness_summary <- df_fitness %>%
     factor(levels = paste0(
       rep(c("fructose", "succinate", "formate", "hydrogen", "nitrate"), each = 2),
       rep(c(" - P", " - C"), 5)
-    ))
+    )[-8])
   )
 ```
 
@@ -209,13 +209,16 @@ mat_heatmap <- df_fitness_comp %>% ungroup %>%
 
 # create cluster for reordering
 mat_cluster <- mat_heatmap %>% dist %>% hclust(method = "ward.D2")
-mat_heatmap <- mat_heatmap[order.dendrogram(as.dendrogram(mat_cluster)), c(4,9,3,8,1,6,5,10,2,7)]
+mat_heatmap <- mat_heatmap[
+  order.dendrogram(as.dendrogram(mat_cluster)),
+  levels(df_fitness_summary$cond_short)
+]
 ```
 
 The second step is to find the optimal number of clusters for subdividing the data set. Silhouette analysis can be used for this purpose. However, the result is not entirely clear, but suggests a number of 5 to 10 clusters would give good separation. A wrapper for more or less fully automated silhouette analysis is available in my `Rtools` package (random collection of helper functions).
 
 ```{r, eval = FALSE}
-devtools::install_github("m-jahn/Rtools")
+devtools::install_github("m-jahn/r-tools")
 ```
 
 
@@ -231,7 +234,7 @@ n_clusters = 7
 custom_colors <- colorRampPalette(custom.colorblind()$superpose.line$col[c(2,3,1,5)])(n_clusters)
 
 # plot heatmap
-plot_heatmap <- levelplot(mat_heatmap,
+plot_heatmap <- levelplot(mat_heatmap[ ,rev(colnames(mat_heatmap))],
   par.settings = custom.colorblind(),
   col.regions = colorRampPalette(heat_cols)(16),
   at = seq(-6, 6, 1), aspect = "fill",
@@ -317,17 +320,20 @@ df_cluster <- cutreeord(mat_cluster, k = n_clusters) %>%
 We use the functions `kegga` for KEGG enrichment analysis and `goana` for GO term enrichment from the `limma` package. Both functions test for over or under-representation of genes associated with certain pathways or GO terms. The functions don't take the strength of differential fitness into account (DF; the depletion/enrichment over time).
 
 ```{r}
-df_kegg_enrichment <- lapply(1:n_clusters, function(clust) {
-  filter(df_cluster, cluster == clust) %>% pull(locus_tag) %>%
-  kegga(species.KEGG = "reh") %>%
-  mutate(cluster = clust)
-}) %>% bind_rows
-head(df_kegg_enrichment)
+tryCatch(
+  df_kegg_enrichment <- lapply(1:n_clusters, function(clust) {
+    filter(df_cluster, cluster == clust) %>% pull(locus_tag) %>%
+    kegga(species.KEGG = "reh") %>%
+    mutate(cluster = clust)
+  }) %>% bind_rows,
+  #head(df_kegg_enrichment),
+  error = function(e) print(e)
+)
 ```
 
 Visualize the pathways that are most enriched for the different gene clusters.
 
-```{r, fig.width = 7, fig.height = 3.8}
+```{r, fig.width = 7, fig.height = 4.0}
 plot_keggenrich <- df_kegg_enrichment %>%
   rename(kegg_pathway = Pathway) %>%
   filter(N >= 5, N <= 200) %>%
@@ -335,7 +341,7 @@ plot_keggenrich <- df_kegg_enrichment %>%
   filter(log10_p_value > 0) %>%
   group_by(cluster) %>%
   arrange(desc(log10_p_value)) %>% slice(1:5) %>% ungroup %>%
-  mutate(kegg_pathway = str_remove(kegg_pathway, "metabolism|biosynthesis")) %>%
+  mutate(kegg_pathway = str_remove(kegg_pathway, " - Cupriavidus necator H16")) %>%
   
   xyplot(factor(cluster, rev(unique(cluster))) ~ log10_p_value, .,
     groups = cluster, labels = .[["kegg_pathway"]],
@@ -374,7 +380,7 @@ heatmap_fitness <- function(data, key = TRUE) {
     replace(., . < -6, -6) %>% replace(., . > 6, 6)) %>%
 
   # plot heatmap
-  levelplot(norm_gene_fitness_median ~ factor(gene_name) * cond_short, .,
+  levelplot(norm_gene_fitness_median ~ factor(gene_name) * fct_rev(cond_short), .,
     par.settings = custom.colorblind(), colorkey = key,
     col.regions = colorRampPalette(heat_cols)(25),
     at = seq(-6, 6, 0.5), aspect = "iso",
@@ -427,7 +433,7 @@ genome_plot <- function(df, xlim = NULL, title = "") {
 - mog = molybdopterin biosynthesis protein (role unclear?)
 
 
-```{r, fig.width = 7, fig.height = 4.2}
+```{r, fig.width = 7, fig.height = 4}
 # plot heatmap
 df_moco <- df_fitness_summary %>% filter(time == 8, grepl("mo[aedbg]", gene_name)) %>%
   filter(!str_detect(gene_name, "moaA2")) %>%
@@ -472,7 +478,7 @@ dev.off()
 - fdoGHI = secondary membrane-bound FDH
 
 
-```{r, fig.width = 7, fig.height = 4.2}
+```{r, fig.width = 7, fig.height = 4}
 # plot heatmap
 df_fdh <- df_fitness_summary %>% filter(time == 8, grepl("fd[swho]", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "fd[swho][A-Z0-9]+")) %>%
@@ -527,7 +533,7 @@ dev.off()
   [Burgdorf et al., J Bac, 2005](https://pubmed.ncbi.nlm.nih.gov/15838039/)
 
 
-```{r, fig.width = 8, fig.height = 4.2}
+```{r, fig.width = 8, fig.height = 4}
 # plot heatmap
 df_hyd <- df_fitness_summary %>% filter(time == 8, grepl("hox", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "hox[A-Z0-9]+")) %>%
@@ -569,7 +575,7 @@ dev.off()
 - hypA2,B2,F2 = alternative genes for hypA1,B1,F1, not sufficient alone for hydrogenase formation
 - hypF3,hypC2,hypD2,hypE2,hypA3,hypB3. The physiological function of these extra hyp genes is unclear
 
-```{r, fig.width = 7, fig.height = 4.2}
+```{r, fig.width = 7, fig.height = 4}
 df_hyp <- df_fitness_summary %>% filter(time == 8, grepl("hyp", gene_name)) %>%
   # correct names of several hyp genes to make it more systematic
   mutate(gene_name = gsub("hypA PHG094", "hypA2 PHG094", gene_name)) %>%
@@ -630,7 +636,7 @@ Cytochrome e- transport proteins, cytochrome reductases, and terminal oxidases.
     potential transporter? Interacts with cytochrome c553 and qcrC, cytochrome reductase. 
     It's depletion implicates this protein in formate-specific e- transport in the membrane.
 
-```{r, fig.width = 10, fig.height = 4.2}
+```{r, fig.width = 10, fig.height = 4}
 df_etc <- df_fitness_summary %>% filter(time == 8, locus_tag %in% c("H16_A3451", "H16_A0830",
     "H16_A0846", "16_B1452", "H16_A3576", "H16_A1121", "H16_A1120", "H16_A1031") | 
     grepl("qcr|cco|cta|cox[MNOPQ] |cyo|cyd", gene_name)) %>%
@@ -677,7 +683,7 @@ Reaction: HNO3- + QH2 --> NO2- + H2O + Q.
 
 Two copies of the *nar* operon, one on the megaplasmid and one on chromosome 2. Several other enzymes catalyze similar reactions as NAR. NAS is cytoplasmic and NADH dependent nitrate reductase [Cramm R, 2008](https://pubmed.ncbi.nlm.nih.gov/18957861/). NAP is membrane protein complex accepting QH2, involved in nitrate respiration but probably also dissipation of excess redox power. Here we just focus on the main NAR enzyme.
 
-```{r, fig.width = 6, fig.height = 4.2}
+```{r, fig.width = 6, fig.height = 4}
 df_nar <- df_fitness_summary %>%
   filter(time == 8, grepl("nar", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "nar([A-Z0-9]+)?") %>%
@@ -708,7 +714,7 @@ Reaction: NO2- + QH2 --> NO + H2O + Q
 NIR is a cd1 type copper containing terminal oxidase, homodimer of 2 nirS subunits.
 The genes for nitrite reductase are assembled in a cluster  (nirS, -C, -F, -D, -G, -H, -J, -N, -E)   spanning 8.6  kb  on  chromosome  2. The  first  gene  of  this  cluster,  nirS,  is the structural gene encoding  cd1  -NIR.  The  re-maining genes are presumed to be accessory genes essential  for  maturation  of  active  nitrite  reductase (?).
 
-```{r, fig.width = 6, fig.height = 4.2}
+```{r, fig.width = 6, fig.height = 4}
 df_nir <- df_fitness_summary %>%
   filter(time == 8, grepl("nir", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "nir([A-Z0-9]+)?"))
@@ -736,7 +742,7 @@ Reaction: NO + QH2 --> N2O + H2O + Q
 
 From [Cramm R, 2008](https://pubmed.ncbi.nlm.nih.gov/18957861/): "The catalytic sub-unit (NorB) of all NORs that have been characterized to date contains one high-spin heme b and a binuclear catalytic center of a low-spin heme b and a non-heme iron. The best investigated NORs are heterodimers that contain, in addition to NorB, a heme c-containing subunit NorC which channels lectrons from the physiological electron donor cytochrome c to NorB."
 
-```{r, fig.width = 6, fig.height = 4.2}
+```{r, fig.width = 6, fig.height = 4}
 df_nor <- df_fitness_summary %>%
   filter(time == 8, grepl("nor", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "nor([A-Z0-9]+)?"))
@@ -764,7 +770,7 @@ Reaction: N2O + QH2 --> N2 + H2O + Q
 
 The NOS of R. eutropha H16 has not been investigated on the biochemical level. Genes for NOS are located adjacent to the nor genes on pHG1. NosC (PHG253) might be the cyt c that is the e- donor for NOS. The nosC KO is enriched on formate, i.e. grows better than WT. Is nosC taking e- away from formate-fed ETC?
 
-```{r, fig.width = 6, fig.height = 4.2}
+```{r, fig.width = 6, fig.height = 4}
 df_nos <- df_fitness_summary %>%
   filter(time == 8, grepl("nos", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "nos([A-Z0-9]+)?"))
@@ -778,6 +784,14 @@ plot_nos_g1 <- genome_plot(df_nos, xlim = c(261.1, 271.9), title = "pHG1")
 print(plot_nos_fit, position = c(0,0.25,1,1.0), more = TRUE)
 print(plot_nos_g1, position = c(0.22,-0.1,0.85,0.4))
 ```
+
+```{r, echo = FALSE, results = 'hide'}
+svg(filename = "../figures/figure_fit_nos.svg", width = 6, height = 4)
+print(plot_nos_fit, position = c(0,0.25,1,1.0), more = TRUE)
+print(plot_nos_g1, position = c(0.22,-0.1,0.85,0.4))
+dev.off()
+```
+
 ## Comparison of nitrate respiration conditions
 
 - we have two different nitrate respiration conditions, continuous and pulsed
@@ -813,16 +827,10 @@ df_fitness_summary %>%
 ```
 
 
-```{r, echo = FALSE, results = 'hide'}
-svg(filename = "../figures/figure_fit_nos.svg", width = 6, height = 4)
-print(plot_nos_fit, position = c(0,0.25,1,1.0), more = TRUE)
-print(plot_nos_g1, position = c(0.22,-0.1,0.85,0.4))
-dev.off()
-```
-
 ## Non-hydrogenase genes important for H2 fitness
 
 Different gene clusters appear based on the fitness pattern in different conditions. Clusters specific for lithoautotrophic metabolism are particularly interesting. We can add the cluster IDs to the main data frame, and investigate fitness.
+Or simply select genes that show depletion only for the hydrogen metabolizing condition.
 
 ```{r}
 df_fitness_summary <- df_fitness_summary %>%
@@ -832,10 +840,17 @@ df_fitness_summary <- df_fitness_summary %>%
 ```
 
 
-```{r, fig.width = 8, fig.height = 4.2}
+```{r, fig.width = 8, fig.height = 4.5}
 df_fitness_summary %>%
-  filter(cluster != 1, time == 8, !str_detect(gene_name, "hox|hyp")) %>%
-  group_by(gene_name) %>% filter(all(norm_gene_fitness_median[c(3,8)] < -2) | locus_tag %in% c("H16_A0325", "H16_A0326")) %>%
+  filter(time == 8, !str_detect(gene_name, "hox|hyp")) %>%
+  mutate(hyd_essential = case_when(
+    substrate == "hydrogen" & norm_gene_fitness_median <= -2 ~ TRUE,
+    substrate != "hydrogen" & norm_gene_fitness_median >= -2 ~ TRUE,
+    TRUE ~ FALSE
+  )) %>% 
+  group_by(locus_tag) %>%
+  filter(sum(hyd_essential) == 9 |
+    locus_tag %in% c("H16_A0325", "H16_A0326")) %>%
   ungroup %>% arrange(locus_tag) %>%
   mutate(gene_name = factor(gene_name, unique(gene_name))) %>%
   mutate(norm_gene_fitness_median = norm_gene_fitness_median %>%
@@ -843,54 +858,13 @@ df_fitness_summary %>%
   heatmap_fitness
 ```
 
-Investigating interaction networks with STRING database only reveals the obvious connections of **pts** and **hem** enzymes. However there are some more interesting candidates:
-
-- **ptsI + ptsH (+ glnE)** - according to databases, a clear hit for a PEP-dependent sugar PTS system. This can't be true for _C. necator_ otherwise it would not show the familiar pattern of depletion on hydrogen and growth benefit on other substrates. This PTS system must be implicated in hydrogen metabolism, probably a transporter? The genes downstream of ptsIH do not seem to be affected (H16_A0327, 8, 9).
-- **hemxD + hemY** - genes involved in heme biosynthesis; hemXD (hemD) = Uroporphyrinogen III synthase, hemY = uncharacterized function. Other hem genes such as hemC are either essential, or KO shows no particular phenotype (hemP, hemK1, hemN). Heme is an important cofactor for enzymes of the ETC. Importantly, heme is not a part of hydrogenases excpet for the cytochrome b-like subunit hoxZ from MBH.
+- **ptsI + ptsH** - according to databases, a clear hit for a PEP-dependent sugar PTS system. This can't be true for _C. necator_ otherwise it would not show the familiar pattern of depletion on hydrogen and growth benefit on other substrates. This PTS system must be implicated in hydrogen metabolism, probably a transporter? The genes downstream of ptsIH do not seem to be affected (H16_A0327 to H16_A0329).
 - **hldD** (H16_A0804) - ADP-L-glycero-beta-D-manno-heptose-6-epimerase, involved in LPS sugar phosphate synthesis. No obvious connection to hydrogen metabolism.
-<!-- Other genes that were essential on only one autotrophic condition (high CO2): -->
-<!-- - **glnE** (H16_A1127) - Bifunctional glutamine synthetase adenylyltransferase. Involved in the regulation of glutamine synthetase GlnA. Transfers or removes adenylyl-residues to and from GlnA, thereby regulating N uptake through GlnA. No obvious connection to hydrogen metabolism. Only 1 mutant in library. -->
-<!-- - **H16_A2692** - uncharacterized membrane protein. Is neutral in all other conditions, just as are all surrounding genes (H16_A269[0-9]). Small, 141 AA, potential carbonic anhydrase or transporter? -->
-<!-- - **H16_A2742** - Putative AMP nucleosidase (AMP ), no known domains or published functions. 315 AA, 9 mutants in library. Surrounding genes neutral to growth. -->
-<!-- - **bolA** (H16_A3419) - Predicted transcriptional regulator, no known domains or published functions. Only 1 mutant in library. -->
-<!-- - **H16_B1603** - ABC-type transporter, ATPase coupled transmembrane transporter. Strong depletion on hydrogen only. All surrounding genes are neutral to fitness. Only 1 mutant in library. A candidate for a CO2/HCO3- transporter? Aligns best with a lot of different ABC transporters, with spermidine/putrescine transporters best hits. -->
-
-## Comparison of genes important for low vs high CO2 autotrophy
-
-- two conditions with lithoautotrophic growth are available
-- they differ in some points such as bioreactor vs sealed flask, date and time of cultivation etc
-- main difference is gas composition: pulsed (flask) cultivation has 15% CO2
-- continuous (bioreactor) cultivation has athmosperic CO2 (0.05%)
-
-```{r, fig.width = 6, fig.height = 6}
-df_fitness_summary %>%
-  filter(substrate == "hydrogen", time == 8, !is.na(gene_name)) %>%
-  select(gene_name, condition, norm_gene_fitness_median) %>%
-  pivot_wider(names_from = condition, values_from = norm_gene_fitness_median) %>%
-  mutate(
-    dfit = pulse - continuous,
-    significant = !between(dfit, quantile(dfit, probs = c(0.003), na.rm = TRUE),
-      quantile(dfit, probs = c(0.997), na.rm = TRUE))) %>%
-  
-  # plot
-  xyplot(continuous ~ pulse, data = ., groups = significant,
-    labels = .[["gene_name"]],
-    par.settings = custom.colorblind(), col = custom_colors,
-    xlim = c(-9, 3), ylim = c(-9, 3),
-    xlab = "H2 + high CO2 (P)", ylab = "H2 + low CO2 (C)",
-    panel = function(x, y, labels, ...) {
-      panel.grid(h = -1, col = grey(0.9))
-      panel.abline(a = 0, b = 1, col = grey(0.5), lty = 2, size = 0.8)
-      panel.abline(a = 4, b = 1, col = grey(0.5), lty = 2, size = 0.8)
-      panel.abline(a = -4, b = 1, col = grey(0.5), lty = 2, size = 0.8)
-      panel.xyplot(x, y, ...)
-      panel.repellabels(x, y, labels, cex = 0.6,
-        selected = .[["significant"]],
-        draw_box = TRUE, box_fill = "white", box_line = TRUE, ...)
-    }
-  )
-```
-
+- **glnE** (H16_A1127) - Bifunctional glutamine synthetase adenylyltransferase. Involved in the regulation of glutamine synthetase GlnA. Transfers or removes adenylyl-residues to and from GlnA, thereby regulating N uptake through GlnA. No obvious connection to hydrogen metabolism. Only 1 mutant in library.
+- **H16_A2692** - uncharacterized membrane protein. Is neutral in all other conditions, just as are all surrounding genes (H16_A269[0-9]). Small, 141 AA, potential carbonic anhydrase or transporter?
+- **bolA** (H16_A3419) - Predicted transcriptional regulator, no known domains or published functions. Only 1 mutant in library.
+- **yadG** (H16_A3421) Separated by only 1 gene (yadH, H16_A3420) from the previous hit, shows very specific depletion for hydrogen. 7-8 mutants quantified, annotated as ABC transporter, ATPase function. YadH is the permease partner of the 2 subunits, however does not show depletion. COG process 'defense' because it supposedly is active as anti-drug efflux pump.
+- **H16_B1603** - ABC-type transporter, ATPase coupled transmembrane transporter. Strong depletion on hydrogen only. All surrounding genes are neutral to fitness. Only 1 mutant in library. A candidate for a CO2/HCO3- transporter? Aligns best with a lot of different ABC transporters, with spermidine/putrescine transporters best hits.
 
 ## CO2 transporter/carbonic anhydrase homologs
 
@@ -1059,10 +1033,14 @@ mat_mutant_genomic <- matrix(ncol = length(list_hyd_selection),
     rep(c(0,1,0), c(2,2,11)), rep(c(0,1,0), c(3,1,11)),
     rep(c(0,1,0), c(4,4,7)), rep(c(0,1,0), c(5,3,7)),
     rep(c(0,1,0), c(6,2,7)), rep(c(0,1,0), c(7,1,7)),
-    rep(c(0,1), c(8,7)), rep(c(0,1), c(9,6)),
-    rep(c(0,1), c(10,5)), rep(c(0,1), c(11,4)),
-    rep(c(0,1), c(12,3)), rep(c(0,1), c(13,2)),
-    rep(c(0,1), c(14,1))
+    #rep(c(0,1), c(8,7)), rep(c(0,1), c(9,6)),
+    #rep(c(0,1), c(10,5)), rep(c(0,1), c(11,4)),
+    #rep(c(0,1), c(12,3)), rep(c(0,1), c(13,2)),
+    #rep(c(0,1), c(14,1))
+    rep(c(0,1), c(1,14)), rep(c(0,1,0,1), c(1,7,1,6)),
+    rep(c(0,1,0,1), c(1,7,2,5)), rep(c(0,1,0,1), c(1,7,3,4)),
+    rep(c(0,1,0,1), c(1,7,4,3)), rep(c(0,1,0,1), c(1,7,5,2)),
+    rep(c(0,1,0,1), c(1,7,6,1))
   )
 )
 rownames(mat_mutant_genomic) <- filter(df_mutant_cost, substrate == "formate") %>% pull(gene_name) %>% as.character()
@@ -1121,8 +1099,9 @@ plot_cost_vs_mu2 <- xyplot(mean_mutant_mu ~ corrected_cost,
     panel = function(x, y, pointlabels, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
       panel.superpose(x, y, ...)
-      panel.repellabels(x, y, labels = pointlabels, x_boundary = c(1,4.5),
-        draw_box = TRUE, cex = 0.6, ...)},
+      # panel.repellabels(x, y, labels = pointlabels, x_boundary = c(1,4.5),
+      #   draw_box = TRUE, cex = 0.6, ...)
+      },
     panel.groups = function(x, y, ...) {
       panel.xyplot(x, y, ...)
       panel.abline(h = 0.1, col = grey(0.5), lty = 3, lwd = 2)
@@ -1132,15 +1111,15 @@ plot_cost_vs_mu2 <- xyplot(mean_mutant_mu ~ corrected_cost,
 
 print(plot_mutant_mu, position = c(-0.02, 0.62, 1, 1), more = TRUE)
 print(plot_mutant_cost, position = c(0.02, 0.31, 1, 0.68), more = TRUE)
-print(plot_cost_vs_mu2, position = c(-0.02, 0, 0.5, 0.38))
+print(plot_cost_vs_mu2, position = c(-0.02, 0, 0.45, 0.38))
 ```
 
 
 ```{r, echo = FALSE, results = 'hide'}
-svg("../figures/figure_mutant_cost.svg", width = 6.5, height = 5.7)
-print(plot_mutant_cost, position = c(0,0.5,1,1), more = TRUE)
-print(plot_cost_vs_mu, position = c(0,0,0.53,0.59), more = TRUE)
-print(plot_cost_vs_mu2, position = c(0.47,0,1,0.59))
+svg("../figures/figure_mutant_cost.svg", width = 6.5, height = 7.5)
+print(plot_mutant_mu, position = c(-0.02, 0.62, 1, 1), more = TRUE)
+print(plot_mutant_cost, position = c(0.02, 0.31, 1, 0.68), more = TRUE)
+print(plot_cost_vs_mu2, position = c(-0.02, 0, 0.45, 0.38))
 dev.off()
 ```
 
@@ -1175,7 +1154,7 @@ plot_cost_predict <- df_macr %>%
     par.settings = custom.colorblind(),
     type = "b", lwd = 2, lty = 2, pch = 1,
     ylim = c(0.09, 0.155), col = stdcol[2:4],
-    xlab = "increase protein pool size [%]",
+    xlab = "freed up protein resouceces [% total]",
     ylab = expression("µ [h"^-1*"]"),
     panel = function(x, y, z, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
@@ -1207,11 +1186,6 @@ plot_cost_predict <- plot_cost_predict + as.layer(
 print(plot_cost_predict)
 ```
 
-```{r, echo = FALSE, results = 'hide'}
-svg("../figures/figure_cost_predict.svg", width = 3.7, height = 3.7)
-print(plot_cost_predict)
-dev.off()
-```
 
 # Session Info
 

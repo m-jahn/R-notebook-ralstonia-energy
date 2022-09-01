@@ -531,14 +531,19 @@ dev.off()
 - hoxW = soluble hydrogenase (HoxH-specific) C-terminal protease (maturation)
 - hoxI = optional subunit of SH (hoxFUYH); specific reaction site for NADPH,
   [Burgdorf et al., J Bac, 2005](https://pubmed.ncbi.nlm.nih.gov/15838039/)
+- a 4th hydrogenase exist on pHG1, made from 2 subunits (_hofK_, _hofG_, pHG064/065),
+  see [Schäfer et al., 2015](https://www.cell.com/structure/pdfExtended/S0969-2126(15)00499-2).
+- these subunits have no effect on fitness (high coverage of 9-11 mutants per gene),
+  and are very lowly expressed (PHG064 n.d., PHG065 low abundance)
 
 
 ```{r, fig.width = 8, fig.height = 4}
 # plot heatmap
-df_hyd <- df_fitness_summary %>% filter(time == 8, grepl("hox", gene_name)) %>%
+df_hyd <- df_fitness_summary %>%
+  filter(time == 8, grepl("hox", gene_name)) %>%
   mutate(gene_name = stri_extract_first_regex(gene_name, "hox[A-Z0-9]+")) %>%
   ungroup %>% mutate(gene_name = factor(gene_name, paste0("hox", c("K","G","Z","M",
-    "L","O","Q","R","T","V","A","B","C","J","N","N2","F","U","Y","H","W","I"))))
+   "L","O","Q","R","T","V","A","B","C","J","N","N2","F","U","Y","H","W","I"))))
 plot_hyd_fit <- heatmap_fitness(df_hyd)
 
 # plot genomic locations
@@ -659,7 +664,7 @@ plot_etc_g1 <- genome_plot(df_etc, xlim = c(3675.2, 3679.0), title = "chr 1")
 plot_etc_g2 <- genome_plot(df_etc, xlim = c(361.2, 371.2), title = "chr 1")
 plot_etc_g3 <- genome_plot(df_etc, xlim = c(2509.5, 2515.2), title = "chr 1")
 
-print(plot_etc_fit, position = c(0,0.20,1,1.05), more = TRUE)
+print(plot_etc_fit, position = c(0,0.17,1,1.05), more = TRUE)
 print(plot_etc_g1, position = c(0.1,-0.1,0.31,0.4), more = TRUE)
 print(plot_etc_g2, position = c(0.28,-0.1,0.65,0.4), more = TRUE)
 print(plot_etc_g3, position = c(0.62,-0.1,0.9,0.4))
@@ -667,7 +672,7 @@ print(plot_etc_g3, position = c(0.62,-0.1,0.9,0.4))
 
 ```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_etc.svg", width = 10, height = 4)
-print(plot_etc_fit, position = c(0,0.20,1,1.05), more = TRUE)
+print(plot_etc_fit, position = c(0,0.17,1,1.05), more = TRUE)
 print(plot_etc_g1, position = c(0.1,-0.1,0.31,0.4), more = TRUE)
 print(plot_etc_g2, position = c(0.28,-0.1,0.65,0.4), more = TRUE)
 print(plot_etc_g3, position = c(0.62,-0.1,0.9,0.4))
@@ -681,30 +686,22 @@ dev.off()
 
 Reaction: HNO3- + QH2 --> NO2- + H2O + Q.
 
-Two copies of the *nar* operon, one on the megaplasmid and one on chromosome 2. Several other enzymes catalyze similar reactions as NAR. NAS is cytoplasmic and NADH dependent nitrate reductase [Cramm R, 2008](https://pubmed.ncbi.nlm.nih.gov/18957861/). NAP is membrane protein complex accepting QH2, involved in nitrate respiration but probably also dissipation of excess redox power. Here we just focus on the main NAR enzyme.
+Two copies of the *nar* operon, one on the megaplasmid and one on chromosome 2. Several other enzymes catalyze similar reactions as NAR. NAS is cytoplasmic and NADH dependent _assimilatory_ nitrate reductase [Cramm R, 2008](https://pubmed.ncbi.nlm.nih.gov/18957861/). NAP is _periplasmic_ membrane protein complex accepting QH2, involved in nitrate respiration but probably also dissipation of excess redox power. Here we just focus on the main NAR enzyme.
 
 ```{r, fig.width = 6, fig.height = 4}
 df_nar <- df_fitness_summary %>%
-  filter(time == 8, grepl("nar", gene_name)) %>%
-  mutate(gene_name = stri_extract_first_regex(gene_name, "nar([A-Z0-9]+)?") %>%
-    recode(narG = "narG1", narH = "narH1", narI = "narI1", narL = "narL1", narX = "narX1") %>%
-    factor(., paste0("nar", c("G1","H1","I1","K1","L1","X1","G2","H2","I2","K2","L2","X2","K3","K5"))))
+  filter(time == 8, grepl("na[rsp]", gene_name)) %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "na[rsp]([A-Z0-9]+)?") %>%
+    recode(narG = "narG1", narH = "narH1", narI = "narI1", narL = "narL1", narX = "narX1"))
 plot_nar_fit <- heatmap_fitness(df_nar)
 
 # plot genomic locations
-df_nar <- df_nar %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+df_nar_genes <- df_nar %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
-plot_nar_g1 <- genome_plot(df_nar, xlim = c(279.5, 294.5), title = "pHG1")
+plot_nar_g1 <- genome_plot(df_nar_genes, xlim = c(279.5, 294.5), title = "pHG1")
 
-print(plot_nar_fit, position = c(0,0.25,1,1), more = TRUE)
+print(plot_nar_fit, position = c(0,0.26,1,1.05), more = TRUE)
 print(plot_nar_g1, position = c(0.2,-0.1,0.85,0.4))
-```
-
-```{r, echo = FALSE, results = 'hide'}
-svg(filename = "../figures/figure_fit_nar.svg", width = 6, height = 4)
-print(plot_nar_fit, position = c(0,0.25,1,1), more = TRUE)
-print(plot_nar_g1, position = c(0.2,-0.1,0.85,0.4))
-dev.off()
 ```
 
 **Nitrite reductase (NIR)**
@@ -721,19 +718,12 @@ df_nir <- df_fitness_summary %>%
 plot_nir_fit <- heatmap_fitness(df_nir)
 
 # plot genomic locations
-df_nir <- df_nir %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+df_nir_genes <- df_nir %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
-plot_nir_g1 <- genome_plot(df_nir, xlim = c(2576.3, 2585.9), title = "chr 2")
+plot_nir_g1 <- genome_plot(df_nir_genes, xlim = c(2576.3, 2585.9), title = "chr 2")
 
-print(plot_nir_fit, position = c(0,0.25,1,1.0), more = TRUE)
+print(plot_nir_fit, position = c(0,0.26,1,1.05), more = TRUE)
 print(plot_nir_g1, position = c(0.3,-0.1,0.75,0.4))
-```
-
-```{r, echo = FALSE, results = 'hide'}
-svg(filename = "../figures/figure_fit_nir.svg", width = 6, height = 4)
-print(plot_nir_fit, position = c(0,0.25,1,1.0), more = TRUE)
-print(plot_nir_g1, position = c(0.3,-0.1,0.75,0.4))
-dev.off()
 ```
 
 **NO reductase (NOR)**
@@ -749,19 +739,12 @@ df_nor <- df_fitness_summary %>%
 plot_nor_fit <- heatmap_fitness(df_nor)
 
 # plot genomic locations
-df_nor <- df_nor %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+df_nor_genes <- df_nor %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
-plot_nor_g1 <- genome_plot(df_nor, xlim = c(256.4, 262.1), title = "pHG1")
+plot_nor_g1 <- genome_plot(df_nor_genes, xlim = c(256.4, 262.1), title = "pHG1")
 
-print(plot_nor_fit, position = c(0,0.25,1,1.0), more = TRUE)
+print(plot_nor_fit, position = c(0,0.25,1,1.05), more = TRUE)
 print(plot_nor_g1, position = c(0.3,-0.1,0.75,0.4))
-```
-
-```{r, echo = FALSE, results = 'hide'}
-svg(filename = "../figures/figure_fit_nor.svg", width = 6, height = 4)
-print(plot_nor_fit, position = c(0,0.25,1,1.0), more = TRUE)
-print(plot_nor_g1, position = c(0.3,-0.1,0.75,0.4))
-dev.off()
 ```
 
 **NOS (nitrous oxide) reductase**
@@ -777,18 +760,41 @@ df_nos <- df_fitness_summary %>%
 plot_nos_fit <- heatmap_fitness(df_nos)
 
 # plot genomic locations
-df_nos <- df_nos %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+df_nos_genes <- df_nos %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
-plot_nos_g1 <- genome_plot(df_nos, xlim = c(261.1, 271.9), title = "pHG1")
+plot_nos_g1 <- genome_plot(df_nos_genes, xlim = c(261.1, 271.9), title = "pHG1")
 
-print(plot_nos_fit, position = c(0,0.25,1,1.0), more = TRUE)
+print(plot_nos_fit, position = c(0,0.25,1,1.05), more = TRUE)
 print(plot_nos_g1, position = c(0.22,-0.1,0.85,0.4))
 ```
 
+The following section simply plots all nitrate respiration modules on one canvas.
+
+```{r, fig.width = 10, fig.height = 4}
+plot_nitrate_all <- bind_rows(df_nar, df_nor, df_nos, df_nir) %>%
+  mutate(gene_name = factor(gene_name, c(
+    paste0("nar", c("X1", "L1", "K1", "K2", "G1", "H1", "I1", "X2", "L2", "G2", "H2", "I2")),
+    paste0("nap", c("A", "B", "C", "D")), paste0("nas", c("D", "E")),
+    paste0("nir", c("S", "C", "F", "D", "J", "N", "E")),
+    paste0("nor", c("A", "B", "R1", "A2", "B2", "R2")),
+    paste0("nos", c("L", "Y", "F", "D", "R", "Z", "C", "X"))
+  ))) %>%
+  heatmap_fitness()
+
+print(plot_nitrate_all, position = c(0,0.23,1,1.05), more = TRUE)
+print(plot_nar_g1, position = c(0,-0.1,0.35,0.4), more = TRUE)
+print(plot_nir_g1, position = c(0.33,-0.1,0.58,0.4), more = TRUE)
+print(plot_nor_g1, position = c(0.56,-0.1,0.72,0.4), more = TRUE)
+print(plot_nos_g1, position = c(0.70,-0.1,0.96,0.4), more = TRUE)
+```
+
 ```{r, echo = FALSE, results = 'hide'}
-svg(filename = "../figures/figure_fit_nos.svg", width = 6, height = 4)
-print(plot_nos_fit, position = c(0,0.25,1,1.0), more = TRUE)
-print(plot_nos_g1, position = c(0.22,-0.1,0.85,0.4))
+svg(filename = "../figures/figure_nitrate_resp.svg", width = 10, height = 4)
+print(plot_nitrate_all, position = c(0,0.23,1,1.05), more = TRUE)
+print(plot_nar_g1, position = c(0,-0.1,0.35,0.4), more = TRUE)
+print(plot_nir_g1, position = c(0.33,-0.1,0.58,0.4), more = TRUE)
+print(plot_nor_g1, position = c(0.56,-0.1,0.72,0.4), more = TRUE)
+print(plot_nos_g1, position = c(0.70,-0.1,0.96,0.4), more = TRUE)
 dev.off()
 ```
 
@@ -1011,7 +1017,32 @@ Different figures are made to visualize:
 - protein abundance that is saved for each particular KO
 - and finally, correlation of protein cost and growth rate advantage of KO mutants
 
-With the last item it is important to consider that a KO by transposon integration will have an effect on the downstream gene expression, effectively disrupting transcription/translation of the entire operon downstream of the integration site.
+
+**Protein cost of selected hox genes**
+
+This figure shows protein cost of the hox/hof genes that were not included in the protein cost analysis:
+
+- the 4th 'actinobacterial' hydrogenase, 1 subunit (hofG, PHG065)
+
+
+```{r}
+Ralstonia_eutropha %>% ungroup %>%
+  filter(grepl("PHG065", protein), substrate != "ammonium") %>%
+  
+  xyplot(mean_mass_fraction_norm*100 ~ factor(growthrate) | protein, .,
+    groups = substrate, par.settings = custom.colorblind(),
+    error_margin = .[["sd_massfraction"]]*100,
+    lwd = 2, col = stdcol[2:4], ylim = c(-0.0005, 0.0045), pch = 19,
+    xlab = "", ylab = "protein mass fraction [%]",
+    panel = function(x, y, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.errbars(x, y, beside = TRUE, ...)
+      panel.key(corner = c(0.98, 0.95), ...)
+    }
+  )
+```
+
+For real importance of protein cost of a knock-out, it is important to consider that KO by transposon integration will have an effect on the downstream gene expression too, effectively disrupting transcription/translation of the entire operon downstream of the integration site.
 
 ```{r}
 df_mutant_cost <- df_mutant_mu %>%
@@ -1025,7 +1056,7 @@ df_mutant_cost <- df_mutant_mu %>%
   arrange(gene_name)
 ```
 
-If we assume that each KO knocks out the gene expression of all consecutive genes of the operon, we need to sum up protein cost for these effected gene sets; we make a binary matrix of associations for each KO with a number of affected genes (0 = FALSE, 1 = TRUE), and multiply with protein mass.
+If we assume that each KO knocks out the gene expression of all consecutive genes of the operon, we need to sum up protein cost for these affected gene sets; we make a binary matrix of associations for each KO with a number of affected genes (0 = FALSE, 1 = TRUE), and multiply with protein mass.
 
 ```{r}
 mat_mutant_genomic <- matrix(ncol = length(list_hyd_selection),
@@ -1154,7 +1185,7 @@ plot_cost_predict <- df_macr %>%
     par.settings = custom.colorblind(),
     type = "b", lwd = 2, lty = 2, pch = 1,
     ylim = c(0.09, 0.155), col = stdcol[2:4],
-    xlab = "freed up protein resouceces [% total]",
+    xlab = "freed up protein resources [% total]",
     ylab = expression("µ [h"^-1*"]"),
     panel = function(x, y, z, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))

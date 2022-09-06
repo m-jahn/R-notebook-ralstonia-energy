@@ -397,7 +397,7 @@ heatmap_fitness <- function(data, key = TRUE) {
 Generalized function to plot genes for different regions of the genome.
 
 ```{r}
-genome_plot <- function(df, xlim = NULL, title = "") {
+genome_plot <- function(df, xlim = NULL, title = "", rot_labels = 0) {
   theme = custom.colorblind(col = c(grey(0.7), grey(0.85)))
   theme$axis.line$col = grey(0.3)
   theme$axis.text$col = grey(0.3)
@@ -416,7 +416,7 @@ genome_plot <- function(df, xlim = NULL, title = "") {
     gene_name = df[["gene_name"]],
     panel = function(x, y, strains, ...) {
       panel.geneplot(x, y, arrows = TRUE, 
-        tip = 0.1,  rot_labels = 0, ...)
+        tip = 0.1, rot_labels = rot_labels, ...)
       panel.text((x+y)/2, rep(0, length(x)), labels = strains, cex = 0.7)
       panel.text(mean(xlim), 1.5, labels = title, col = 1)
     }
@@ -959,19 +959,17 @@ mutant_mu <- function(fold_change, pop_mu, time, log2_fc = FALSE) {
 
 Then select the hydrogenase mutants where an enrichment was observed in heterotrophic conditions.
 
-```{r, fig.width = 6.5, fig.height = 4.5}
-list_hyd_selection <- c(paste0("hox", c("A", "K", "G", "Z", "F", "U", "Y", "H")),
-    paste0("hyp", c("A", "B", "C", "D", "E", "F", "X")))
-  
+```{r, fig.width = 6.5, fig.height = 6.0}
 df_increased_mu <- df_fitness_summary %>%
   filter(
-    grepl("hox[KGZFUYHA]|hyp[BCDEFX]1? |hypA PHG012", gene_name), condition == "continuous",
+    grepl("hox[KGZMLOQRTVABCJNFUYHWI]|hyp[BCDEFX]1? |hypA PHG012", gene_name), condition == "continuous",
     substrate %in% c("formate", "fructose", "succinate")) %>%
-  mutate(gene_name = stri_extract_first_regex(gene_name, "hox[KGZFUYHA]|hyp[ABCDEFX]")) %>%
-  mutate(gene_name = factor(gene_name, list_hyd_selection))
+  filter(locus_tag != "PHG063") %>%
+  mutate(gene_name = stri_extract_first_regex(gene_name, "hox[KGZMLOQRTVABCJNFUYHWI]|hyp[ABCDEFX]")) %>%
+  mutate(gene_name = fct_inorder(gene_name))
 
 plot_increased_mu <- xyplot(norm_gene_fitness_median ~ time | gene_name, df_increased_mu,
-    groups = substrate, as.table = TRUE, layout = c(5,3),
+    groups = substrate, as.table = TRUE, layout = c(6, 5),
     col = stdcol[2:4], xlab = "generations", ylab = "fitness",
     par.settings = custom.colorblind(), type = c("l"),
     auto.key = list(columns = 3),
@@ -1011,96 +1009,105 @@ load(url("https://github.com/m-jahn/R-notebook-ralstonia-proteome/blob/main/data
 head(Ralstonia_eutropha[1:10])
 ```
 
-Different figures are made to visualize:
-- growth rate (similar to above)
-- protein abundance as relative mass fraction (protein cost)
-- protein abundance that is saved for each particular KO
-- and finally, correlation of protein cost and growth rate advantage of KO mutants
 
+To assess real protein cost of a knock-out, it is important to consider that KO by transposon integration will have an effect on the downstream gene expression too, effectively disrupting transcription/translation of the entire operon downstream of the integration site.
 
-**Protein cost of selected hox genes**
+If we assume that each KO knocks out the gene expression of all consecutive genes of the operon, we need to sum up protein cost for these affected gene sets; we generate a **binary matrix** of associations for each KO with a number of affected genes (0 = FALSE, 1 = TRUE), and multiply with protein mass. Here, we need to test different assumptions. The canonical regulation of the hox/hyp operon happens via `hoxA` transcriptional regulator, `hoxBC` H2 sensing 'regulatory hydrogenase' (RH), and `hoxJ`, the defect kinase that transmits the output from `hoxBC` to `hoxA?`. This regulation controls two promoters: 
 
-This figure shows protein cost of the hox/hof genes that were not included in the protein cost analysis:
+- the P_MBH promoter that starts transcription of the huge `hoxKGZMLOQRTV` + `hypABFCDEX` + `hoxABCJ operon`
+- the P_SH promoter that starts transcription of the smaller `hoxFUYHWI` + `hypA2B2F2` operon
 
-- the 4th 'actinobacterial' hydrogenase, 1 subunit (hofG, PHG065)
+Accordingly, `hoxA` controls its own transcription in a feed-forward autoregulatory fashion. Increased `hoxA` protein abundance leads to stronger `hoxA` expression, etc. However, if a transposon integrates into any given site of one of the operons, transcription of following genes should be terminated or otherwise negatively affected. Surprisingly, this effect is visible for `hyp` mutants that might negatively affect `hoxA` expression, but not for any preceding genes (`hoxKHZMLOQRTV`).
+This suggests that: 
 
+- either there is another internal (secondary) promoter that controls `hyp` + `hoxABCJN` gene expression
+- or hyp genes themselves have an enormous fitness cost,
 
 ```{r}
-Ralstonia_eutropha %>% ungroup %>%
-  filter(grepl("PHG065", protein), substrate != "ammonium") %>%
-  
-  xyplot(mean_mass_fraction_norm*100 ~ factor(growthrate) | protein, .,
-    groups = substrate, par.settings = custom.colorblind(),
-    error_margin = .[["sd_massfraction"]]*100,
-    lwd = 2, col = stdcol[2:4], ylim = c(-0.0005, 0.0045), pch = 19,
-    xlab = "", ylab = "protein mass fraction [%]",
-    panel = function(x, y, ...) {
-      panel.grid(h = -1, v = -1, col = grey(0.9))
-      panel.errbars(x, y, beside = TRUE, ...)
-      panel.key(corner = c(0.98, 0.95), ...)
-    }
-  )
+#"hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypA", "hypB", "hypF", "hypC", "hypD", "hypE", "hypX", "hoxA", #"hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"
+list_mutant_genomic <- list(
+  hoxK = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV"),
+  hoxG = c("hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV"),
+  hoxZ = c("hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV"),
+  hoxM = c("hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV"),
+  hoxL = c("hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV"),
+  hoxO = c("hoxO", "hoxQ", "hoxR", "hoxT", "hoxV"),
+  hoxQ = c("hoxQ", "hoxR", "hoxT", "hoxV"),
+  hoxR = c("hoxR", "hoxT", "hoxV"),
+  hoxT = c("hoxT", "hoxV"),
+  hoxV = c("hoxV"),
+  hypA = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypA", "hypB", "hypF", "hypC", "hypD", "hypE", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
+  hypB = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypB", "hypF", "hypC", "hypD", "hypE", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
+  hypF = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypF", "hypC", "hypD", "hypE", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN","hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
+  hypC = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypC", "hypD", "hypE", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
+  hypD = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypD", "hypE", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
+  hypE = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypE", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
+  hypX = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
+  hoxA = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
+  hoxB = c("hoxB", "hoxC", "hoxJ", "hoxN"),
+  hoxC = c("hoxC", "hoxJ", "hoxN"),
+  hoxJ = c("hoxJ", "hoxN"),
+  hoxN = c("hoxN"),
+  hoxF = c("hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
+  hoxU = c("hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
+  hoxY = c("hoxY", "hoxH", "hoxW", "hoxI"),
+  hoxH = c("hoxH", "hoxW", "hoxI"),
+  hoxW = c("hoxW", "hoxI"),
+  hoxI = c("hoxI")
+)
+
+mat_mutant_genomic <- lapply(list_mutant_genomic, function(x) {
+    as.numeric(names(list_mutant_genomic) %in% x)
+  }) %>% unlist %>% matrix(ncol = length(list_mutant_genomic), byrow = TRUE) %>% t
+rownames(mat_mutant_genomic) <- names(list_mutant_genomic)
+colnames(mat_mutant_genomic) <- names(list_mutant_genomic)
 ```
 
-For real importance of protein cost of a knock-out, it is important to consider that KO by transposon integration will have an effect on the downstream gene expression too, effectively disrupting transcription/translation of the entire operon downstream of the integration site.
+- Add individual and accumulated protein cost for each KO mutant.
 
 ```{r}
+# add individual protein cost from MS data
 df_mutant_cost <- df_mutant_mu %>%
   group_by(locus_tag, gene_name, substrate) %>%
   summarize(.groups = "drop",
     mean_mutant_mu = mean(mutant_mu),
     sd_mutant_mu = sd(mutant_mu)) %>%
-  inner_join(by = c("locus_tag", "substrate"),
-    Ralstonia_eutropha %>% ungroup %>% filter(growthrate == 0.1) %>%
+  left_join(by = c("locus_tag", "substrate"),
+    Ralstonia_eutropha %>% ungroup %>%
+      filter(growthrate == 0.1) %>%
       select(locus_tag, substrate, mean_mass_fraction_norm, sd_massfraction)) %>%
-  arrange(gene_name)
-```
-
-If we assume that each KO knocks out the gene expression of all consecutive genes of the operon, we need to sum up protein cost for these affected gene sets; we make a binary matrix of associations for each KO with a number of affected genes (0 = FALSE, 1 = TRUE), and multiply with protein mass.
-
-```{r}
-mat_mutant_genomic <- matrix(ncol = length(list_hyd_selection),
-  data = c(rep(1, 15), rep(c(0,1,0), c(1,3,11)),
-    rep(c(0,1,0), c(2,2,11)), rep(c(0,1,0), c(3,1,11)),
-    rep(c(0,1,0), c(4,4,7)), rep(c(0,1,0), c(5,3,7)),
-    rep(c(0,1,0), c(6,2,7)), rep(c(0,1,0), c(7,1,7)),
-    #rep(c(0,1), c(8,7)), rep(c(0,1), c(9,6)),
-    #rep(c(0,1), c(10,5)), rep(c(0,1), c(11,4)),
-    #rep(c(0,1), c(12,3)), rep(c(0,1), c(13,2)),
-    #rep(c(0,1), c(14,1))
-    rep(c(0,1), c(1,14)), rep(c(0,1,0,1), c(1,7,1,6)),
-    rep(c(0,1,0,1), c(1,7,2,5)), rep(c(0,1,0,1), c(1,7,3,4)),
-    rep(c(0,1,0,1), c(1,7,4,3)), rep(c(0,1,0,1), c(1,7,5,2)),
-    rep(c(0,1,0,1), c(1,7,6,1))
-  )
-)
-rownames(mat_mutant_genomic) <- filter(df_mutant_cost, substrate == "formate") %>% pull(gene_name) %>% as.character()
-df_mutant_cost <- df_mutant_cost %>% group_by(substrate) %>%
+  arrange(locus_tag) %>%
+  tidyr::complete(substrate, nesting(locus_tag, gene_name)) %>%
+  
+  # add estimated total cost for each knockout
+  group_by(substrate) %>%
   mutate(
-    corrected_cost = mean_mass_fraction_norm %>% {colSums(.*100*mat_mutant_genomic)},
-    corrected_sd = sd_massfraction %>% {colSums(.*100*mat_mutant_genomic)}
+    corrected_cost = mean_mass_fraction_norm %>% {colSums(na.rm = TRUE, .*100*mat_mutant_genomic)},
+    corrected_sd = sd_massfraction %>% {colSums(na.rm = TRUE, .*100*mat_mutant_genomic)}
   )
 ```
 
+- Plot mutant growth rate, individual cost, and total protein cost that is saved in KO mutants.
 
-```{r, fig.width = 6.5, fig.height = 7.5}
+```{r, fig.width = 7.5, fig.height = 7.5}
 plot_mutant_mu <- xyplot(mutant_mu ~ gene_name, df_mutant_mu,
     groups = substrate, as.table = TRUE,
     col = stdcol[2:4], xlab = "", ylab = expression("estimated µ [h"^-1*"]"),
     par.settings = custom.colorblind(), lwd = 2,
+    scales = list(x = list(rot = 90)),
     panel = function(x, y, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
       panel.abline(h = 0.1, col = grey(0.5), lty = 3, lwd = 2)
       panel.errbars(x, y, beside = TRUE, ...)
-      #panel.key(pch = 15, corner = c(0.98, 0.95), ...)
     }
   )
 
 plot_mutant_cost <- xyplot(mean_mass_fraction_norm*100 ~ gene_name, df_mutant_cost,
     groups = substrate, par.settings = custom.colorblind(),
     error_margin = df_mutant_cost[["sd_massfraction"]]*100,
-    lwd = 2, col = stdcol[2:4], ylim = c(-0.2, 5.0), pch = 1,
-    xlab = "", ylab = "protein mass fraction [%]",
+    lwd = 2, col = stdcol[2:4], ylim = c(-0.2, 6.5), pch = 1,
+    xlab = "", ylab = "reduction protein cost [%]",
+    scales = list(x = list(rot = 90)),
     panel = function(x, y, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
       panel.errbars(x, y, beside = TRUE, ...)
@@ -1113,7 +1120,6 @@ plot_mutant_cost <- xyplot(mean_mass_fraction_norm*100 ~ gene_name, df_mutant_co
     xyplot(corrected_cost ~ gene_name, df_mutant_cost,
       groups = substrate,
       error_margin = df_mutant_cost[["corrected_sd"]],
-      #par.settings = custom.colorblind(),
       lwd = 2, col = stdcol[2:4],
       panel = function(x, y, ...) {
         panel.errbars(x, y, beside = TRUE, ...)
@@ -1121,18 +1127,15 @@ plot_mutant_cost <- xyplot(mean_mass_fraction_norm*100 ~ gene_name, df_mutant_co
     )
   )
 
-plot_cost_vs_mu2 <- xyplot(mean_mutant_mu ~ corrected_cost,
+plot_cost_vs_mu <- xyplot(mean_mutant_mu ~ corrected_cost,
     df_mutant_cost, groups = substrate,
     pointlabels = as.character(df_mutant_cost$gene_name),
     par.settings = custom.colorblind(), col = stdcol[2:4],
-    xlab = "protein mass fraction [%]",
-    ylab = expression("µ [h"^-1*"]"),
+    xlab = "reduction protein cost [%]",
+    ylab = expression("estimated µ [h"^-1*"]"),
     panel = function(x, y, pointlabels, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
-      panel.superpose(x, y, ...)
-      # panel.repellabels(x, y, labels = pointlabels, x_boundary = c(1,4.5),
-      #   draw_box = TRUE, cex = 0.6, ...)
-      },
+      panel.superpose(x, y, ...)},
     panel.groups = function(x, y, ...) {
       panel.xyplot(x, y, ...)
       panel.abline(h = 0.1, col = grey(0.5), lty = 3, lwd = 2)
@@ -1140,17 +1143,37 @@ plot_cost_vs_mu2 <- xyplot(mean_mutant_mu ~ corrected_cost,
     }
   )
 
-print(plot_mutant_mu, position = c(-0.02, 0.62, 1, 1), more = TRUE)
-print(plot_mutant_cost, position = c(0.02, 0.31, 1, 0.68), more = TRUE)
-print(plot_cost_vs_mu2, position = c(-0.02, 0, 0.45, 0.38))
+plot_mbh_operon <- df_increased_mu %>%
+  filter(time == 8) %>%
+  group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+  summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop") %>%
+  genome_plot(xlim = c(0.015, 22.490), title = "pHG1", rot_labels = 45)
+
+plot_sh_operon <- df_increased_mu %>%
+  filter(time == 8) %>%
+  group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
+  summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop") %>%
+  genome_plot(xlim = c(79.612, 85.438), title = "pHG1", rot_labels = 45)
+
+print(plot_mutant_mu, position = c(-0.017, 0.60, 1, 1), more = TRUE)
+print(plot_mutant_cost, position = c(0.02, 0.30, 1, 0.70), more = TRUE)
+print(plot_cost_vs_mu, position = c(-0.017, 0, 0.38, 0.38), more = TRUE)
+print(plot_mbh_operon, position = c(0.34, 0.14, 0.97, 0.38), more = TRUE)
+print(plot_sh_operon, position = c(0.34, 0, 0.63, 0.24))
+grid::grid.text(c("A","B","C","D"), x = c(0.02, 0.02, 0.02, 0.36),
+  y = c(0.98, 0.66, 0.34, 0.34), gp = grid::gpar(cex = 1.2))
 ```
 
 
 ```{r, echo = FALSE, results = 'hide'}
-svg("../figures/figure_mutant_cost.svg", width = 6.5, height = 7.5)
-print(plot_mutant_mu, position = c(-0.02, 0.62, 1, 1), more = TRUE)
-print(plot_mutant_cost, position = c(0.02, 0.31, 1, 0.68), more = TRUE)
-print(plot_cost_vs_mu2, position = c(-0.02, 0, 0.45, 0.38))
+svg("../figures/figure_mutant_cost.svg", width = 7.5, height = 7.5)
+print(plot_mutant_mu, position = c(-0.017, 0.60, 1, 1), more = TRUE)
+print(plot_mutant_cost, position = c(0.02, 0.30, 1, 0.70), more = TRUE)
+print(plot_cost_vs_mu, position = c(-0.017, 0, 0.38, 0.38), more = TRUE)
+print(plot_mbh_operon, position = c(0.34, 0.14, 0.97, 0.38), more = TRUE)
+print(plot_sh_operon, position = c(0.34, 0, 0.63, 0.24))
+grid::grid.text(c("A","B","C","D"), x = c(0.02, 0.02, 0.02, 0.36),
+  y = c(0.98, 0.66, 0.34, 0.34), gp = grid::gpar(cex = 1.2))
 dev.off()
 ```
 
@@ -1217,6 +1240,29 @@ plot_cost_predict <- plot_cost_predict + as.layer(
 print(plot_cost_predict)
 ```
 
+## Protein cost of secondary hydrogenases
+
+This figure shows protein cost of the hox/hof genes that were not included in the protein cost analysis:
+
+- the 4th 'actinobacterial' hydrogenase, 1 subunit (hofG, PHG065)
+
+
+```{r, fig.width = 4, fig.height = 3}
+Ralstonia_eutropha %>% ungroup %>%
+  filter(grepl("PHG065", protein), substrate != "ammonium") %>%
+  
+  xyplot(mean_mass_fraction_norm*100 ~ factor(growthrate) | protein, .,
+    groups = substrate, par.settings = custom.colorblind(),
+    error_margin = .[["sd_massfraction"]]*100,
+    lwd = 2, col = stdcol[2:4], ylim = c(-0.0005, 0.0045), pch = 19,
+    xlab = "", ylab = "protein mass fraction [%]",
+    panel = function(x, y, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.errbars(x, y, beside = TRUE, ...)
+      panel.key(corner = c(0.02, 0.95), ...)
+    }
+  )
+```
 
 # Session Info
 

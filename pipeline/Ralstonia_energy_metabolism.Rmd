@@ -15,12 +15,11 @@ This R notebook is a bioinformatics pipeline to analyze fitness data obtained fr
 
 One part of the data used here (growth on **fructose**, **succinate**, **formate**) was already published in a previous research article with focus on *C. necator*'s central carbon metabolism. The [preprint is available on BioRxiv](https://www.biorxiv.org/content/10.1101/2021.03.21.436304v2). The second part (autotrophic growth on **hydrogen**, anoxic growth with **nitrate respiration**) is new data that complements previous results. The focus of this pipeline is to study the energy metabolism of *C. necator* in diverse conditions, each of it challenging a different aspect/machinery of metabolism. This investigation tries to answer the following key questions:
 
-1. Which genes are constituting the essential parts of the **hydrogenases and formate dehydrogenases**, enabling autotrophic lifestyle? Many things about the structure and function of these enzymes is already known, where do these results show differences?
-2. Which genes are **mandatory as accessory proteins**, for example cofactor synthesis, insertion, and enzyme maturation?
-3. Why does **KO of hydrogenases provides a growth benefit** in non-autotrophic conditions?
-4. What are the essential parts of the **electron transport chain**? What complexes are used specifically for some growth conditions?
-5. Is essentiality/fitness correlated with protein abundance? Is there a dosage effect, such that KO of a high abundant iso-enzyme has stronger fitness effect compared to a low-abundant?
-
+1.  Which genes are constituting the essential parts of the **hydrogenases and formate dehydrogenases**, enabling autotrophic lifestyle? Many things about the structure and function of these enzymes is already known, where do these results show differences?
+2.  Which genes are **mandatory as accessory proteins**, for example cofactor synthesis, insertion, and enzyme maturation?
+3.  Why does **KO of hydrogenases provides a growth benefit** in non-autotrophic conditions?
+4.  What are the essential parts of the **electron transport chain**? What complexes are used specifically for some growth conditions?
+5.  Is essentiality/fitness correlated with protein abundance? Is there a dosage effect, such that KO of a high abundant iso-enzyme has stronger fitness effect compared to a low-abundant?
 
 # Libraries
 
@@ -29,7 +28,6 @@ Optionally install required libraries, particularly custom packages from github.
 ```{r, eval = FALSE}
 devtools::install_github("m-jahn/lattice-tools")
 ```
-
 
 ```{r}
 suppressPackageStartupMessages({
@@ -47,7 +45,6 @@ suppressPackageStartupMessages({
   library(limma)
 })
 ```
-
 
 # Data import and processing
 
@@ -119,7 +116,6 @@ df_fitness_summary <- df_fitness %>%
   )
 ```
 
-
 ```{r, fig.width = 6.5, fig.height = 8}
 plot_hist_log2FC <- df_fitness_summary %>%
   group_by(condition, substrate) %>%
@@ -166,7 +162,6 @@ print(plot_hist_normfg, position = c(0,0,1,0.53))
 dev.off()
 ```
 
-
 ## Comparing gene fitness between conditions
 
 Similarly to Figure 2 in [Wetmore et al, mBIO, 2015](https://mbio.asm.org/content/6/3/e00306-15), we can investigate condition-dependent gene fitness by comparing conditions and substrates one-on-one. The correlation between substrates and growth regimes (continuous, pulsed) is quite different. The strongest correlation is present in the pulsed vs continuous regime for each substrate (R = 0.64 to 0.87), and within the pulsed conditions the comparison between substrates (R = 0.62 to 0.72).
@@ -191,7 +186,7 @@ dev.off()
 
 # Unsupervised clustering of genes by fitness
 
-Most genes correlate in fitness value between conditions. That means, only some genes have a **condition-specific fitness effect**, i.e. increase or decrease fitness of the respective strain in one substrate or growth regime specifically. This section investigates specific genes and their functions that show such differential fitness between conditions. A simple comparison of one condition versus another will not be helpful as there two many possible combinations. To identify interesting sets of genes, cluster analysis can be performed. The first step is to generate a matrix from reformatted fitness data, and  cluster genes by similarity using a generic clustering algorithm such as `hclust(method = "ward.D")`.
+Most genes correlate in fitness value between conditions. That means, only some genes have a **condition-specific fitness effect**, i.e. increase or decrease fitness of the respective strain in one substrate or growth regime specifically. This section investigates specific genes and their functions that show such differential fitness between conditions. A simple comparison of one condition versus another will not be helpful as there two many possible combinations. To identify interesting sets of genes, cluster analysis can be performed. The first step is to generate a matrix from reformatted fitness data, and cluster genes by similarity using a generic clustering algorithm such as `hclust(method = "ward.D")`.
 
 ```{r}
 # generate color palette for heatmap
@@ -221,13 +216,11 @@ The second step is to find the optimal number of clusters for subdividing the da
 devtools::install_github("m-jahn/r-tools")
 ```
 
-
 ```{r, fig.width = 4, fig.height = 4}
 silhouette_result <- Rtools::silhouette_analysis(mat = mat_heatmap, n_clusters = 2:20, n_repeats = 10)
 print(silhouette_result$plot_summary)
 n_clusters = 7
 ```
-
 
 ```{r, fig.width = 10, fig.height = 4.0, warning = FALSE}
 # define a custom set of colors for clusters
@@ -262,8 +255,7 @@ gridExtra::grid.arrange(
 
 ## Gene similarity, by cluster
 
-The heat map clusters genes together that show similar expression over different conditions. Alternatively, we can use dimensionality reduction to identify clusters of genes that are similar, e.g. through **PCA**, **NMDS**, or **t-SNE**. 
-
+The heat map clusters genes together that show similar expression over different conditions. Alternatively, we can use dimensionality reduction to identify clusters of genes that are similar, e.g. through **PCA**, **NMDS**, or **t-SNE**.
 
 ```{r, fig.width = 8, fig.height = 4}
 # set a seed to obtain same pattern for stochastic methods
@@ -308,8 +300,7 @@ print(plot_tsne, split = c(2,1,2,1))
 
 ## Functions enriched in different clusters
 
-Extract cluster number for each gene and perform GO or KEGG enrichment per cluster.
-The goal is to identify the most prevalent biological functions per cluster.
+Extract cluster number for each gene and perform GO or KEGG enrichment per cluster. The goal is to identify the most prevalent biological functions per cluster.
 
 ```{r}
 df_cluster <- cutreeord(mat_cluster, k = n_clusters) %>%
@@ -357,7 +348,6 @@ plot_keggenrich <- df_kegg_enrichment %>%
 
 print(plot_keggenrich)
 ```
-
 
 ```{r, echo = FALSE}
 svg(filename = "../figures/figure_nmds_tsne.svg", width = 8, height = 8)
@@ -426,12 +416,11 @@ genome_plot <- function(df, xlim = NULL, title = "", rot_labels = 0) {
 
 ## Molybdenum cofactor biosynthesis
 
-- modAB = molybdenum transporter
-- moaACDE = molybdopterin backbone biosynthesis
-- moeA = molybdopterin molybdenum transferase
-- mobAB = molybdenum cofactor guanylyltransferase, 
-- mog = molybdopterin biosynthesis protein (role unclear?)
-
+-   modAB = molybdenum transporter
+-   moaACDE = molybdopterin backbone biosynthesis
+-   moeA = molybdopterin molybdenum transferase
+-   mobAB = molybdenum cofactor guanylyltransferase,
+-   mog = molybdopterin biosynthesis protein (role unclear?)
 
 ```{r, fig.width = 7, fig.height = 4}
 # plot heatmap
@@ -456,11 +445,10 @@ print(plot_moco_g2, position = c(0.53,-0.1,0.83,0.4))
 
 Interesting results to double-check:
 
-- Why is moaA essential for nitrate respiration but not formate? Is there another iso-enzyme for first step of MoCo synthesis?
-- mogA, moaA, moaB, moaE, modB, or modC deletion mutants are not viable in E.coli. Except for moaA, also modA,B,C are not essential for growth on formate.
-- modABC is the 3-subunit membrane transport system; it should be essential, however one explanation for it not being essential is that another low-affinity transporter might exist that compensates for the loss in medium with high Mo-concentration ([Xia et al., 2018](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6295455/)). The authors write in the discussion: "Molybdate can be taken up by the sulfate-transport system in the absence of a functional high-affinity molybdate-transport system in E. coli and B. japonicum (Rosentel et al., 1995; Delgado et al., 2006)."
-- moeA (molybdenum transferase) is present with 3 isoenzymes. MoeA1 and A2 both seem to be important for fitness as a KO of each one of them reduces fitness partially but not fully on formate/nitrate.
-
+-   Why is moaA essential for nitrate respiration but not formate? Is there another iso-enzyme for first step of MoCo synthesis?
+-   mogA, moaA, moaB, moaE, modB, or modC deletion mutants are not viable in E.coli. Except for moaA, also modA,B,C are not essential for growth on formate.
+-   modABC is the 3-subunit membrane transport system; it should be essential, however one explanation for it not being essential is that another low-affinity transporter might exist that compensates for the loss in medium with high Mo-concentration ([Xia et al., 2018](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6295455/)). The authors write in the discussion: "Molybdate can be taken up by the sulfate-transport system in the absence of a functional high-affinity molybdate-transport system in E. coli and B. japonicum (Rosentel et al., 1995; Delgado et al., 2006)."
+-   moeA (molybdenum transferase) is present with 3 isoenzymes. MoeA1 and A2 both seem to be important for fitness as a KO of each one of them reduces fitness partially but not fully on formate/nitrate.
 
 ```{r, echo = FALSE, results = 'hide'}
 svg(filename = "../figures/figure_fit_moco.svg", width = 7, height = 4)
@@ -472,11 +460,10 @@ dev.off()
 
 ## Formate dehydrogenase
 
-- fdsABCDG = primary soluble FDH
-- fdwAB = secondary soluble FDH
-- fdhABCD = primary membrane-bound FDH, 2 copies A1B1... and A2B2...
-- fdoGHI = secondary membrane-bound FDH
-
+-   fdsABCDG = primary soluble FDH
+-   fdwAB = secondary soluble FDH
+-   fdhABCD = primary membrane-bound FDH, 2 copies A1B1... and A2B2...
+-   fdoGHI = secondary membrane-bound FDH
 
 ```{r, fig.width = 7, fig.height = 4}
 # plot heatmap
@@ -508,34 +495,17 @@ dev.off()
 
 ## Hydrogenases
 
-- hoxA = master regulator, 2-component system. HoxA is constantly active in its non-
-  phosphorylated state below a temperature of 33*C. Originally, hoxA activity is regulated by
-  the kinase HoxJ (together with HoxBC, the 'regulatory' hydrogenase). This function is inactivated
-  due to a mutation in hoxJ,
-  [Friedrich & Friedrich, J Bac, 1983](https://journals.asm.org/doi/10.1128/jb.153.1.176-181.1983),
-  [Lenz et al., JMMB, 2004](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.334.5330&rep=rep1&type=pdf).
-- hoxKGZ = membrane-bound hydrogenase
-- hoxMLOQRTV = MBH accessory genes (cofactor incorporation, subunit assembly, 
-  and twin-arginine-dependent membrane translocation - TAT),
-  [Schubert et al., Mol Microbio, 2007](https://pubmed.ncbi.nlm.nih.gov/17850259/),
-  [Fritsch et al., J Bac, 2011](https://pubmed.ncbi.nlm.nih.gov/21441514/)
-  [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
-- hoxN1, hoxN2 = Nickel/Cobalt transporters. HoxN2 51% identical on AA level but not functional,
-  [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
-- hoxBC = regulatory hydrogenase RH, oxygen-resistant non-energy generating hydrogen sensor. 
-  HoxC is large active-site-containing subunit, hoxB small subunit HoxB carrying Fe-S clusters
-- HoxJ =  RH binding signal transducer, histidine protein kinase
-  [Löscher et al., Chem Phys Chem, 2010](https://pubmed.ncbi.nlm.nih.gov/20340124/)
-  [Buerstel et al., PNAS, 2016](https://pubmed.ncbi.nlm.nih.gov/27930319/)
-- hoxFUYH = soluble hydrogenase
-- hoxW = soluble hydrogenase (HoxH-specific) C-terminal protease (maturation)
-- hoxI = optional subunit of SH (hoxFUYH); specific reaction site for NADPH,
-  [Burgdorf et al., J Bac, 2005](https://pubmed.ncbi.nlm.nih.gov/15838039/)
-- a 4th hydrogenase exist on pHG1, made from 2 subunits (_hofK_, _hofG_, pHG064/065),
-  see [Schäfer et al., 2015](https://www.cell.com/structure/pdfExtended/S0969-2126(15)00499-2).
-- these subunits have no effect on fitness (high coverage of 9-11 mutants per gene),
-  and are very lowly expressed (PHG064 n.d., PHG065 low abundance)
-
+-   hoxA = master regulator, 2-component system. HoxA is constantly active in its non- phosphorylated state below a temperature of 33\*C. Originally, hoxA activity is regulated by the kinase HoxJ (together with HoxBC, the 'regulatory' hydrogenase). This function is inactivated due to a mutation in hoxJ, [Friedrich & Friedrich, J Bac, 1983](https://journals.asm.org/doi/10.1128/jb.153.1.176-181.1983), [Lenz et al., JMMB, 2004](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.334.5330&rep=rep1&type=pdf).
+-   hoxKGZ = membrane-bound hydrogenase
+-   hoxMLOQRTV = MBH accessory genes (cofactor incorporation, subunit assembly, and twin-arginine-dependent membrane translocation - TAT), [Schubert et al., Mol Microbio, 2007](https://pubmed.ncbi.nlm.nih.gov/17850259/), [Fritsch et al., J Bac, 2011](https://pubmed.ncbi.nlm.nih.gov/21441514/) [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
+-   hoxN1, hoxN2 = Nickel/Cobalt transporters. HoxN2 51% identical on AA level but not functional, [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
+-   hoxBC = regulatory hydrogenase RH, oxygen-resistant non-energy generating hydrogen sensor. HoxC is large active-site-containing subunit, hoxB small subunit HoxB carrying Fe-S clusters
+-   HoxJ = RH binding signal transducer, histidine protein kinase [Löscher et al., Chem Phys Chem, 2010](https://pubmed.ncbi.nlm.nih.gov/20340124/) [Buerstel et al., PNAS, 2016](https://pubmed.ncbi.nlm.nih.gov/27930319/)
+-   hoxFUYH = soluble hydrogenase
+-   hoxW = soluble hydrogenase (HoxH-specific) C-terminal protease (maturation)
+-   hoxI = optional subunit of SH (hoxFUYH); specific reaction site for NADPH, [Burgdorf et al., J Bac, 2005](https://pubmed.ncbi.nlm.nih.gov/15838039/)
+-   a 4th hydrogenase exist on pHG1, made from 2 subunits (*hofK*, *hofG*, pHG064/065), see [Schäfer et al., 2015](https://www.cell.com/structure/pdfExtended/S0969-2126(15)00499-2).
+-   these subunits have no effect on fitness (high coverage of 9-11 mutants per gene), and are very lowly expressed (PHG064 n.d., PHG065 low abundance)
 
 ```{r, fig.width = 8, fig.height = 4}
 # plot heatmap
@@ -570,15 +540,12 @@ dev.off()
 
 ## Hydrogenase pleiotropy genes (maturation)
 
-- hypA1,B1,F1,C1,D1,E1 = Ni-Fe metallocenter formation proteins for both MBH and SH. "HypC1, hypD1, 
-  and hypE1 are essential for SH and MBH maturation, while only one intact copy each of hypA,
-  hypB, and hypF is needed", [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
-- hypA and B
-- hypCDEF all form a complex to assemble the Ni-Fe-CO-CN cofactor
-- hypX = CO cofactor formation for NiFe-hydrogenase. HypX converts formyl-THF into water and CO in 
-  aerobic conditions, [Schulz et al., JACS, 2020](https://doi.org/10.1021/jacs.9b11506)
-- hypA2,B2,F2 = alternative genes for hypA1,B1,F1, not sufficient alone for hydrogenase formation
-- hypF3,hypC2,hypD2,hypE2,hypA3,hypB3. The physiological function of these extra hyp genes is unclear
+-   hypA1,B1,F1,C1,D1,E1 = Ni-Fe metallocenter formation proteins for both MBH and SH. "HypC1, hypD1, and hypE1 are essential for SH and MBH maturation, while only one intact copy each of hypA, hypB, and hypF is needed", [Schwartz et al., J Mol Bio, 2003](https://pubmed.ncbi.nlm.nih.gov/12948488)
+-   hypA and B
+-   hypCDEF all form a complex to assemble the Ni-Fe-CO-CN cofactor
+-   hypX = CO cofactor formation for NiFe-hydrogenase. HypX converts formyl-THF into water and CO in aerobic conditions, [Schulz et al., JACS, 2020](https://doi.org/10.1021/jacs.9b11506)
+-   hypA2,B2,F2 = alternative genes for hypA1,B1,F1, not sufficient alone for hydrogenase formation
+-   hypF3,hypC2,hypD2,hypE2,hypA3,hypB3. The physiological function of these extra hyp genes is unclear
 
 ```{r, fig.width = 7, fig.height = 4}
 df_hyp <- df_fitness_summary %>% filter(time == 8, grepl("hyp", gene_name)) %>%
@@ -610,36 +577,27 @@ dev.off()
 
 ## Other complexes important in energy metabolism
 
-- **succinate dehydrogenase**
-  - sdhABCD = membrane integral succinate dehydrogenase, reducing UQ to UQH2:
-    **all of its genes are strictly essential**, no KO mutants available
-
-- **NADH dehydrogenase**
-  - nuoABCDEFGHIJKLMN = membrane integral NADH dehydrogenase, oxidizes NADH, pumps 4 H+,
-    reduces UQ to UQH2: **all of its genes are strictly essential**, no KO mutants available
+-   **succinate dehydrogenase**
+    -   sdhABCD = membrane integral succinate dehydrogenase, reducing UQ to UQH2: **all of its genes are strictly essential**, no KO mutants available
+-   **NADH dehydrogenase**
+    -   nuoABCDEFGHIJKLMN = membrane integral NADH dehydrogenase, oxidizes NADH, pumps 4 H+, reduces UQ to UQH2: **all of its genes are strictly essential**, no KO mutants available
 
 ## Electron transport chain
 
 Cytochrome e- transport proteins, cytochrome reductases, and terminal oxidases.
 
-- **quinol oxidases**
-  - cyoA1B1C1D1, ... (3 copies) = cytochrome bo3 complex, quinole oxidase, low O2 affinity
-  - cydA1B1, ... (2 copies) = cytochrome bd complex, quinole oxidase, high O2 affinity
-- **cytochrome reductases**
-  - qcrABC (aka petABC, `H16_A3398`, `H16_A3397`, `H16_A3396`) = cytochrome bc1 reductase
-- **cytochrome C e- carriers**
-  - cytochrome c553 according to uniprot: `H16_A3451`, `H16_A0830`, `H16_A0846`,
-    `H16_B1452`, `H16_A3576`, `H16_A1121`, `H16_A1120`. 
-    According to String DB, `H16_A3576` is in same operon as thiosulphate oxidation
-    pathway (SoxXYZABCD), where thiosulfate is used as electron source [Zhang et al., 2020](https://www.nature.com/articles/s41396-020-0684-5)
-- **terminal cytochrome C oxidases**
-  - coxMNOPQ = bb3 complex, affinity unknown, not essential for growth or N-fixation in B.
-    japonycum where it was discovered. []()
-  - ctaABCDEG = aa3 complex, low O2 affinity
-  - ccoGNOP = cbb3 complex, high affinity, high similarity to NO3 reductase
-  - VP2641 (`H16_A1031`) = Membrane spanning protein, RDD family. PFAM: unknown function, 
-    potential transporter? Interacts with cytochrome c553 and qcrC, cytochrome reductase. 
-    It's depletion implicates this protein in formate-specific e- transport in the membrane.
+-   **quinol oxidases**
+    -   cyoA1B1C1D1, ... (3 copies) = cytochrome bo3 complex, quinole oxidase, low O2 affinity
+    -   cydA1B1, ... (2 copies) = cytochrome bd complex, quinole oxidase, high O2 affinity
+-   **cytochrome reductases**
+    -   qcrABC (aka petABC, `H16_A3398`, `H16_A3397`, `H16_A3396`) = cytochrome bc1 reductase
+-   **cytochrome C e- carriers**
+    -   cytochrome c553 according to uniprot: `H16_A3451`, `H16_A0830`, `H16_A0846`, `H16_B1452`, `H16_A3576`, `H16_A1121`, `H16_A1120`. According to String DB, `H16_A3576` is in same operon as thiosulphate oxidation pathway (SoxXYZABCD), where thiosulfate is used as electron source [Zhang et al., 2020](https://www.nature.com/articles/s41396-020-0684-5)
+-   **terminal cytochrome C oxidases**
+    -   coxMNOPQ = bb3 complex, affinity unknown, not essential for growth or N-fixation in B. japonycum where it was discovered.
+    -   ctaABCDEG = aa3 complex, low O2 affinity
+    -   ccoGNOP = cbb3 complex, high affinity, high similarity to NO3 reductase
+    -   VP2641 (`H16_A1031`) = Membrane spanning protein, RDD family. PFAM: unknown function, potential transporter? Interacts with cytochrome c553 and qcrC, cytochrome reductase. It's depletion implicates this protein in formate-specific e- transport in the membrane.
 
 ```{r, fig.width = 10, fig.height = 4}
 df_etc <- df_fitness_summary %>% filter(time == 8, locus_tag %in% c("H16_A3451", "H16_A0830",
@@ -679,14 +637,13 @@ print(plot_etc_g3, position = c(0.62,-0.1,0.9,0.4))
 dev.off()
 ```
 
-
 ## Nitrate respiration
 
 **Nitrate reductase (NAR)**
 
-Reaction: HNO3- + QH2 --> NO2- + H2O + Q.
+Reaction: HNO3- + QH2 --\> NO2- + H2O + Q.
 
-Two copies of the *nar* operon, one on the megaplasmid and one on chromosome 2. Several other enzymes catalyze similar reactions as NAR. NAS is cytoplasmic and NADH dependent _assimilatory_ nitrate reductase [Cramm R, 2008](https://pubmed.ncbi.nlm.nih.gov/18957861/). NAP is _periplasmic_ membrane protein complex accepting QH2, involved in nitrate respiration but probably also dissipation of excess redox power. Here we just focus on the main NAR enzyme.
+Two copies of the *nar* operon, one on the megaplasmid and one on chromosome 2. Several other enzymes catalyze similar reactions as NAR. NAS is cytoplasmic and NADH dependent *assimilatory* nitrate reductase [Cramm R, 2008](https://pubmed.ncbi.nlm.nih.gov/18957861/). NAP is *periplasmic* membrane protein complex accepting QH2, involved in nitrate respiration but probably also dissipation of excess redox power. Here we just focus on the main NAR enzyme.
 
 ```{r, fig.width = 6, fig.height = 4}
 df_nar <- df_fitness_summary %>%
@@ -706,10 +663,9 @@ print(plot_nar_g1, position = c(0.2,-0.1,0.85,0.4))
 
 **Nitrite reductase (NIR)**
 
-Reaction: NO2- + QH2 --> NO + H2O + Q
+Reaction: NO2- + QH2 --\> NO + H2O + Q
 
-NIR is a cd1 type copper containing terminal oxidase, homodimer of 2 nirS subunits.
-The genes for nitrite reductase are assembled in a cluster  (nirS, -C, -F, -D, -G, -H, -J, -N, -E)   spanning 8.6  kb  on  chromosome  2. The  first  gene  of  this  cluster,  nirS,  is the structural gene encoding  cd1  -NIR.  The  re-maining genes are presumed to be accessory genes essential  for  maturation  of  active  nitrite  reductase (?).
+NIR is a cd1 type copper containing terminal oxidase, homodimer of 2 nirS subunits. The genes for nitrite reductase are assembled in a cluster (nirS, -C, -F, -D, -G, -H, -J, -N, -E) spanning 8.6 kb on chromosome 2. The first gene of this cluster, nirS, is the structural gene encoding cd1 -NIR. The re-maining genes are presumed to be accessory genes essential for maturation of active nitrite reductase (?).
 
 ```{r, fig.width = 6, fig.height = 4}
 df_nir <- df_fitness_summary %>%
@@ -728,7 +684,7 @@ print(plot_nir_g1, position = c(0.3,-0.1,0.75,0.4))
 
 **NO reductase (NOR)**
 
-Reaction: NO + QH2 --> N2O + H2O + Q
+Reaction: NO + QH2 --\> N2O + H2O + Q
 
 From [Cramm R, 2008](https://pubmed.ncbi.nlm.nih.gov/18957861/): "The catalytic sub-unit (NorB) of all NORs that have been characterized to date contains one high-spin heme b and a binuclear catalytic center of a low-spin heme b and a non-heme iron. The best investigated NORs are heterodimers that contain, in addition to NorB, a heme c-containing subunit NorC which channels lectrons from the physiological electron donor cytochrome c to NorB."
 
@@ -749,7 +705,7 @@ print(plot_nor_g1, position = c(0.3,-0.1,0.75,0.4))
 
 **NOS (nitrous oxide) reductase**
 
-Reaction: N2O + QH2 --> N2 + H2O + Q
+Reaction: N2O + QH2 --\> N2 + H2O + Q
 
 The NOS of R. eutropha H16 has not been investigated on the biochemical level. Genes for NOS are located adjacent to the nor genes on pHG1. NosC (PHG253) might be the cyt c that is the e- donor for NOS. The nosC KO is enriched on formate, i.e. grows better than WT. Is nosC taking e- away from formate-fed ETC?
 
@@ -800,8 +756,8 @@ dev.off()
 
 ## Comparison of nitrate respiration conditions
 
-- we have two different nitrate respiration conditions, continuous and pulsed
-- low depletion of nitrate/nitrite/nitrous respiration mutants probably due to constant NO3 supply
+-   we have two different nitrate respiration conditions, continuous and pulsed
+-   low depletion of nitrate/nitrite/nitrous respiration mutants probably due to constant NO3 supply
 
 ```{r, fig.width = 6, fig.height = 6}
 df_fitness_summary %>%
@@ -832,11 +788,9 @@ df_fitness_summary %>%
   )
 ```
 
-
 ## Non-hydrogenase genes important for H2 fitness
 
-Different gene clusters appear based on the fitness pattern in different conditions. Clusters specific for lithoautotrophic metabolism are particularly interesting. We can add the cluster IDs to the main data frame, and investigate fitness.
-Or simply select genes that show depletion only for the hydrogen metabolizing condition.
+Different gene clusters appear based on the fitness pattern in different conditions. Clusters specific for lithoautotrophic metabolism are particularly interesting. We can add the cluster IDs to the main data frame, and investigate fitness. Or simply select genes that show depletion only for the hydrogen metabolizing condition.
 
 ```{r}
 df_fitness_summary <- df_fitness_summary %>%
@@ -844,7 +798,6 @@ df_fitness_summary <- df_fitness_summary %>%
     enframe(cutreeord(mat_cluster, k = n_clusters), "locus_tag", "cluster")
   )
 ```
-
 
 ```{r, fig.width = 8, fig.height = 4.5}
 df_fitness_summary %>%
@@ -864,30 +817,30 @@ df_fitness_summary %>%
   heatmap_fitness
 ```
 
-- **ptsI + ptsH** - according to databases, a clear hit for a PEP-dependent sugar PTS system. This can't be true for _C. necator_ otherwise it would not show the familiar pattern of depletion on hydrogen and growth benefit on other substrates. This PTS system must be implicated in hydrogen metabolism, probably a transporter? The genes downstream of ptsIH do not seem to be affected (H16_A0327 to H16_A0329).
-- **hldD** (H16_A0804) - ADP-L-glycero-beta-D-manno-heptose-6-epimerase, involved in LPS sugar phosphate synthesis. No obvious connection to hydrogen metabolism.
-- **glnE** (H16_A1127) - Bifunctional glutamine synthetase adenylyltransferase. Involved in the regulation of glutamine synthetase GlnA. Transfers or removes adenylyl-residues to and from GlnA, thereby regulating N uptake through GlnA. No obvious connection to hydrogen metabolism. Only 1 mutant in library.
-- **H16_A2692** - uncharacterized membrane protein. Is neutral in all other conditions, just as are all surrounding genes (H16_A269[0-9]). Small, 141 AA, potential carbonic anhydrase or transporter?
-- **bolA** (H16_A3419) - Predicted transcriptional regulator, no known domains or published functions. Only 1 mutant in library.
-- **yadG** (H16_A3421) Separated by only 1 gene (yadH, H16_A3420) from the previous hit, shows very specific depletion for hydrogen. 7-8 mutants quantified, annotated as ABC transporter, ATPase function. YadH is the permease partner of the 2 subunits, however does not show depletion. COG process 'defense' because it supposedly is active as anti-drug efflux pump.
-- **H16_B1603** - ABC-type transporter, ATPase coupled transmembrane transporter. Strong depletion on hydrogen only. All surrounding genes are neutral to fitness. Only 1 mutant in library. A candidate for a CO2/HCO3- transporter? Aligns best with a lot of different ABC transporters, with spermidine/putrescine transporters best hits.
+-   **ptsI + ptsH** - according to databases, a clear hit for a PEP-dependent sugar PTS system. This can't be true for *C. necator* otherwise it would not show the familiar pattern of depletion on hydrogen and growth benefit on other substrates. This PTS system must be implicated in hydrogen metabolism, probably a transporter? The genes downstream of ptsIH do not seem to be affected (H16_A0327 to H16_A0329).
+-   **hldD** (H16_A0804) - ADP-L-glycero-beta-D-manno-heptose-6-epimerase, involved in LPS sugar phosphate synthesis. No obvious connection to hydrogen metabolism.
+-   **glnE** (H16_A1127) - Bifunctional glutamine synthetase adenylyltransferase. Involved in the regulation of glutamine synthetase GlnA. Transfers or removes adenylyl-residues to and from GlnA, thereby regulating N uptake through GlnA. No obvious connection to hydrogen metabolism. Only 1 mutant in library.
+-   **H16_A2692** - uncharacterized membrane protein. Is neutral in all other conditions, just as are all surrounding genes (H16_A269[0-9]). Small, 141 AA, potential carbonic anhydrase or transporter?
+-   **bolA** (H16_A3419) - Predicted transcriptional regulator, no known domains or published functions. Only 1 mutant in library.
+-   **yadG** (H16_A3421) Separated by only 1 gene (yadH, H16_A3420) from the previous hit, shows very specific depletion for hydrogen. 7-8 mutants quantified, annotated as ABC transporter, ATPase function. YadH is the permease partner of the 2 subunits, however does not show depletion. COG process 'defense' because it supposedly is active as anti-drug efflux pump.
+-   **H16_B1603** - ABC-type transporter, ATPase coupled transmembrane transporter. Strong depletion on hydrogen only. All surrounding genes are neutral to fitness. Only 1 mutant in library. A candidate for a CO2/HCO3- transporter? Aligns best with a lot of different ABC transporters, with spermidine/putrescine transporters best hits.
 
 ## CO2 transporter/carbonic anhydrase homologs
 
-All CAs with quantified fitness are neutral during lithoautotrophic growth (H16_A1192 - _cag_, H16_B2403 - _caa_, H16_B2270 - _can2_). Only H16_A0169 (_can_) is strictly essential, no mutants are available. This is different to the results from [Gai et al., AMB Express, 2014](https://link.springer.com/article/10.1186/2191-0855-4-2) that found two essential CAs, _can_ and _caa_: 
+All CAs with quantified fitness are neutral during lithoautotrophic growth (H16_A1192 - *cag*, H16_B2403 - *caa*, H16_B2270 - *can2*). Only H16_A0169 (*can*) is strictly essential, no mutants are available. This is different to the results from [Gai et al., AMB Express, 2014](https://link.springer.com/article/10.1186/2191-0855-4-2) that found two essential CAs, *can* and *caa*:
 
-"All four purified CAs were capable of performing the interconversion of CO2 and HCO3– [...] Deletion of _can_ affected the growth of R. eutropha; however the growth defect could be compensated by adding CO2 to the culture. Deletion of _caa_, encoding an alpha-CA, had the strongest deleterious influence on cell growth.". 
+"All four purified CAs were capable of performing the interconversion of CO2 and HCO3-- [...] Deletion of *can* affected the growth of R. eutropha; however the growth defect could be compensated by adding CO2 to the culture. Deletion of *caa*, encoding an alpha-CA, had the strongest deleterious influence on cell growth.".
 
-Also [Kusian et al., J Bac, 2002](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC135314/) report the essentiality of _can_ for lithoautotrophic growth. _Caa_ fitness was quantified in the library with 11 mutants, yet does not show any phenotype on any substrate. The results in Gai et al. are somewhat contradictory, as the _caa_ completion test in a quadruple-CA mutant had no beneficial effect on growth. 
+Also [Kusian et al., J Bac, 2002](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC135314/) report the essentiality of *can* for lithoautotrophic growth. *Caa* fitness was quantified in the library with 11 mutants, yet does not show any phenotype on any substrate. The results in Gai et al. are somewhat contradictory, as the *caa* completion test in a quadruple-CA mutant had no beneficial effect on growth.
 
-Altogether, no specific bicarbonate transporters are annotated in _C. necator_. However, important bicarbonate (HCO3+) or CO2 transporters known from e.g. cyanobacteria (_Synechocystis_ sp. PCC 6803) could be used to search for homologous genes in _C. necator_. The following CO2/HCO3+ transporters are known in _Synechocystis_:
+Altogether, no specific bicarbonate transporters are annotated in *C. necator*. However, important bicarbonate (HCO3+) or CO2 transporters known from e.g. cyanobacteria (*Synechocystis* sp. PCC 6803) could be used to search for homologous genes in *C. necator*. The following CO2/HCO3+ transporters are known in *Synechocystis*:
 
-- **BicA** (sll0834): constitutive high-flux, low-affinity Na+/HCO3+ symport
-- **SbtA** (slr1512): inducible low-flux, high-affinity Na+/HCO3+ symport
-- **BCT1** (cmpABCD operon/slr0040-44): inducible high-affinity, ATP-dependent uniport
-- **NDH** (nuo operon/): all genes of this operon are essential in _C. necator_, no cond. fitness
+-   **BicA** (sll0834): constitutive high-flux, low-affinity Na+/HCO3+ symport
+-   **SbtA** (slr1512): inducible low-flux, high-affinity Na+/HCO3+ symport
+-   **BCT1** (cmpABCD operon/slr0040-44): inducible high-affinity, ATP-dependent uniport
+-   **NDH** (nuo operon/): all genes of this operon are essential in *C. necator*, no cond. fitness
 
-The first three of these genes were blasted against the genome of _C. necator_. The figure shows alignment scores for the top 20 hits.
+The first three of these genes were blasted against the genome of *C. necator*. The figure shows alignment scores for the top 20 hits.
 
 ```{r, fig.width = 6.5, fig.height = 3}
 df_co2_transport_align <- read_tsv("../data/alignments/CO2_transporters.tsv", col_types = cols()) %>%
@@ -906,7 +859,8 @@ df_co2_transport_align <- read_tsv("../data/alignments/CO2_transporters.tsv", co
     }
   )
 ```
-BicA and cmpB seem to have some very similar homologs in the _C. necator_ genome. However, none of these homologs has a clear phenotype related to hydrogen metabolism.
+
+BicA and cmpB seem to have some very similar homologs in the *C. necator* genome. However, none of these homologs has a clear phenotype related to hydrogen metabolism.
 
 ```{r, fig.width = 9.5, fig.height = 3.5}
 df_co2_transport_align %>%
@@ -920,15 +874,15 @@ df_co2_transport_align %>%
 
 ## Main conclusions
 
-- MoCo cofactor is important for growth on formate *and* nitrate respiration, but not for growth on hydrogen
-- Main FDH is S-FDH both in terms of protein abundance, inducibility, and essentiality
-- Alternative S-FDH operon *fdw* does not play a roll
-- Both hydrogenases, S-H and m_H have similar fitness penalty on hydrogen when KOed
-- Hydrogenase genes, but even more so master regulator hoxA and Hydrogenase pleiotropy (hyp) genes confer fitness advantage when KOed on all non-loithoautotrophic substrates
-- Cytochrome reductase bc1 complex (qcrABC) is particularly important for growth on formate
-- Bc1 complex plays no role on nitrate, therefore no cross talk (while a bc1 KO mutant was growth-deficient in oxygen-limited growth on nitrate (Garg et al., 2018).
-- Bc1 complex accepts reduced quinols as e- donor, pumps 4 H+ /2 e− via proton-motive Q cycle (quinol:cyt c oxidoreduction), and releases reduced cytochrome C e- carriers. Main cytochrome complex for most substrates including hydrogen
-- Cbb3-type cytochrome oxidase (*cco* operon) also important for growth on formate, while *cta* operon (aa3 complex) more important on fructose and succinate
+-   MoCo cofactor is important for growth on formate *and* nitrate respiration, but not for growth on hydrogen
+-   Main FDH is S-FDH both in terms of protein abundance, inducibility, and essentiality
+-   Alternative S-FDH operon *fdw* does not play a roll
+-   Both hydrogenases, S-H and m_H have similar fitness penalty on hydrogen when KOed
+-   Hydrogenase genes, but even more so master regulator hoxA and Hydrogenase pleiotropy (hyp) genes confer fitness advantage when KOed on all non-loithoautotrophic substrates
+-   Cytochrome reductase bc1 complex (qcrABC) is particularly important for growth on formate
+-   Bc1 complex plays no role on nitrate, therefore no cross talk (while a bc1 KO mutant was growth-deficient in oxygen-limited growth on nitrate (Garg et al., 2018).
+-   Bc1 complex accepts reduced quinols as e- donor, pumps 4 H+ /2 e− via proton-motive Q cycle (quinol:cyt c oxidoreduction), and releases reduced cytochrome C e- carriers. Main cytochrome complex for most substrates including hydrogen
+-   Cbb3-type cytochrome oxidase (*cco* operon) also important for growth on formate, while *cta* operon (aa3 complex) more important on fructose and succinate
 
 # Growth advantage of Hydrogenase mutants
 
@@ -936,16 +890,15 @@ df_co2_transport_align %>%
 
 The main measurement that was obtained from transposon library competition experiments is the fold change, and the fitness score as a summary statistic thereof. The fold change of a mutant sub-population over time can also be used to calculate the relative growth advantage over other strains. For such a growth model, the only required input parameters are the FC, the average population growth rate, and the time in hours.
 
-$$ FC = (1 - (\mu_{pop} - \mu_{mut}))^{t} $$
-Re-arranged to obtain the mutant growth rate.
+$$ FC = (1 - (\mu_{pop} - \mu_{mut}))^{t} $$ Re-arranged to obtain the mutant growth rate.
 
 $$ \mu_{mut} = -(1 - FC^{1/t}) + \mu_{pop}$$
 
 All input variables are available:
 
-- µ_pop = 0.1 h^-1, known from chemostats
-- FC for each mutant/gene from library competition experiments ('fitness' is the normalized log2 FC)
-- t = n_gen x (ln 2)/0.1 - number of generations (0, 8, 16) multiplied with generation time of 6.93 h
+-   µ_pop = 0.1 h\^-1, known from chemostats
+-   FC for each mutant/gene from library competition experiments ('fitness' is the normalized log2 FC)
+-   t = n_gen x (ln 2)/0.1 - number of generations (0, 8, 16) multiplied with generation time of 6.93 h
 
 We make a generalized function that calculates growth rate (dis-) advantage.
 
@@ -995,12 +948,11 @@ df_mutant_mu <- df_increased_mu %>%
 print(plot_increased_mu)
 ```
 
-
 ## Growth advantage *versus* protein cost
 
 The main question is if the observed growth advantage can be purely explained by the saving of gene expression cost. Hydrogenase and some accessory proteins are highly abundant and therefore cause a significant cost to the cell. It was shown in many other studies that reducing excess/unused proteins can increase growth rate. This is based on the observation that the protein pool is limited and cells can optimize the utilization of this limited resource by tuning gene expression towards highly utilized genes/proteins.
 
-In the next section, global protein abundance data is imported that was obtained from quantitative MS experiments. MS data is available for the three conditions used in the previous section, continuous growth on fructose, succinate, and formate in chemostats at defined growth rates. 
+In the next section, global protein abundance data is imported that was obtained from quantitative MS experiments. MS data is available for the three conditions used in the previous section, continuous growth on fructose, succinate, and formate in chemostats at defined growth rates.
 
 **Note: The data is imported directly from the respective github repository, requiring internet connection**.
 
@@ -1009,19 +961,17 @@ load(url("https://github.com/m-jahn/R-notebook-ralstonia-proteome/blob/main/data
 head(Ralstonia_eutropha[1:10])
 ```
 
-
 To assess real protein cost of a knock-out, it is important to consider that KO by transposon integration will have an effect on the downstream gene expression too, effectively disrupting transcription/translation of the entire operon downstream of the integration site.
 
-If we assume that each KO knocks out the gene expression of all consecutive genes of the operon, we need to sum up protein cost for these affected gene sets; we generate a **binary matrix** of associations for each KO with a number of affected genes (0 = FALSE, 1 = TRUE), and multiply with protein mass. Here, we need to test different assumptions. The canonical regulation of the hox/hyp operon happens via `hoxA` transcriptional regulator, `hoxBC` H2 sensing 'regulatory hydrogenase' (RH), and `hoxJ`, the defect kinase that transmits the output from `hoxBC` to `hoxA?`. This regulation controls two promoters: 
+If we assume that each KO knocks out the gene expression of all consecutive genes of the operon, we need to sum up protein cost for these affected gene sets; we generate a **binary matrix** of associations for each KO with a number of affected genes (0 = FALSE, 1 = TRUE), and multiply with protein mass. Here, we need to test different assumptions. The canonical regulation of the hox/hyp operon happens via `hoxA` transcriptional regulator, `hoxBC` H2 sensing 'regulatory hydrogenase' (RH), and `hoxJ`, the defect kinase that transmits the output from `hoxBC` to `hoxA?`. This regulation controls two promoters:
 
-- the P_MBH promoter that starts transcription of the huge `hoxKGZMLOQRTV` + `hypABFCDEX` + `hoxABCJ operon`
-- the P_SH promoter that starts transcription of the smaller `hoxFUYHWI` + `hypA2B2F2` operon
+-   the P_MBH promoter that starts transcription of the huge `hoxKGZMLOQRTV` + `hypABFCDEX` + `hoxABCJ operon`
+-   the P_SH promoter that starts transcription of the smaller `hoxFUYHWI` + `hypA2B2F2` operon
 
-Accordingly, `hoxA` controls its own transcription in a feed-forward autoregulatory fashion. Increased `hoxA` protein abundance leads to stronger `hoxA` expression, etc. However, if a transposon integrates into any given site of one of the operons, transcription of following genes should be terminated or otherwise negatively affected. Surprisingly, this effect is visible for `hyp` mutants that might negatively affect `hoxA` expression, but not for any preceding genes (`hoxKHZMLOQRTV`).
-This suggests that: 
+Accordingly, `hoxA` controls its own transcription in a feed-forward autoregulatory fashion. Increased `hoxA` protein abundance leads to stronger `hoxA` expression, etc. However, if a transposon integrates into any given site of one of the operons, transcription of following genes should be terminated or otherwise negatively affected. Surprisingly, this effect is visible for `hyp` mutants that might negatively affect `hoxA` expression, but not for any preceding genes (`hoxKHZMLOQRTV`). This suggests that:
 
-- either there is another internal (secondary) promoter that controls `hyp` + `hoxABCJN` gene expression
-- or hyp genes themselves have an enormous fitness cost,
+-   either there is another internal (secondary) promoter that controls `hyp` + `hoxABCJN` gene expression
+-   or hyp genes themselves have an enormous fitness cost,
 
 ```{r}
 #"hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypA", "hypB", "hypF", "hypC", "hypD", "hypE", "hypX", "hoxA", #"hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"
@@ -1063,7 +1013,7 @@ rownames(mat_mutant_genomic) <- names(list_mutant_genomic)
 colnames(mat_mutant_genomic) <- names(list_mutant_genomic)
 ```
 
-- Add individual and accumulated protein cost for each KO mutant.
+-   Add individual and accumulated protein cost for each KO mutant.
 
 ```{r}
 # add individual protein cost from MS data
@@ -1087,7 +1037,7 @@ df_mutant_cost <- df_mutant_mu %>%
   )
 ```
 
-- Plot mutant growth rate, individual cost, and total protein cost that is saved in KO mutants.
+-   Plot mutant growth rate, individual cost, and total protein cost that is saved in KO mutants.
 
 ```{r, fig.width = 7.5, fig.height = 7.5}
 plot_mutant_mu <- xyplot(mutant_mu ~ gene_name, df_mutant_mu,
@@ -1157,32 +1107,28 @@ plot_sh_operon <- df_increased_mu %>%
 
 print(plot_mutant_mu, position = c(-0.017, 0.60, 1, 1), more = TRUE)
 print(plot_mutant_cost, position = c(0.02, 0.30, 1, 0.70), more = TRUE)
-print(plot_cost_vs_mu, position = c(-0.017, 0, 0.38, 0.38), more = TRUE)
-print(plot_mbh_operon, position = c(0.34, 0.14, 0.97, 0.38), more = TRUE)
-print(plot_sh_operon, position = c(0.34, 0, 0.63, 0.24))
-grid::grid.text(c("A","B","C","D"), x = c(0.02, 0.02, 0.02, 0.36),
-  y = c(0.98, 0.66, 0.34, 0.34), gp = grid::gpar(cex = 1.2))
+print(plot_mbh_operon, position = c(0.075, 0.14, 0.97, 0.39), more = TRUE)
+print(plot_sh_operon, position = c(0.075, 0, 0.4, 0.25))
+grid::grid.text(c("A","B","C"), x = c(0.02, 0.02, 0.02),
+  y = c(0.98, 0.66, 0.34), gp = grid::gpar(cex = 1.2))
 ```
-
 
 ```{r, echo = FALSE, results = 'hide'}
 svg("../figures/figure_mutant_cost.svg", width = 7.5, height = 7.5)
 print(plot_mutant_mu, position = c(-0.017, 0.60, 1, 1), more = TRUE)
 print(plot_mutant_cost, position = c(0.02, 0.30, 1, 0.70), more = TRUE)
-print(plot_cost_vs_mu, position = c(-0.017, 0, 0.38, 0.38), more = TRUE)
-print(plot_mbh_operon, position = c(0.34, 0.14, 0.97, 0.38), more = TRUE)
-print(plot_sh_operon, position = c(0.34, 0, 0.63, 0.24))
-grid::grid.text(c("A","B","C","D"), x = c(0.02, 0.02, 0.02, 0.36),
-  y = c(0.98, 0.66, 0.34, 0.34), gp = grid::gpar(cex = 1.2))
+print(plot_mbh_operon, position = c(0.075, 0.14, 0.97, 0.39), more = TRUE)
+print(plot_sh_operon, position = c(0.075, 0, 0.4, 0.25))
+grid::grid.text(c("A","B","C"), x = c(0.02, 0.02, 0.02),
+  y = c(0.98, 0.66, 0.34), gp = grid::gpar(cex = 1.2))
 dev.off()
 ```
 
 ## Prediction of growth advantage using cell economy model
 
-The constrained Resource Balance Analysis (RBA) model described in [Jahn et al., 2021](https://elifesciences.org/articles/69019) can be used to make predictions on the effect of hydrogenase knockout on cell growth rate. The RBA model is a genome scale metabolic model of *R. eutropha* that takes protein costs and global protein pool limitations into account. In constrast to simple FBA (flux balance analysis), growth rate is ultimately capped by rate limitation of enzymes and space limitation for enzyme mass within the cell, or the cytoplasmic membrane. The model 
-was constrained using experimentally determined steady-state growth rates and protein abundances.
+The constrained Resource Balance Analysis (RBA) model described in [Jahn et al., 2021](https://elifesciences.org/articles/69019) can be used to make predictions on the effect of hydrogenase knockout on cell growth rate. The RBA model is a genome scale metabolic model of *R. eutropha* that takes protein costs and global protein pool limitations into account. In constrast to simple FBA (flux balance analysis), growth rate is ultimately capped by rate limitation of enzymes and space limitation for enzyme mass within the cell, or the cytoplasmic membrane. The model was constrained using experimentally determined steady-state growth rates and protein abundances.
 
-Here, we can ask the question if and how much growth rate would improve by expanding the total protein pool size by the fraction indicated above (e.g. *hoxA* KO freeing up to 4% protein mass). The first step is to import RBA simulation results.
+Here, we can ask the question if, and to which degree, growth rate would increase by expanding the total protein pool size (shrinking protein cost) by the fraction indicated above (e.g. *hoxA* KO freeing up to 4% protein mass). The first step is to import RBA simulation results.
 
 ```{r, warning = FALSE, results = 'hide'}
 source(url("https://github.com/m-jahn/R-notebook-ralstonia-proteome/raw/main/pipeline/read_rba_result.R"))
@@ -1193,10 +1139,16 @@ df_prot <- read_rba_result(list.files(dir_sim, pattern = "proteins_.*.tsv", full
 df_macr <- read_rba_result(list.files(dir_sim, pattern = "macroprocesses_.*.tsv", full.names = TRUE))
 ```
 
-The RBA modeling result is very clear: An increase in the protein pool (= decrease of unutilized protein mass) does *not* result in the observed changes of growth rate of up to +50%. The change in growth rate is rather proportional to the amount of saved protein cost.
+The next step is to plot the increase in growth rate as a function of protein resources that have been saved. The prediction shows smaller increases than the growth rates estimated from the library data.
+
+-   roughly 8% increase in µ for 10% reduction of protein cost
+-   library data suggest roughly 40% increase for 4-5% reduction of protein cost
+-   this is not realistic, most likely an artifact of calculation from NGS data
 
 ```{r, fig.width = 3.7, fig.height = 3.7}
 plot_cost_predict <- df_macr %>%
+  mutate(carbon_source = recode(carbon_source,
+    `for` = "formate", `succ` = "succinate", `fru` = "fructose")) %>%
   mutate(sim_run = as.numeric(sim_run)) %>%
   arrange(carbon_source, sim_run) %>%
   group_by(carbon_source, key) %>%
@@ -1207,7 +1159,7 @@ plot_cost_predict <- df_macr %>%
     groups = carbon_source, aspect = 1,
     par.settings = custom.colorblind(),
     type = "b", lwd = 2, lty = 2, pch = 1,
-    ylim = c(0.09, 0.155), col = stdcol[2:4],
+    ylim = c(0.095, 0.125), col = stdcol[2:4],
     xlab = "freed up protein resources [% total]",
     ylab = expression("µ [h"^-1*"]"),
     panel = function(x, y, z, ...) {
@@ -1220,32 +1172,74 @@ plot_cost_predict <- df_macr %>%
     }
   )
 
-plot_cost_predict <- plot_cost_predict + as.layer(
-  xyplot(mean_mutant_mu ~ corrected_cost,
-    df_mutant_cost %>%
-      filter(gene_name %in% c("hoxA", "hoxF", "hoxU", "hoxY", "hoxH")),
-    groups = substrate, col = stdcol[2:4],
-    pointlabels = as.character(df_mutant_cost$gene_name),
-    panel = function(x, y, pointlabels, ...) {
-      panel.superpose(x, y, ...)
-      panel.repellabels(x, y, labels = pointlabels, y_boundary = c(0.11,0.16),
-        draw_box = TRUE, cex = 0.6, ...)},
-    panel.groups = function(x, y, ...) {
-      panel.xyplot(x, y, ...)
-      panel.lmline(x, y, ...)
-    }
-  )
-)
-
 print(plot_cost_predict)
 ```
+
+## Growth advantage of clean, in-frame hydrogenase deletion mutants
+
+```{r, fig.width = 6.5, fig.height = 5.5}
+df_growth_assay <- read_csv("../data/growth_assays/df_mu_hox.csv", show_col_types = FALSE)
+df_dcw_assay <- read_csv("../data/growth_assays/df_dcw_hox.csv", show_col_types = FALSE)
+plot_order <- c("WT", "hoxG", "hypB", "hypX", "hoxA", "hoxH")
+
+plot_growth_mu <- df_growth_assay %>%
+  mutate(sample = factor(sample, plot_order)) %>%
+  xyplot(mu_max ~ sample, .,
+    par.settings = custom.colorblind(),
+    lwd = 2, pch = 1,
+    col = stdcol[3], ylim = c(-0.0, 0.38),
+    xlab = "",
+    ylab = expression("µ [h"^-1*"]"),
+    panel = function(x, y, z, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.barplot(x, y, ...)
+      panel.pvalue(x, y, offset = 0.06, ...)
+    }
+  )
+
+plot_growth_dcw <- df_dcw_assay %>%
+  mutate(sample = factor(sample, plot_order)) %>%
+  xyplot(yield_gDCW_gFRC ~ sample, .,
+    par.settings = custom.colorblind(),
+    lwd = 2, pch = 1,
+    col = stdcol[3], ylim = c(-0.0, 0.6),
+    xlab = "",
+    ylab = expression("yield [g DCW g Frc"^-1*"]"),
+    panel = function(x, y, z, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.barplot(x, y, ...)
+      panel.pvalue(x, y, offset = 0.1, ...)
+    }
+  )
+
+plot_corr_dcw_mu <- df_growth_assay %>% group_by(sample) %>%
+  summarize(mu_max = mean(mu_max, na.rm = TRUE)) %>%
+  left_join(by = "sample",
+    df_dcw_assay %>% group_by(sample) %>%
+      summarize(yield = mean(yield_gDCW_gFRC, na.rm = TRUE))
+  ) %>%
+  xyplot(yield ~ mu_max, .,
+    par.settings = custom.colorblind(),
+    lwd = 2, pch = 1, col = stdcol[3],
+    panel = function(x, y, z, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.xyplot(x, y, ...)
+    }
+  )
+
+print(plot_growth_mu, position = c(0, 0.5, 0.5, 1), more = TRUE)
+print(plot_growth_dcw, position = c(0.5, 0.5, 1, 1), more = TRUE)
+print(plot_corr_dcw_mu, position = c(0, 0, 0.5, 0.5))
+grid::grid.text(c("A","B","C"), x = c(0.03, 0.5, 0.03),
+  y = c(0.97, 0.97, 0.47), gp = grid::gpar(cex = 1.2))
+```
+
 
 ## Protein cost of secondary hydrogenases
 
 This figure shows protein cost of the hox/hof genes that were not included in the protein cost analysis:
 
-- the 4th 'actinobacterial' hydrogenase, 1 subunit (hofG, PHG065)
-
+-   the 4th 'actinobacterial' hydrogenase, 1 subunit (hofG, PHG065)
 
 ```{r, fig.width = 4, fig.height = 3}
 Ralstonia_eutropha %>% ungroup %>%

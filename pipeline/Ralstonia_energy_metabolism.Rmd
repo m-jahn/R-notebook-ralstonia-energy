@@ -99,14 +99,21 @@ stdcol <- custom.colorblind()$superpose.line$col
 We can plot log2 FC or normalized gene fitness over generations. For this type of overview it is best to summarize individual replicates (4x) to the mean or median, per time point and condition. We also add genome annotation to the summary table. The plots shows that depletion of some strains is so strong already at 8 generations that fitness/log2 FC could not be quantified for 16 generations due to missing read counts. It is best to focus on 8 generations as because it provides a more complete picture.
 
 ```{r, messages = FALSE}
+nest_cols = c("time", "condition", "substrate")
+df_ref_long <- bind_rows(df_ref, distinct(df_fitness %>% select(!!!nest_cols))) %>%
+  complete(locus_tag, nesting(!!!lapply(nest_cols, sym))) %>%
+  filter(!is.na(time)) %>% select(locus_tag, !!!nest_cols) %>%
+  left_join(df_ref, by = "locus_tag")
+
 df_fitness_summary <- df_fitness %>%
   group_by(locus_tag, scaffold, time, condition, substrate, strains_per_gene) %>%
   summarize(
+    .groups = "drop",
     norm_gene_fitness_median = median(norm_gene_fitness, na.rm = TRUE),
     log2FC_median = median(log2FC, na.rm = TRUE),
     tstat_median = median(t, na.rm = TRUE)
   ) %>%
-  left_join(df_ref) %>% ungroup %>%
+  full_join(df_ref_long) %>%
   mutate(cond_short = if_else(condition == "pulse", "P", "C")) %>%
   mutate(cond_short = paste0(substrate, " - ", cond_short) %>%
     factor(levels = paste0(
@@ -388,6 +395,7 @@ Generalized function to plot genes for different regions of the genome.
 
 ```{r}
 genome_plot <- function(df, xlim = NULL, title = "", rot_labels = 0) {
+  df <-  replace_na(df, list(strains_per_gene = 0))
   theme = custom.colorblind(col = c(grey(0.7), grey(0.85)))
   theme$axis.line$col = grey(0.3)
   theme$axis.text$col = grey(0.3)
@@ -617,7 +625,6 @@ plot_etc_fit <- heatmap_fitness(df_etc)
 # plot genomic locations
 df_etc <- df_etc %>% group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
   summarize(strains_per_gene = min(unique(strains_per_gene)), .groups = "drop")
-#plot_etc_g1 <- genome_plot(df_etc, xlim = c(1167.6, 1172.7), title = "chr 1")
 plot_etc_g1 <- genome_plot(df_etc, xlim = c(3675.2, 3679.0), title = "chr 1")
 plot_etc_g2 <- genome_plot(df_etc, xlim = c(361.2, 371.2), title = "chr 1")
 plot_etc_g3 <- genome_plot(df_etc, xlim = c(2509.5, 2515.2), title = "chr 1")
@@ -729,7 +736,7 @@ The following section simply plots all nitrate respiration modules on one canvas
 ```{r, fig.width = 10, fig.height = 4}
 plot_nitrate_all <- bind_rows(df_nar, df_nor, df_nos, df_nir) %>%
   mutate(gene_name = factor(gene_name, c(
-    paste0("nar", c("X1", "L1", "K1", "K2", "G1", "H1", "I1", "X2", "L2", "G2", "H2", "I2")),
+    paste0("nar", c("X1", "L1", "K1", "K2", "G1", "H1", "I1", "X2", "L2", "G2", "H2", "I2", "K3", "K5")),
     paste0("nap", c("A", "B", "C", "D")), paste0("nas", c("D", "E")),
     paste0("nir", c("S", "C", "F", "D", "J", "N", "E")),
     paste0("nor", c("A", "B", "R1", "A2", "B2", "R2")),

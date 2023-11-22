@@ -225,8 +225,13 @@ devtools::install_github("m-jahn/r-tools")
 
 ```{r, fig.width = 4, fig.height = 4}
 silhouette_result <- Rtools::silhouette_analysis(mat = mat_heatmap, n_clusters = 2:20, n_repeats = 10)
-print(silhouette_result$plot_summary)
+silhouette_result$plot_summary$par.settings = custom.colorblind()
+silhouette_result$plot_summary
 n_clusters = 7
+
+svg(filename = "../figures/figure_silhouette.svg", width = 4, height = 4)
+print(silhouette_result$plot_summary)
+dev.off()
 ```
 
 ```{r, fig.width = 10, fig.height = 4.0, warning = FALSE}
@@ -361,7 +366,7 @@ plot_keggenrich <- df_kegg_enrichment %>%
     groups = cluster,
     par.settings = custom.colorblind(),
     col = custom_colors,
-    xlab = expression("-log"[10]*" p-value"), ylab = "",
+    xlab = expression("log"[10]*" p-value"), ylab = "",
     panel = function(x, y, labels, ...) {
       panel.grid(h = -1, col = grey(0.9))
       panel.xyplot(x, y, ...)
@@ -991,40 +996,43 @@ If we assume that each KO knocks out the gene expression of all consecutive gene
 
 Accordingly, `hoxA` controls its own transcription in a feed-forward autoregulatory fashion. Increased `hoxA` protein abundance leads to stronger `hoxA` expression, etc. However, if a transposon integrates into any given site of one of the operons, transcription of following genes should be terminated or otherwise negatively affected. Surprisingly, this effect is visible for `hyp` mutants that might negatively affect `hoxA` expression, but not for any preceding genes (`hoxKHZMLOQRTV`). This suggests that:
 
--   either there is another internal (secondary) promoter that controls `hyp` + `hoxABCJN` gene expression
--   or hyp genes themselves have an enormous fitness cost,
+-   there is another, secondary promoter that controls `hyp` + `hoxABCJN` gene expression
+-   in fact this has been shown in ...
 
 ```{r}
-#"hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypA", "hypB", "hypF", "hypC", "hypD", "hypE", "hypX", "hoxA", #"hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"
+gene_list_mh <- c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV")
+gene_list_sh <- c("hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI")
+gene_list_hyp <- c("hypA", "hypB", "hypF", "hypC", "hypD", "hypE", "hypX")
+
 list_mutant_genomic <- list(
-  hoxK = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV"),
-  hoxG = c("hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV"),
-  hoxZ = c("hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV"),
-  hoxM = c("hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV"),
-  hoxL = c("hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV"),
-  hoxO = c("hoxO", "hoxQ", "hoxR", "hoxT", "hoxV"),
-  hoxQ = c("hoxQ", "hoxR", "hoxT", "hoxV"),
-  hoxR = c("hoxR", "hoxT", "hoxV"),
-  hoxT = c("hoxT", "hoxV"),
-  hoxV = c("hoxV"),
-  hypA = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypA", "hypB", "hypF", "hypC", "hypD", "hypE", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
-  hypB = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypB", "hypF", "hypC", "hypD", "hypE", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
-  hypF = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypF", "hypC", "hypD", "hypE", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN","hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
-  hypC = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypC", "hypD", "hypE", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
-  hypD = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypD", "hypE", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
-  hypE = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypE", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
-  hypX = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hypX", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
-  hoxA = c("hoxK", "hoxG", "hoxZ", "hoxM", "hoxL", "hoxO", "hoxQ", "hoxR", "hoxT", "hoxV", "hoxA", "hoxB", "hoxC", "hoxJ", "hoxN", "hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
-  hoxB = c("hoxB", "hoxC", "hoxJ", "hoxN"),
-  hoxC = c("hoxC", "hoxJ", "hoxN"),
-  hoxJ = c("hoxJ", "hoxN"),
-  hoxN = c("hoxN"),
-  hoxF = c("hoxF", "hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
-  hoxU = c("hoxU", "hoxY", "hoxH", "hoxW", "hoxI"),
-  hoxY = c("hoxY", "hoxH", "hoxW", "hoxI"),
-  hoxH = c("hoxH", "hoxW", "hoxI"),
-  hoxW = c("hoxW", "hoxI"),
-  hoxI = c("hoxI")
+  hoxK = gene_list_mh,
+  hoxG = gene_list_mh[2:10],
+  hoxZ = gene_list_mh[3:10],
+  hoxM = gene_list_mh[4:10],
+  hoxL = gene_list_mh[5:10],
+  hoxO = gene_list_mh[6:10],
+  hoxQ = gene_list_mh[7:10],
+  hoxR = gene_list_mh[8:10],
+  hoxT = gene_list_mh[9:10],
+  hoxV = gene_list_mh[10],
+  hypA = c(gene_list_mh, gene_list_hyp, gene_list_sh),
+  hypB = c(gene_list_mh, gene_list_hyp[2:7], gene_list_sh),
+  hypF = c(gene_list_mh, gene_list_hyp[3:7], gene_list_sh),
+  hypC = c(gene_list_mh, gene_list_hyp[4:7], gene_list_sh),
+  hypD = c(gene_list_mh, gene_list_hyp[5:7], gene_list_sh),
+  hypE = c(gene_list_mh, gene_list_hyp[6:7], gene_list_sh),
+  hypX = c(gene_list_mh, gene_list_hyp[7], gene_list_sh),
+  hoxA = c(gene_list_mh, gene_list_sh),
+  hoxB = gene_list_sh[2:5],
+  hoxC = gene_list_sh[3:5],
+  hoxJ = gene_list_sh[4:5],
+  hoxN = gene_list_sh[5],
+  hoxF = gene_list_sh[c(6:11)],
+  hoxU = gene_list_sh[c(7:11)],
+  hoxY = gene_list_sh[c(8:11)],
+  hoxH = gene_list_sh[c(9:11)],
+  hoxW = gene_list_sh[c(10:11)],
+  hoxI = gene_list_sh[c(11)]
 )
 
 mat_mutant_genomic <- lapply(list_mutant_genomic, function(x) {
@@ -1248,13 +1256,22 @@ plot_corr_dcw_mu <- df_growth_assay %>% group_by(sample) %>%
     }
   )
 
-print(plot_growth_mu, position = c(0, 0.5, 0.5, 1), more = TRUE)
-print(plot_growth_dcw, position = c(0.5, 0.5, 1, 1), more = TRUE)
+print(plot_growth_dcw, position = c(0, 0.5, 0.5, 1), more = TRUE)
+print(plot_growth_mu, position = c(0.5, 0.5, 1, 1), more = TRUE)
 print(plot_corr_dcw_mu, position = c(0, 0, 0.5, 0.5))
 grid::grid.text(c("A","B","C"), x = c(0.03, 0.5, 0.03),
   y = c(0.97, 0.97, 0.47), gp = grid::gpar(cex = 1.2))
 ```
 
+```{r, echo = FALSE, results = 'hide'}
+svg("../figures/figure_mutant_mu.svg", width = 7.5, height = 5.5)
+print(plot_growth_mu, position = c(0, 0.5, 0.5, 1), more = TRUE)
+print(plot_growth_dcw, position = c(0.5, 0.5, 1, 1), more = TRUE)
+print(plot_corr_dcw_mu, position = c(0, 0, 0.5, 0.5))
+grid::grid.text(c("D","E","F"), x = c(0.03, 0.5, 0.03),
+  y = c(0.97, 0.97, 0.47), gp = grid::gpar(cex = 1.2))
+dev.off()
+```
 
 ## Protein cost of secondary hydrogenases
 
@@ -1277,6 +1294,69 @@ Ralstonia_eutropha %>% ungroup %>%
       panel.key(corner = c(0.02, 0.95), ...)
     }
   )
+```
+
+## Protein cost of ETC complexes
+
+- as a complimentary information, we can determine the mass fraction of ETC complexes using MS data
+- these are membrane proteins and hence likely underestimated in comparison to soluble/cytoplasmic proteins
+- the reason is the lower efficiency when extracting membrane proteins
+- a relative comparison is nevertheless possible
+- should allow us to see the rough order of magnitude of ETC complexes
+
+```{r, fig.width = 8, fig.height = 6}
+plots_etc_mass <- Ralstonia_eutropha %>%
+  ungroup %>%
+  select(locus_tag, mean_mass_fraction_norm, growthrate, protein, substrate, sd_massfraction) %>%
+  inner_join(
+    select(df_etc, locus_tag, gene_name) %>%
+      distinct %>%
+      mutate(gene_name = as.character(gene_name)),
+    by = join_by(locus_tag)) %>%
+  filter(substrate != "ammonium", growthrate == 0.1, !is.na(gene_name), !str_detect(gene_name, "H16_")) %>%
+  mutate(operon = str_sub(gene_name, 1, 3)) %>%
+  group_by(operon) %>%
+  group_split() %>%
+  lapply(function(df) {
+    xyplot(mean_mass_fraction_norm*100 ~ factor(gene_name) | operon, df,
+      groups = substrate, par.settings = custom.colorblind(),
+      error_margin = df$sd_massfraction * 100,
+      lwd = 2, col = stdcol[2:4], ylim = c(-0.005, 0.085), pch = 19,
+      between = list(x = 0.5, y = 0.5), as.table = TRUE,
+      scales = list(alternating = FALSE, x = list(rot = 90)),
+      xlab = "", ylab = "protein mass fraction [%]",
+      panel = function(x, y, ...) {
+        panel.grid(h = -1, v = -1, col = grey(0.9))
+        panel.errbars(x, y, beside = TRUE, ...)
+        panel.key(corner = c(0.02, 0.95), ...)
+      }
+    )
+  })
+
+gridExtra::grid.arrange(
+  ncol = 3, nrow = 2,
+  plots_etc_mass[[5]],
+  plots_etc_mass[[4]],
+  plots_etc_mass[[6]],
+  plots_etc_mass[[2]],
+  plots_etc_mass[[3]],
+  plots_etc_mass[[1]]
+)
+```
+
+
+```{r, echo = FALSE}
+svg("../figures/figure_etc_mass.svg", width = 8, height = 6)
+gridExtra::grid.arrange(
+  ncol = 3, nrow = 2,
+  plots_etc_mass[[5]],
+  plots_etc_mass[[4]],
+  plots_etc_mass[[6]],
+  plots_etc_mass[[2]],
+  plots_etc_mass[[3]],
+  plots_etc_mass[[1]]
+)
+dev.off()
 ```
 
 # Session Info

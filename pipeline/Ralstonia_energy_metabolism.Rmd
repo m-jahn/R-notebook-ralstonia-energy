@@ -252,7 +252,6 @@ plot_cluster_dend <- mat_cluster %>% as.dendrogram %>%
   ggplot(labels = FALSE)
 
 gridExtra::grid.arrange(
-  # coords for unit: top, right, bottom, left
   plot_cluster_dend + 
     theme(plot.margin = unit(c(0.1, 0.05, -0.26, 0.085),"npc")),
   plot_heatmap,
@@ -260,49 +259,58 @@ gridExtra::grid.arrange(
 )
 ```
 
+```{r, warning = FALSE, echo = FALSE, fig.width = 8, fig.height = 3.5}
+svg("../figures/figure_heatmap.svg", width = 8, height = 3.5)
+gridExtra::grid.arrange(
+  plot_cluster_dend + 
+    theme(plot.margin = unit(c(0.12, 0.075, -0.29, 0.117),"npc")),
+  plot_heatmap,
+  nrow = 2
+)
+dev.off()
+```
+
 ## Gene similarity, by cluster
 
 The heat map clusters genes together that show similar expression over different conditions. Alternatively, we can use dimensionality reduction to identify clusters of genes that are similar, e.g. through **PCA**, **NMDS**, or **t-SNE**.
 
-```{r, fig.width = 8, fig.height = 4}
+```{r, fig.width = 5, fig.height = 5}
 # set a seed to obtain same pattern for stochastic methods
 set.seed(123)
-
-# run nMDS analysis
-NMDS <- mat_heatmap %>% dist %>% metaMDS
-df_nmds <- NMDS$points %>% as_tibble(rownames = "locus") %>%
-  left_join(enframe(cutreeord(mat_cluster, k = n_clusters), "locus", "cluster"))
+regex_moa <- "mo[aedbg]([A-Z0-9]+)?"
+regex_for <- "fd[swho][A-Z0-9]+"
+regex_hyd <- "hox[A-Z0-9]+|hyp[A-Z0-9]+"
+regex_etc <- "(qcr|cco|cta|cox|cyo|cyd)([A-Z0-9]+)?"
+regex_nit <- "na[rsp]([A-Z0-9]+)?|nir([A-Z0-9]+)?|nor([A-Z0-9]+)?|nos([A-Z0-9]+)?"
+regex_all <- paste(c(regex_moa, regex_for, regex_hyd, regex_etc, regex_nit), collapse = "|")
 
 # run t-SNE analysis
 SNE <- tsne(mat_heatmap %>% dist, max_iter = 500)
 df_tsne <- SNE %>% setNames(c("x", "y")) %>% as_tibble %>%
   mutate(locus = rownames(mat_heatmap)) %>%
-  left_join(enframe(cutreeord(mat_cluster, k = n_clusters), "locus", "cluster"))
-
-plot_nmds <- df_nmds %>% 
-  xyplot(MDS2 ~ MDS1, .,
-    groups = cluster, col = custom_colors,
-    par.settings = custom.colorblind(),
-    aspect = 1, main = "nMDS",
-    panel = function(x, y, ...) {
-      panel.grid(h = -1, v = -1, col = grey(0.9))
-      directlabels::panel.superpose.dl(x, y, ...)
-    }
+  left_join(enframe(cutreeord(mat_cluster, k = n_clusters), "locus", "cluster")) %>%
+  rename(locus_tag = locus) %>%
+  left_join(select(df_fitness_comp, locus_tag, gene_name)) %>%
+  mutate(
+    gene_name = stri_extract_first_regex(gene_name, regex_all) %>%
+    str_replace("mog", "mogA")
   )
 
-plot_tsne <- df_tsne %>% 
+plot_tsne <- df_tsne %>%
   xyplot(V2 ~ V1, .,
     groups = cluster, col = custom_colors,
+    xlab = "tSNE 1", ylab = "tSNE 2",
     par.settings = custom.colorblind(),
-    aspect = 1,  main = "t-SNE",
-    panel = function(x, y, ...) {
+    labels = .[["gene_name"]], selected = {!is.na(.[["gene_name"]])},
+    panel = function(x, y, selected, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.repellabels(x, y, selected = selected, cex = 0.65,
+        draw_box = TRUE, box_fill = grey(0.95, 0.5), ...)
       directlabels::panel.superpose.dl(x, y, ...)
     }
   )
 
-print(plot_nmds, split = c(1,1,2,1), more = TRUE)
-print(plot_tsne, split = c(2,1,2,1))
+print(plot_tsne)
 ```
 
 ## Functions enriched in different clusters
@@ -331,36 +339,42 @@ tryCatch(
 
 Visualize the pathways that are most enriched for the different gene clusters.
 
-```{r, fig.width = 7, fig.height = 4.0}
+```{r, fig.width = 5, fig.height = 5}
 plot_keggenrich <- df_kegg_enrichment %>%
-  rename(kegg_pathway = Pathway) %>%
+  mutate(
+    kegg_pathway = tolower(Pathway),
+    kegg_pathway = str_remove_all(kegg_pathway, ".?biosynthesis| of| metabolism"),
+    kegg_pathway = str_sub(kegg_pathway, 1, 32)
+  ) %>%
   filter(N >= 5, N <= 200) %>%
-  mutate(log10_p_value = -log10(P.DE), .keep = "unused") %>%
-  filter(log10_p_value > 0) %>%
+  mutate(log10_p_value = log10(P.DE), .keep = "unused") %>%
+  filter(log10_p_value < 0) %>%
   group_by(cluster) %>%
-  arrange(desc(log10_p_value)) %>% slice(1:5) %>% ungroup %>%
-  mutate(kegg_pathway = str_remove(kegg_pathway, " - Cupriavidus necator H16")) %>%
+  arrange(log10_p_value) %>%
+  slice(1:3) %>% rowwise() %>%
+  mutate(
+    kegg_pathway = str_remove(kegg_pathway, " - Cupriavidus necator H16"),
+    kegg_pathway = str_glue("{kegg_pathway} ({cluster})")
+  ) %>% ungroup %>%
   
-  xyplot(factor(cluster, rev(unique(cluster))) ~ log10_p_value, .,
-    groups = cluster, labels = .[["kegg_pathway"]],
-    par.settings = custom.colorblind(), col = custom_colors,
-    xlab = expression("-log"[10]*" p-value"), ylab = "cluster",
+  xyplot(factor(kegg_pathway, rev(unique(kegg_pathway))) ~ log10_p_value, .,
+    groups = cluster,
+    par.settings = custom.colorblind(),
+    col = custom_colors,
+    xlab = expression("-log"[10]*" p-value"), ylab = "",
     panel = function(x, y, labels, ...) {
       panel.grid(h = -1, col = grey(0.9))
       panel.xyplot(x, y, ...)
-      panel.repellabels(x, y, labels, cex = 0.6,
-        draw_box = TRUE, box_fill = "white", box_line = TRUE, ...)
     }
   )
 
 print(plot_keggenrich)
 ```
 
-```{r, echo = FALSE}
-svg(filename = "../figures/figure_nmds_tsne.svg", width = 8, height = 8)
-print(plot_nmds, split = c(1,1,2,2), more = TRUE)
-print(plot_tsne, split = c(2,1,2,2), more = TRUE)
-print(plot_keggenrich, split = c(1,2,1,2), more = TRUE)
+```{r, fig.width = 8, fig.height = 4.5, echo = FALSE}
+svg(filename = "../figures/figure_tsne.svg", width = 8, height = 4.5)
+print(plot_tsne, position = c(-0.02, 0 , 0.52, 1), more = TRUE)
+print(plot_keggenrich, position = c(0.46, 0 , 1, 1), more = TRUE)
 dev.off()
 ```
 

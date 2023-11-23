@@ -1206,25 +1206,10 @@ print(plot_cost_predict)
 
 ## Growth advantage of clean, in-frame hydrogenase deletion mutants
 
-```{r, fig.width = 6.5, fig.height = 5.5}
+```{r, fig.width = 6.5, fig.height = 2.65}
 df_growth_assay <- read_csv("../data/growth_assays/df_mu_hox.csv", show_col_types = FALSE)
 df_dcw_assay <- read_csv("../data/growth_assays/df_dcw_hox.csv", show_col_types = FALSE)
 plot_order <- c("WT", "hoxG", "hypB", "hypX", "hoxA", "hoxH")
-
-plot_growth_mu <- df_growth_assay %>%
-  mutate(sample = factor(sample, plot_order)) %>%
-  xyplot(mu_max ~ sample, .,
-    par.settings = custom.colorblind(),
-    lwd = 2, pch = 1,
-    col = stdcol[3], ylim = c(-0.0, 0.38),
-    xlab = "",
-    ylab = expression("µ [h"^-1*"]"),
-    panel = function(x, y, z, ...) {
-      panel.grid(h = -1, v = -1, col = grey(0.9))
-      panel.barplot(x, y, ...)
-      panel.pvalue(x, y, offset = 0.06, ...)
-    }
-  )
 
 plot_growth_dcw <- df_dcw_assay %>%
   mutate(sample = factor(sample, plot_order)) %>%
@@ -1236,40 +1221,38 @@ plot_growth_dcw <- df_dcw_assay %>%
     ylab = expression("yield [g DCW g Frc"^-1*"]"),
     panel = function(x, y, z, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.xyplot(x, y, pch = 19, cex = 0.5, col = grey(0.6))
       panel.barplot(x, y, ...)
-      panel.pvalue(x, y, offset = 0.1, ...)
+      panel.pvalue(x, y, offset = 0.14, ...)
     }
   )
 
-plot_corr_dcw_mu <- df_growth_assay %>% group_by(sample) %>%
-  summarize(mu_max = mean(mu_max, na.rm = TRUE)) %>%
-  left_join(by = "sample",
-    df_dcw_assay %>% group_by(sample) %>%
-      summarize(yield = mean(yield_gDCW_gFRC, na.rm = TRUE))
-  ) %>%
-  xyplot(yield ~ mu_max, .,
+plot_growth_mu <- df_growth_assay %>%
+  mutate(sample = factor(sample, plot_order)) %>%
+  xyplot(mu_max ~ sample, .,
     par.settings = custom.colorblind(),
-    lwd = 2, pch = 1, col = stdcol[3],
+    lwd = 2, pch = 1,
+    col = stdcol[3], ylim = c(-0.0, 0.39),
+    xlab = "",
+    ylab = expression("µ [h"^-1*"]"),
     panel = function(x, y, z, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
-      panel.xyplot(x, y, ...)
+      panel.xyplot(x, y, pch = 19, cex = 0.5, col = grey(0.6))
+      panel.barplot(x, y, ...)
+      panel.pvalue(x, y, offset = 0.07, ...)
     }
   )
 
-print(plot_growth_dcw, position = c(0, 0.5, 0.5, 1), more = TRUE)
-print(plot_growth_mu, position = c(0.5, 0.5, 1, 1), more = TRUE)
-print(plot_corr_dcw_mu, position = c(0, 0, 0.5, 0.5))
-grid::grid.text(c("A","B","C"), x = c(0.03, 0.5, 0.03),
-  y = c(0.97, 0.97, 0.47), gp = grid::gpar(cex = 1.2))
+print(plot_growth_dcw, position = c(0, 0, 0.5, 1), more = TRUE)
+print(plot_growth_mu, position = c(0.5, 0, 1, 1), more = TRUE)
+grid::grid.text(c("A","B"), x = c(0.03, 0.5), y = c(0.94, 0.94), gp = grid::gpar(cex = 1.2))
 ```
 
 ```{r, echo = FALSE, results = 'hide'}
-svg("../figures/figure_mutant_mu.svg", width = 7.5, height = 5.5)
-print(plot_growth_mu, position = c(0, 0.5, 0.5, 1), more = TRUE)
-print(plot_growth_dcw, position = c(0.5, 0.5, 1, 1), more = TRUE)
-print(plot_corr_dcw_mu, position = c(0, 0, 0.5, 0.5))
-grid::grid.text(c("D","E","F"), x = c(0.03, 0.5, 0.03),
-  y = c(0.97, 0.97, 0.47), gp = grid::gpar(cex = 1.2))
+svg("../figures/figure_mutant_mu.svg", width = 7.5, height = 2.65)
+print(plot_growth_dcw, position = c(0, 0, 0.5, 1), more = TRUE)
+print(plot_growth_mu, position = c(0.5, 0, 1, 1), more = TRUE)
+grid::grid.text(c("D","E"), x = c(0.03, 0.5), y = c(0.94, 0.94), gp = grid::gpar(cex = 1.2))
 dev.off()
 ```
 

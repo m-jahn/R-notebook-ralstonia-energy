@@ -1206,6 +1206,13 @@ print(plot_cost_predict)
 
 ## Growth advantage of clean, in-frame hydrogenase deletion mutants
 
+- a selection of hydrogenase mutants was grown in bioreactors, batch mode
+- total volume was 50 mL minimal medium supplemented with 2 g/L fructose + 1 g/L NH4Cl
+- aeration: 100 mL/min for all tubes
+- temperature 30\*C
+- OD 720nm was constantly measured every 15 min
+- biomass yield was determined by collecting all biomass at the end of the experiment and determining DCW
+
 ```{r, fig.width = 6.5, fig.height = 2.65}
 df_growth_assay <- read_csv("../data/growth_assays/df_mu_hox.csv", show_col_types = FALSE)
 df_dcw_assay <- read_csv("../data/growth_assays/df_dcw_hox.csv", show_col_types = FALSE)
@@ -1215,15 +1222,14 @@ plot_growth_dcw <- df_dcw_assay %>%
   mutate(sample = factor(sample, plot_order)) %>%
   xyplot(yield_gDCW_gFRC ~ sample, .,
     par.settings = custom.colorblind(),
-    lwd = 2, pch = 1,
-    col = stdcol[3], ylim = c(-0.0, 0.6),
-    xlab = "",
-    ylab = expression("yield [g DCW g Frc"^-1*"]"),
+    col = stdcol[3], lwd = 2, ylim = c(-0.0, 0.6),
+    xlab = "", ylab = expression("yield [g DCW g Frc"^-1*"]"),
+    scales = list(x = list(rot = 45)),
     panel = function(x, y, z, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
       panel.xyplot(x, y, pch = 19, cex = 0.5, col = grey(0.6))
       panel.barplot(x, y, ...)
-      panel.pvalue(x, y, offset = 0.14, ...)
+      panel.pvalue(x, y, offset = 0.12, ...)
     }
   )
 
@@ -1231,15 +1237,14 @@ plot_growth_mu <- df_growth_assay %>%
   mutate(sample = factor(sample, plot_order)) %>%
   xyplot(mu_max ~ sample, .,
     par.settings = custom.colorblind(),
-    lwd = 2, pch = 1,
-    col = stdcol[3], ylim = c(-0.0, 0.39),
-    xlab = "",
-    ylab = expression("µ [h"^-1*"]"),
+    col = stdcol[3], lwd = 2, ylim = c(-0.0, 0.39),
+    xlab = "", ylab = expression("µ [h"^-1*"]"),
+    scales = list(x = list(rot = 45)),
     panel = function(x, y, z, ...) {
       panel.grid(h = -1, v = -1, col = grey(0.9))
       panel.xyplot(x, y, pch = 19, cex = 0.5, col = grey(0.6))
       panel.barplot(x, y, ...)
-      panel.pvalue(x, y, offset = 0.07, ...)
+      panel.pvalue(x, y, offset = 0.08, ...)
     }
   )
 
@@ -1248,11 +1253,65 @@ print(plot_growth_mu, position = c(0.5, 0, 1, 1), more = TRUE)
 grid::grid.text(c("A","B"), x = c(0.03, 0.5), y = c(0.94, 0.94), gp = grid::gpar(cex = 1.2))
 ```
 
-```{r, echo = FALSE, results = 'hide'}
-svg("../figures/figure_mutant_mu.svg", width = 7.5, height = 2.65)
-print(plot_growth_dcw, position = c(0, 0, 0.5, 1), more = TRUE)
-print(plot_growth_mu, position = c(0.5, 0, 1, 1), more = TRUE)
-grid::grid.text(c("D","E"), x = c(0.03, 0.5), y = c(0.94, 0.94), gp = grid::gpar(cex = 1.2))
+## Hydrogen evolution of WT and hydrogenase mutant
+
+- an alternative hypothesis to protein cost by hydrogenases is energy cost
+- this hypothesis basically states that the enzymatic action of hydrogenases "running reverse" catalyzes the formation of H2 from NADH and protons (as known from cyanobacteria)
+- this reaction would drain the reductant pool (NADH(P)H) and lead to reduced growth
+- this reaction plays a role when the terminal electron acceptor, oxygen or one of the nitrogen oxides, are limiting
+- in order to determine if C. necator spills reductant in heterotrophic conditions through the action of hydrogenases, WT and a mutant defective in all hydrogenases were cultivated with fructose and glycerol to induce hydrogenase expression
+- without strong limitation of oxygen (which was not present in our bioreactor experiments), no hydrogen evolution was detectable
+- this result strengthens the protein cost hypothesis
+
+
+```{r, fig.width = 4, fig.height = 3.2}
+df_h2_evolution <- read_csv("../data/growth_assays/h2_evolution.csv", show_col_types = FALSE) %>%
+  mutate(time = ifelse(time == 20.5, 12.5, time))
+
+plot_h2_evolution <- xyplot(mean ~ time,
+    filter(df_h2_evolution, gas == "O2"),
+    groups = strain,
+    par.settings = custom.colorblind(),
+    error_margin = filter(df_h2_evolution, gas == "O2")$sd,
+    lwd = 2, pch = 1,
+    xlab = "time [h]", ylab = expression("O"[2]*" [%]"),
+    ylim = c(-2, 22),
+    scales = list(x = list(at = seq(0, 10, 2))),
+    panel = function(x, y, ...) {
+      panel.grid(h = -1, v = 0, col = grey(0.9))
+      panel.abline(v = seq(0, 10, 2), col = grey(0.9))
+      panel.xyplot(x, y, type = "l", lty = 2, ...)
+      panel.errbars(x, y, ewidth = 0, lty = 1, ...)
+      panel.key(
+        corner = c(0.9, 0.9),
+        labels = c("∆hoxGHC,∆hofG", "WT", "O2", "H2"),
+        col = c("#E7298A", "#66A61E", grey(0.5), grey(0.5)),
+        pch = c(19, 19, 19, 1)
+      )
+    }
+  ) + as.layer(
+    xyplot(mean/100 ~ time,
+      filter(df_h2_evolution, gas == "H2"),
+      groups = strain, pch = 19, lty = 1,
+      error_margin = filter(df_h2_evolution, gas == "H2")$sd/100,
+      panel = function(x, y, ...) {
+        panel.xyplot(x, y, type = "l", ...)
+        panel.errbars(x, y, ewidth = 0, ...)
+      }
+    )
+  )
+
+print(plot_h2_evolution)
+```
+
+
+```{r, fig.width = 7.5, fig.height = 2.85}
+svg("../figures/figure_mutant_mu.svg", width = 7.5, height = 2.85)
+print(plot_growth_dcw, position = c(-0.02, -0.034, 0.38, 1), more = TRUE)
+print(plot_growth_mu, position = c(0.29, -0.034, 0.69, 1), more = TRUE)
+print(plot_h2_evolution, position = c(0.61, 0, 1, 1), more = TRUE)
+grid::grid.text(c("D","E", "F"), x = c(0.03, 0.35, 0.65),
+  y = c(0.94, 0.94, 0.94), gp = grid::gpar(cex = 1.2))
 dev.off()
 ```
 

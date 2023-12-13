@@ -1106,22 +1106,6 @@ plot_mutant_cost <- xyplot(mean_mass_fraction_norm*100 ~ gene_name, df_mutant_co
     )
   )
 
-plot_cost_vs_mu <- xyplot(mean_mutant_mu ~ corrected_cost,
-    df_mutant_cost, groups = substrate,
-    pointlabels = as.character(df_mutant_cost$gene_name),
-    par.settings = custom.colorblind(), col = stdcol[2:4],
-    xlab = "reduction protein cost [%]",
-    ylab = expression("estimated µ [h"^-1*"]"),
-    panel = function(x, y, pointlabels, ...) {
-      panel.grid(h = -1, v = -1, col = grey(0.9))
-      panel.superpose(x, y, ...)},
-    panel.groups = function(x, y, ...) {
-      panel.xyplot(x, y, ...)
-      panel.abline(h = 0.1, col = grey(0.5), lty = 3, lwd = 2)
-      panel.lmlineq(x, y, r.squared = TRUE, label = "", ...)
-    }
-  )
-
 plot_mbh_operon <- df_increased_mu %>%
   filter(time == 8) %>%
   group_by(locus_tag, gene_name, scaffold, strand, start, end) %>%
@@ -1152,6 +1136,35 @@ grid::grid.text(c("A","B","C"), x = c(0.02, 0.02, 0.02),
   y = c(0.98, 0.66, 0.34), gp = grid::gpar(cex = 1.2))
 dev.off()
 ```
+
+- plot correlation of estimated protein cost and growth rate, per mutant
+- correlation is visible when plotting both parameters separately, but will it also hold in direct comparison?
+
+```{r, fig.width = 6.5, fig.height =3.5}
+plot_cost_vs_mu <- xyplot(mean_mutant_mu ~ corrected_cost | substrate,
+    df_mutant_cost, groups = substrate,
+    pointlabels = as.character(df_mutant_cost$gene_name),
+    par.settings = custom.colorblind(), col = stdcol[2:4],
+    xlab = "reduction protein cost [%]",
+    ylab = expression("estimated µ [h"^-1*"]"),
+    aspect = 1, scales = list(alternating = FALSE),
+    between = list(x = 0.5, y = 0.5),
+    panel = function(x, y, pointlabels, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.superpose(x, y, ...)},
+    panel.groups = function(x, y, ...) {
+      panel.xyplot(x, y, ...)
+      panel.lmlineq(x, y, r.squared = TRUE, label = "", ...)
+    }
+  )
+
+plot_cost_vs_mu
+
+svg("../figures/figure_mutant_cost_vs_growth.svg", width = 6.5, height = 3.5)
+print(plot_cost_vs_mu)
+dev.off()
+```
+
 
 ## Prediction of growth advantage using cell economy model
 
@@ -1400,6 +1413,36 @@ gridExtra::grid.arrange(
 )
 dev.off()
 ```
+
+# Export processed data
+
+- export fitness data in a format that is suitable for [ShinyLib](https://m-jahn.shinyapps.io/ShinyLib/)
+- we export entire data set for best comparison options, even though first part (carbon sources) was published ealier as Jahn et al., eLife, 2021
+
+```{r}
+Cupriavidus_BarSeq_2023 <- df_fitness %>%
+  rename(timepoint = time, fitness_score = norm_gene_fitness, t_stat = t) %>%
+  mutate(
+    induction = "not applicable",
+    log2FC = replace(log2FC, is.infinite(log2FC), NA),
+    fold_change = 2^log2FC,
+    condition = paste0(substrate, " - ", condition)
+  ) %>%
+  select(-ID) %>%
+  arrange(locus_tag, condition, timepoint) %>%
+  left_join(by = "locus_tag",
+    df_ref %>%
+      select(
+        locus_tag, new_locus_tag,
+        uniprot, protein_name, gene_name,
+        System, Process, Pathway
+      )
+  )
+
+# export to RData
+save(Cupriavidus_BarSeq_2023, file = "../data/barseq/Cupriavidus_BarSeq_2023.Rdata")
+```
+
 
 # Session Info
 

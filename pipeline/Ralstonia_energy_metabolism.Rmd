@@ -1,12 +1,16 @@
 ---
-title: "Investigating energy metabolism in *C. necator* using a barcoded transposon library"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+title: Investigating energy metabolism in *C. necator* using a barcoded transposon
+  library
 author: "Michael Jahn"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  html_notebook: 
+  html_document:
+    toc: yes
+    df_print: paged
+  html_notebook:
     theme: cosmo
     toc: yes
-    number_sections: true
+    number_sections: yes
 ---
 
 # Description

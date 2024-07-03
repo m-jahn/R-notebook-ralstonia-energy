@@ -914,6 +914,122 @@ df_co2_transport_align %>%
 -   Bc1 complex accepts reduced quinols as e- donor, pumps 4 H+ /2 e− via proton-motive Q cycle (quinol:cyt c oxidoreduction), and releases reduced cytochrome C e- carriers. Main cytochrome complex for most substrates including hydrogen
 -   Cbb3-type cytochrome oxidase (*cco* operon) also important for growth on formate, while *cta* operon (aa3 complex) more important on fructose and succinate
 
+# Central carbon metabolism
+
+## gene-reaction relationship
+
+To show (conditional) essentiality of genes which are related to central metabolic reactions, we need to obtain a table of gene-reaction relationships.
+Such a table was used in our eLife paper, [Jahn et al., 2021](https://elifesciences.org/articles/69019), and was exported from the curated genome scale model of *C. necator*.
+
+- download gene-reaction table
+- add some genes manually that are not metabolic reactions but interesting regulators
+- we add: 
+  - `cbbR` (`H16_B1396`) Cbb operon transcriptional activator
+  - `regA` (`H16_A0202`) response regulator, 2-comp. system
+  - `regB` (`H16_A0203`) kinase, 2-comp. system
+
+```{r}
+url_reactions <- url("https://github.com/m-jahn/R-notebook-ralstonia-proteome/raw/main/data/input/model_reactions.csv")
+df_reactions <- read_csv(url_reactions, show_col_types = FALSE) %>%
+  rename(locus_tag = genes) %>%
+  add_row(reaction_id = "Regulators", locus_tag = "H16_B1396, H16_A0202, H16_A0203")
+
+df_reactions %>%
+  filter(!str_detect(reaction_id, "^EX_")) %>%
+  head()
+```
+
+## Plot conditional fitness broken down by CCM pathway
+
+- use the same set of enzymes as in [Jahn et al., 2021](https://elifesciences.org/articles/69019)
+- using these sets, extract fitness from results table and plot minifigures
+- these can be arranged in/around a map of the central carbon metabolism (CCM)
+- reactions with slightly different substrates/products but that are gene-wise identical have been removed
+- these are SUCDi, ACONT2, TKT2, and PDH3 which is identical to AKGDH
+
+```{r}
+list_ccm_enzymes <- list(
+  CBB = c("PGK", "TPI", "GAPD", "FBA", "FBP", "TKT1", "TAh", "RPE", "RPI", "PRUK", "RBPC"),
+  ED = c("PGI", "G6PDH2r", "PGL", "EDD", "EDA"),
+  PYR = c("PGM", "ENO", "PYK", "PDH1", "PDH2", "PC", "PPC", "ME1", "ME2", "CS"),
+  TCA = c("ACONT1", "ICDHx", "ICDHyr", "AKGDH", "SUCOAS", "SUCD1", "FUM", "MDH", "MALS"),
+  REG = c("Regulators")
+)
+```
+
+
+```{r, fig.height = 12, fig.width = 14, warning = FALSE}
+# find genes for metabolic reactions
+list_reaction <- list_ccm_enzymes %>%
+  enframe(name = "pathway", value = "reaction_id") %>%
+  tidyr::unnest(reaction_id)
+
+list_genes <- df_reactions %>%
+  right_join(list_reaction, by = "reaction_id") %>%
+  separate_longer_delim(locus_tag, ", ") %>%
+  select(pathway, reaction_id, locus_tag)
+
+# get fitness for these genes
+df_fitness_ccm <- df_fitness_summary %>%
+  filter(time == 8) %>%
+  inner_join(list_genes, by = "locus_tag")
+
+# plot heatmaps
+plots_ccm <- df_fitness_ccm %>%
+  arrange(pathway, reaction_id, locus_tag) %>%
+  mutate(
+    gene_name = locus_tag,
+    # gene_name = eggNOG_name %>%
+    # str_extract("[a-zA-Z0-9_]+") %>%
+    # fct_inorder(),
+    cond_short = case_match(cond_short,
+      "formate - C"	~ "FoC",
+      "fructose - C" ~ "FrC",
+      "nitrate - C" ~ "NiC",
+      "succinate - C"	~ "SuC",
+      "formate - P" ~ "FoP",
+      "fructose - P" ~ "FrP",
+      "hydrogen - P" ~ "HyP",
+      "nitrate - P"	~ "NiP",
+      "succinate - P"~ "SuP") %>%
+      factor(., unique(.)[c(3,8,7,1,5,4,9,2,6)]),
+    norm_gene_fitness_median = norm_gene_fitness_median %>%
+           replace(., . < -6, -6) %>% replace(., . > 6, 6)
+  ) %>%
+  group_by(pathway, reaction_id) %>%
+  dplyr::group_split() %>%
+  lapply(function(df) {
+    levelplot(
+      norm_gene_fitness_median ~ fct_rev(cond_short) * fct_rev(gene_name) |
+        reaction_id, df,
+      par.settings = custom.colorblind(), colorkey = FALSE,
+      col.regions = colorRampPalette(heat_cols)(25),
+      at = seq(-6, 6, 0.5), aspect = "iso", xlab = "", ylab = "",
+      scales = list(alternating = FALSE, cex = 0.7, tck = 0,
+        x = list(rot = 90)),
+      between = list(x = 0.5, y = 0.5), lwd = 0,
+      panel = function(x, y, z, ...) {
+        panel.levelplot(x, y, z, ...)
+        panel.abline(
+          v = seq_along(unique(x)) + 0.5,
+          h = seq_along(unique(y)) + 0.5,
+          col = "white",
+          lwd = 2
+        )
+      }
+    )
+  })
+
+cowplot::plot_grid(plotlist = plots_ccm, ncol = 6)
+```
+
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+svg("../figures/figure_centralmet.svg", width = 14, height = 12)
+cowplot::plot_grid(plotlist = plots_ccm, ncol = 6)
+dev.off()
+```
+
 # Growth advantage of Hydrogenase mutants
 
 ## Determine mutant growth rate from competition experiments
@@ -1026,7 +1142,7 @@ list_mutant_genomic <- list(
   hypD = c(gene_list_mh, gene_list_hyp[5:7], gene_list_sh),
   hypE = c(gene_list_mh, gene_list_hyp[6:7], gene_list_sh),
   hypX = c(gene_list_mh, gene_list_hyp[7], gene_list_sh),
-  hoxA = c(gene_list_mh, gene_list_sh),
+  hoxA = c(gene_list_mh, gene_list_hyp, gene_list_sh),
   hoxB = gene_list_sh[2:5],
   hoxC = gene_list_sh[3:5],
   hoxJ = gene_list_sh[4:5],

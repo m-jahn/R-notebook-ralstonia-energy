@@ -341,7 +341,6 @@ tryCatch(
     kegga(species.KEGG = "reh") %>%
     mutate(cluster = clust)
   }) %>% bind_rows,
-  #head(df_kegg_enrichment),
   error = function(e) print(e)
 )
 ```
@@ -386,8 +385,15 @@ print(plot_tsne, position = c(-0.02, 0 , 0.52, 1), more = TRUE)
 print(plot_keggenrich, position = c(0.46, 0 , 1, 1), more = TRUE)
 dev.off()
 ```
+# Genes essential in all conditions
 
-# Supervised analysis of energy metabolism
+## Cluster 1
+
+- before looking at condition-specific essentiality, can also look at genes essential in all conditions
+- these genes are mostly present in cluster 1
+- we assume that these are amino acid biosynthesis genes
+- they become essential when transferring *C. necator* from rich to minimal/defined medium
+- in total 33 genes with depletion 
 
 Generalized function to plot (small) heatmaps.
 
@@ -444,6 +450,59 @@ genome_plot <- function(df, xlim = NULL, title = "", rot_labels = 0) {
   )
 }
 ```
+
+Plot heat map of cluster 1 gene fitness.
+
+```{r, fig.width = 7.0, fig.height = 4.0}
+plot_cl1 <- df_cluster %>%
+  filter(cluster == 1) %>%
+  left_join(df_fitness_summary, by = "locus_tag") %>%
+  filter(time == 8) %>%
+  group_by(COG_Process) %>%
+  mutate(COG_n = n()) %>%
+  ungroup() %>%
+  arrange(desc(COG_n), COG_Process, gene_name) %>%
+  mutate(gene_name = fct_inorder(gene_name)) %>%
+  heatmap_fitness()
+
+print(plot_cl1)
+```
+- Which functional categories (COG) do genes belong to?
+
+```{r, fig.width = 7.0, fig.height = 2.5}
+plot_cl1_function <- df_cluster %>%
+  filter(cluster == 1) %>%
+  left_join(df_fitness_comp, by = "locus_tag") %>%
+  count(COG_Process) %>%
+  arrange(desc(n)) %>%
+  mutate(COG_Process = fct_inorder(COG_Process)) %>%
+  mutate(vars = factor("COG process")) %>%
+  xyplot(vars ~ n, .,
+    stack = TRUE, horizontal = TRUE,
+    auto.key = list(columns = 2),
+    par.settings = custom.colorblind(),
+    xlab = "count", ylab = "", lty = 0,
+    xlim = c(0, 33),
+    groups = COG_Process,
+    panel = function(x, y, ...) {
+      panel.grid(h = -1, v = -1, col = grey(0.9))
+      panel.barchart(x, y, ...)
+    }
+  )
+
+print(plot_cl1_function)
+```
+
+```{r, echo = FALSE, results = FALSE, warning = FALSE, message = FALSE, fig.width = 7, fig.height = 6}
+svg(filename = "../figures/figure_cl1.svg", width = 7, height = 6)
+print(plot_cl1, position = c(0, 0, 1, 0.75), more = TRUE)
+print(plot_cl1_function, position = c(-0.018, 0.62, 0.93, 1))
+dev.off()
+```
+
+
+
+# Supervised analysis of energy metabolism
 
 ## Molybdenum cofactor biosynthesis
 

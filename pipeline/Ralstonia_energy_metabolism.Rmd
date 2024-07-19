@@ -983,15 +983,17 @@ Such a table was used in our eLife paper, [Jahn et al., 2021](https://elifescien
 - download gene-reaction table
 - add some genes manually that are not metabolic reactions but interesting regulators
 - we add: 
-  - `cbbR` (`H16_B1396`) Cbb operon transcriptional activator
+  - `cbbR` (`H16_B1396`) cbb operon transcriptional activator
   - `regA` (`H16_A0202`) response regulator, 2-comp. system
   - `regB` (`H16_A0203`) kinase, 2-comp. system
+  - `rpoN` (`H16_A0387`) Sigma 54 RNA-polymerase sigma factor
+  - `hoxA` (`PHG019`) hoxA master regulator
 
 ```{r}
 url_reactions <- url("https://github.com/m-jahn/R-notebook-ralstonia-proteome/raw/main/data/input/model_reactions.csv")
 df_reactions <- read_csv(url_reactions, show_col_types = FALSE) %>%
   rename(locus_tag = genes) %>%
-  add_row(reaction_id = "Regulators", locus_tag = "H16_B1396, H16_A0202, H16_A0203")
+  add_row(reaction_id = "Regulators", locus_tag = "H16_B1396, H16_A0202, H16_A0203, H16_A0387, PHG019")
 
 df_reactions %>%
   filter(!str_detect(reaction_id, "^EX_")) %>%

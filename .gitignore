@@ -41,4 +41,5 @@ vignettes/*.pdf
 # non-pipeline files
 pipeline/*.RData
 pipeline/*.nb.html
+**/*.Rdata
 figures/*
